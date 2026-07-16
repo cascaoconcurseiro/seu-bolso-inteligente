@@ -354,63 +354,6 @@ export function useUnarchiveTrip() {
   });
 }
 
-export function useAddTripParticipant() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      tripId,
-      name,
-      userId,
-      personalBudget,
-    }: {
-      tripId: string;
-      name: string;
-      userId: string;
-      personalBudget?: number;
-    }) => {
-      if (!userId) throw new Error("ID do usuário é obrigatório para adicionar participante");
-
-      const { data, error } = await supabase
-        .from("trip_members")
-        .insert({
-          trip_id: tripId,
-          user_id: userId,
-          personal_budget: personalBudget || null,
-          role: "member",
-          status: "active",
-        })
-        .select()
-        .single();
-
-      if (error) {
-        if (error.code === "23505") {
-          throw new Error("Este participante já está na viagem");
-        }
-        throw error;
-      }
-
-      return {
-        id: data.id,
-        trip_id: data.trip_id,
-        user_id: data.user_id,
-        name: name,
-        personal_budget: data.personal_budget,
-        created_at: data.created_at,
-      } as TripParticipant;
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["trip-participants", variables.tripId] });
-      queryClient.invalidateQueries({ queryKey: ["trip-members", variables.tripId] });
-      toast.success("Participante adicionado!");
-    },
-    onError: (error: Error) => {
-      logger.error("Erro ao adicionar membro:", error);
-      toast.error("Erro ao adicionar membro à viagem");
-    },
-  });
-}
-
 export function useRemoveTripParticipant() {
   const queryClient = useQueryClient();
 
@@ -495,31 +438,6 @@ export function useTripFinancialSummary(tripId: string | null) {
         return (Array.isArray(data) ? data[0] : data) as TripFinancialSummary;
       } catch (error) {
         logger.error("Erro ao buscar resumo financeiro da viagem:", error);
-        throw error;
-      }
-    },
-    enabled: !!user && !!tripId,
-    staleTime: 60 * 1000,
-    refetchOnWindowFocus: false,
-  });
-}
-
-// Hook para calcular gasto pessoal em uma viagem
-export function useMyTripSpent(tripId: string | null) {
-  const { user } = useAuth();
-
-  return useQuery({
-    queryKey: ["my-trip-spent", tripId, user?.id],
-    queryFn: async () => {
-      if (!tripId || !user) return 0;
-      try {
-        const data = await callRPCWithRetry("calculate_trip_spent", {
-          p_trip_id: tripId,
-          p_user_id: user?.id,
-        });
-        return Number(data || 0);
-      } catch (error) {
-        logger.error("Erro ao calcular gasto da viagem:", error);
         throw error;
       }
     },

@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Budget } from "@/types/database";
-import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMonth } from "@/contexts/MonthContext";
 import { getMonthDateRange } from "@/utils/dateUtils";
@@ -25,7 +24,6 @@ export interface BudgetWithProgress {
 }
 
 export const useBudgets = () => {
-  const { toast } = useToast();
   const { user } = useAuth();
   const { currentDate, startDay } = useMonth();
   const queryClient = useQueryClient();

@@ -54,16 +54,6 @@ async function send(payload: ErrorPayload) {
   }
 }
 
-export function logError(error: unknown, extra?: Record<string, unknown>) {
-  const err = error instanceof Error ? error : new Error(String(error));
-  send({
-    error_type: err.name || "Error",
-    message: err.message,
-    stack: err.stack?.slice(0, 2000),
-    extra: extra ? toJson(extra) : undefined,
-  });
-}
-
 async function flushPendingErrors() {
   try {
     const raw = localStorage.getItem("pending_error_log");

@@ -110,38 +110,6 @@ export function calculateExchangeSummary(purchases: ExchangePurchase[]): Exchang
 }
 
 /**
- * Formata valor com símbolo da moeda
- */
-export function formatCurrencyWithSymbol(value: number, currencyCode: string): string {
-  const symbols: Record<string, string> = {
-    BRL: "R$",
-    USD: "$",
-    EUR: "€",
-    GBP: "£",
-    ARS: "$",
-    CLP: "$",
-    UYU: "$",
-    PYG: "₲",
-    JPY: "¥",
-    CAD: "C$",
-    AUD: "A$",
-    CHF: "CHF",
-    MXN: "$",
-    COP: "$",
-    PEN: "S/",
-  };
-
-  const symbol = symbols[currencyCode] || currencyCode;
-
-  return new Intl.NumberFormat("pt-BR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })
-    .format(value)
-    .replace(/^/, `${symbol} `);
-}
-
-/**
  * Retorna o símbolo da moeda
  */
 export function getCurrencySymbol(currencyCode: string): string {

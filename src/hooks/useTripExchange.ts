@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { ExchangePurchase, ExchangePurchaseInput, ExchangeSummary } from "@/types/tripExchange";
 import {
   calculateEffectiveRate,
@@ -100,7 +100,6 @@ export function useTripExchangePurchases(tripId: string | null) {
 export function useCreateExchangePurchase() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const { toast } = useToast();
 
   return useMutation({
     mutationFn: async ({ tripId, input }: { tripId: string; input: ExchangePurchaseInput }) => {
@@ -132,17 +131,12 @@ export function useCreateExchangePurchase() {
       queryClient.invalidateQueries({
         queryKey: ["trip-exchange-purchases", variables.tripId],
       });
-      toast({
-        title: "Câmbio registrado",
+      toast.success("Câmbio registrado", {
         description: "Compra de câmbio adicionada com sucesso",
       });
     },
     onError: (error) => {
-      toast({
-        title: "Erro ao registrar câmbio",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error("Erro ao registrar câmbio", { description: error.message });
     },
   });
 }
@@ -152,7 +146,6 @@ export function useCreateExchangePurchase() {
  */
 export function useUpdateExchangePurchase() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   return useMutation({
     mutationFn: async ({
@@ -190,17 +183,12 @@ export function useUpdateExchangePurchase() {
       queryClient.invalidateQueries({
         queryKey: ["trip-exchange-purchases", variables.tripId],
       });
-      toast({
-        title: "Câmbio atualizado",
+      toast.success("Câmbio atualizado", {
         description: "Compra de câmbio atualizada com sucesso",
       });
     },
     onError: (error) => {
-      toast({
-        title: "Erro ao atualizar câmbio",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error("Erro ao atualizar câmbio", { description: error.message });
     },
   });
 }
@@ -210,7 +198,6 @@ export function useUpdateExchangePurchase() {
  */
 export function useDeleteExchangePurchase() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   return useMutation({
     mutationFn: async ({ id, tripId }: { id: string; tripId: string }) => {
@@ -222,17 +209,12 @@ export function useDeleteExchangePurchase() {
       queryClient.invalidateQueries({
         queryKey: ["trip-exchange-purchases", variables.tripId],
       });
-      toast({
-        title: "Câmbio excluído",
+      toast.success("Câmbio excluído", {
         description: "Compra de câmbio removida com sucesso",
       });
     },
     onError: (error) => {
-      toast({
-        title: "Erro ao excluir câmbio",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error("Erro ao excluir câmbio", { description: error.message });
     },
   });
 }

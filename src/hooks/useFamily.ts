@@ -423,31 +423,6 @@ export function useRemoveFamilyMember() {
   });
 }
 
-export function useUpdateFamily() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ id, ...input }: Partial<Family> & { id: string }) => {
-      const { data, error } = await supabase
-        .from("families")
-        .update(input)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data as Family;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["family"] });
-      toast.success("Família atualizada!");
-    },
-    onError: (error) => {
-      toast.error("Erro ao atualizar família: " + error.message);
-    },
-  });
-}
-
 // Adicionar contato de despesa diretamente (sem convite, member_type='contact')
 export function useAddSharedContact() {
   const { user } = useAuth();

@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { logger } from "@/utils/logger";
 
 function hasResponseContext(error: unknown): error is { context: Response } {
@@ -13,7 +13,6 @@ function hasResponseContext(error: unknown): error is { context: Response } {
 }
 
 export const useSyncAssetPrices = () => {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -62,28 +61,24 @@ export const useSyncAssetPrices = () => {
       localStorage.setItem("last_asset_sync", Date.now().toString());
 
       if (data.updated > 0) {
-        toast({
-          title: "Cotações Sincronizadas",
+        toast.success("Cotações Sincronizadas", {
           description: `${data.updated} ativos atualizados com sucesso.`,
         });
         // Refetch queries to update UI
         queryClient.invalidateQueries({ queryKey: ["assets"] });
       } else {
-        toast({
-          title: "Sincronização Concluída",
+        toast.success("Sincronização Concluída", {
           description: "Nenhum ativo precisou ser atualizado ou tickers inválidos.",
         });
       }
     },
     onError: (error) => {
       logger.error(error instanceof Error ? error.message : String(error));
-      toast({
-        title: "Erro na Sincronização",
+      toast.error("Erro na Sincronização", {
         description:
           error instanceof Error
             ? error.message
             : "Não foi possível buscar as cotações atualizadas.",
-        variant: "destructive",
       });
     },
   });

@@ -96,20 +96,6 @@ Retorne APENAS um JSON válido. É PROIBIDO retornar null para categoryId se hou
 }
 `;
 
-export const getTripShoppingPrompt = (destination: string, currency: string) => `
-Você é a inteligência artificial "Arquiteto Financeiro" especializada em viagens.
-O usuário vai viajar para: "${destination}" e a moeda local da viagem é: "${currency}".
-Sugira até 8 itens comuns que viajantes costumam COMPRAR (Shopping) nesse destino.
-Pense no que as pessoas mais gastam nesse local (souvenirs típicos, comidas locais que levam pra casa, eletrônicos se for Miami/Orlando, vinhos se for Paris/Mendoza, etc).
-A estimativa de custo (estimatedCost) deve estar na moeda informada: ${currency}.
-
-RETORNE APENAS UM JSON no seguinte formato, e nada mais:
-{
-  "suggestions": [
-    { "item": "Nome do Item", "estimatedCost": 0.00 }
-  ]
-}`;
-
 export const getTripItineraryPrompt = (destination: string) => `
 Você é um viajante experiente que conhece ${destination} de verdade — não um guia turístico genérico.
 Crie um roteiro de 5 a 8 paradas para alguém que vai a ${destination}.

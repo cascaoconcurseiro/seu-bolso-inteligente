@@ -309,10 +309,6 @@ export const ABROAD_BROKERS: Broker[] = [
   },
 ];
 
-export const getBrokersByLocation = (location: "BR" | "ABROAD"): Broker[] => {
-  return location === "BR" ? BR_BROKERS : ABROAD_BROKERS;
-};
-
 export const getBrokerById = (id: string): Broker | undefined => {
   return [...BR_BROKERS, ...ABROAD_BROKERS].find((b) => b.id === id);
 };

@@ -18,7 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as dateFns from "date-fns";
@@ -95,7 +95,6 @@ export function TripItinerary({ trip }: TripItineraryProps) {
   const [category, setCategory] = useState<PlaceCategory | null>(null);
 
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   // Coordenada base da viagem — cacheada em trips.latitude/longitude para não
   // re-geocodificar trip.destination toda vez que a tela abre. Se ainda não
@@ -173,12 +172,12 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["trip-itinerary", tripId] });
-      toast({ title: "Atividade adicionada" });
+      toast.success("Atividade adicionada");
       resetForm();
       setShowDialog(false);
     },
     onError: (error) => {
-      toast({ title: "Erro ao adicionar", description: error.message, variant: "destructive" });
+      toast.error("Erro ao adicionar", { description: error.message });
     },
   });
 
@@ -197,13 +196,13 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["trip-itinerary", tripId] });
-      toast({ title: "Atividade atualizada" });
+      toast.success("Atividade atualizada");
       resetForm();
       setShowDialog(false);
       setEditingItem(null);
     },
     onError: (error) => {
-      toast({ title: "Erro ao atualizar", description: error.message, variant: "destructive" });
+      toast.error("Erro ao atualizar", { description: error.message });
     },
   });
 
@@ -226,11 +225,11 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["trip-itinerary", tripId] });
-      toast({ title: "Localização atualizada" });
+      toast.success("Localização atualizada");
     },
     onError: (error) => {
       queryClient.invalidateQueries({ queryKey: ["trip-itinerary", tripId] });
-      toast({ title: "Erro ao mover", description: error.message, variant: "destructive" });
+      toast.error("Erro ao mover", { description: error.message });
     },
   });
 
@@ -243,11 +242,11 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["trip-itinerary", tripId] });
-      toast({ title: "Atividade removida" });
+      toast.success("Atividade removida");
       setDeletingItem(null);
     },
     onError: (error) => {
-      toast({ title: "Erro ao remover", description: error.message, variant: "destructive" });
+      toast.error("Erro ao remover", { description: error.message });
     },
   });
 
@@ -284,15 +283,12 @@ export function TripItinerary({ trip }: TripItineraryProps) {
       await Promise.all(promises);
 
       queryClient.invalidateQueries({ queryKey: ["trip-itinerary", tripId] });
-      toast({
-        title: "Sucesso",
+      toast.success("Sucesso", {
         description: `${suggestions.length} atividades adicionadas no 1º dia.`,
       });
     } catch (error: unknown) {
-      toast({
-        title: "Erro ao salvar",
+      toast.error("Erro ao salvar", {
         description: getErrorMessage(error, "Não foi possível salvar as sugestões"),
-        variant: "destructive",
       });
     } finally {
       setIsApplyingAI(false);

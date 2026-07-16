@@ -727,12 +727,6 @@ export function getBankById(id: string | null): BankConfig {
   return banks.default;
 }
 
-// Função para obter banco internacional pelo ID
-export function getInternationalBankById(id: string | null): BankConfig {
-  if (!id) return internationalBanks.default_international;
-  return internationalBanks[id] || internationalBanks.default_international;
-}
-
 // Função para obter bandeira pelo nome
 export function getCardBrand(name: string): CardBrandConfig | null {
   if (!name) return null;
@@ -749,14 +743,4 @@ export function getCardBrand(name: string): CardBrandConfig | null {
   );
 
   return found || null;
-}
-
-// Componente de ícone do banco (para usar em JSX)
-export function getBankIconStyles(bankId: string | null) {
-  const bank = getBankById(bankId);
-  return {
-    backgroundColor: bank.color,
-    color: bank.textColor,
-    text: bank.icon,
-  };
 }

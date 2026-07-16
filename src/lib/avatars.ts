@@ -199,9 +199,3 @@ export const getAvatarIcon = (iconId: string) => {
   // Se não encontrar, retornar o primeiro avatar
   return icon || avatarIcons[0];
 };
-
-export const generateAvatar = (colorId: string, iconId: string) => {
-  const color = getAvatarColor(colorId);
-  const icon = getAvatarIcon(iconId);
-  return { color, icon };
-};

@@ -1,7 +1,20 @@
 # CHECKLIST.md — Sprint Kanban: Seu Bolso Inteligente
 
 > Kanban de tarefas em markdown. Atualizar a cada sessão.
-> Última atualização: **2026-07-16 — Roteiro de viagem linkado com o mapa**
+> Última atualização: **2026-07-16 — Faxina de código morto + fix do toast duplicado**
+
+---
+
+## Concluído - 16/07/2026 - Faxina de código morto (auditoria + limpeza)
+
+- [x] **[CLEAN-SCRIPTS]** 25 scripts de debug de sessões passadas removidos de `scripts/` (81% da pasta) — nunca referenciados em `package.json`/CI.
+- [x] **[CLEAN-TOAST-BUG]** Bug real corrigido: 8 telas (metas, orçamentos, ativos, câmbio de viagem, checklist/itinerário de viagem) chamavam `useToast()` do sistema antigo do shadcn, cujo `<Toaster/>` nunca foi montado em `App.tsx` desde a migração pro `sonner` — notificações de sucesso/erro nunca apareciam pro usuário. Todos os call-sites migrados pro `toast` do `sonner`; sistema antigo (`toast.tsx`, `toaster.tsx`, `use-toast.ts`) apagado.
+- [x] **[CLEAN-EXPORTS]** Revisão manual, um por um, dos ~202 exports/tipos flagados como não usados (`knip`) — cada um cross-checado contra uso interno antes de apagar (vários eram falso-positivo: usados internamente no próprio arquivo, ex. `dateUtils.formatDateUTC`, `getBankLogo`→`BANK_LOGOS`). Achados reais de duplicação removidos: `supabaseHelpers.ts` (10 funções de um CRUD genérico nunca adotado), `errorHandling.ts` (10 funções de um error-handler nunca adotado), `notificationService.ts` (14 funções — o centro de notificações real usa `useNotifications.ts`, não este service), `queryConfig.ts` (6 configs de query nunca adotadas), `currencyFormatter.ts` (9 funções duplicadas — `getCurrencySymbol` real é a de `exchangeCalculations.ts`), 3 hooks de "adicionar/remover membro de viagem" duplicados (`useTrips.ts`/`useTripMembers.ts` vs. o fluxo real em `InviteMemberDialog.tsx`), 2 implementações duplicadas de "antecipar parcelas" (a de `useTransactionMutations.ts` morta, a real é `useAnticipateInstallments.ts`).
+- [x] **[CLEAN-DEPS]** 3 dependências não usadas removidas do `package.json`: `@radix-ui/react-separator`, `@radix-ui/react-toast`, `sharp` (dev).
+- [x] **[CLEAN-GIT]** `eslint-report.json`/`eslint-report-utf8.json` (8,1 MB commitados por engano) e `playwright-report/`/`test-results/` (já gitignorados mas ainda rastreados) removidos do git; padrão de lint-report adicionado ao `.gitignore`.
+- [x] **[CLEAN-DOCS]** `CLAUDE_HANDOFF.md` (handoff paralelo parado em 02/07) e os 6 relatórios de auditoria pontual de 30/06 arquivados em `docs/archive/` — raiz do repo com só os 3 documentos vivos (`HANDOFF.md`, `MASTER_BLUEPRINT.md`, `CHECKLIST.md`).
+- [x] **Resultado:** ~350 arquivos / ~81.500 linhas em `src/`+`scripts/` (era 390 arquivos / ~89.500 linhas) — redução de ~7.950 linhas de código morto confirmado, zero mudança de comportamento fora do fix do toast.
+- [x] Verificação completa: `tsc --noEmit` (0 erros), `npm run lint` (0 erros), `format:check` (verde), `npm test -- --run` (239/239, igual ao baseline), `npm run build` + service worker PWA (verde), `test:secrets` (verde).
 
 ---
 

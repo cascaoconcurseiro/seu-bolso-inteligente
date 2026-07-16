@@ -147,22 +147,6 @@ export function useDismissNotification() {
   });
 }
 
-/** @deprecated Use `useDismissNotification` instead */
-export function useDeleteNotification() {
-  const dismiss = useDismissNotification();
-  return {
-    ...dismiss,
-    mutate: (id: string) => {
-      toast.success("Notificação removida");
-      dismiss.mutate(id);
-    },
-    mutateAsync: async (id: string) => {
-      toast.success("Notificação removida");
-      return dismiss.mutateAsync(id);
-    },
-  };
-}
-
 export function useDismissAll() {
   const { user } = useAuth();
   const queryClient = useQueryClient();

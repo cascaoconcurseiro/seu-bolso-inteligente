@@ -16,7 +16,6 @@ import { createNotification } from "@/services/notificationService";
 import { CreateTransactionInput, Transaction } from "./types";
 import { validatePayerId } from "./helpers";
 import { toast } from "sonner";
-import { rpcWithRetry } from "@/utils/rpcWithRetry";
 // Splits vindos do formulário usam snake_case (member_id), diferente do
 // TransactionSplitData camelCase de types/transactions
 interface TransactionSplitData {
@@ -419,115 +418,6 @@ export function useUpdateRecurringSeries() {
     },
     onError: (error) => {
       transactionToasts.error("atualizar série", error);
-    },
-  });
-}
-
-export function useDeleteInstallmentSeries() {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (seriesId: string) => {
-      // CORREÇÃO: Usar RPC com retry para maior resiliência (Critério Alto #7)
-      const data = await rpcWithRetry("delete_installment_series", { p_series_id: seriesId });
-
-      const deletedCount =
-        (data as unknown as { deleted_count: number }[])?.[0]?.deleted_count || 0;
-
-      if (deletedCount === 0) {
-        throw new Error(
-          "Nenhuma parcela foi excluída. Verifique se a série existe e pertence a você."
-        );
-      }
-
-      return { deletedCount };
-    },
-    onSuccess: async () => {
-      // Run invalidations without awaiting to unblock UI instantly
-      invalidateFinancialQueries(queryClient);
-      invalidateSharedQueries(queryClient);
-      invalidateTripQueries(queryClient);
-      toast.success("Série de parcelas excluída com sucesso!");
-
-      // ✅ INTELIGÊNCIA FINANCEIRA: Atualizar orçamentos e saldos em tempo real
-      if (user?.id) {
-        generateAllNotifications(user.id).catch((e) =>
-          logger.error("Erro ao gerar notificações pós-exclusão de série", e)
-        );
-      }
-    },
-    onError: (error) => {
-      transactionToasts.error("remover série", error);
-    },
-  });
-}
-
-export function useAnticipateInstallments() {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      seriesId,
-      fromInstallment,
-      newDate,
-      updateFutureOnly = true,
-    }: {
-      seriesId: string;
-      fromInstallment: number;
-      newDate: string;
-      updateFutureOnly?: boolean;
-    }) => {
-      if (!user) throw new Error("Usuário não autenticado");
-      const userId = user.id;
-
-      let query = supabase
-        .from("transactions")
-        .select("id, date, competence_date, current_installment")
-        .eq("series_id", seriesId);
-
-      if (updateFutureOnly) {
-        query = query.gte("current_installment", fromInstallment);
-      }
-
-      const { data, error } = await query.select();
-
-      if (error) throw error;
-      if (!data || data.length === 0) throw new Error("Nenhuma parcela encontrada");
-
-      const updates = data.map((t, index) => {
-        const installmentDate = dateUtils.addMonthsToDate(dateUtils.parseDate(newDate), index);
-        const formattedDate = dateUtils.formatDate(installmentDate);
-        const competenceDate = dateUtils.getCompetenceDate(installmentDate);
-
-        return supabase
-          .from("transactions")
-          .update({
-            date: formattedDate,
-            competence_date: competenceDate,
-          })
-          .eq("id", t.id)
-          .eq("user_id", userId);
-      });
-
-      await Promise.all(updates);
-      return { count: data.length };
-    },
-    onSuccess: async () => {
-      // Run invalidations without awaiting to unblock UI instantly
-      invalidateFinancialQueries(queryClient);
-      toast.success("Parcelas antecipadas com sucesso!");
-
-      // ✅ INTELIGÊNCIA FINANCEIRA: Atualizar orçamentos e saldos em tempo real
-      if (user?.id) {
-        generateAllNotifications(user.id).catch((e) =>
-          logger.error("Erro ao gerar notificações pós-antecipação", e)
-        );
-      }
-    },
-    onError: (error) => {
-      transactionToasts.error("antecipar", error);
     },
   });
 }

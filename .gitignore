@@ -56,3 +56,8 @@ scratch/
 # Test artifacts
 playwright-report/
 test-results/
+
+# Lint reports
+eslint-report.json
+eslint-report-utf8.json
+eslint-errors.txt

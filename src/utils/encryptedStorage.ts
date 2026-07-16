@@ -102,41 +102,6 @@ export async function decrypt(encryptedData: string): Promise<string> {
   return new TextDecoder().decode(decrypted);
 }
 
-/**
- * Substitui o storage do localForage por uma versão criptografada.
- * Uso: storage: createEncryptedStorage()
- *
- * @deprecated Usa localStorage (limite ~5MB, síncrono). Para o persister do
- * TanStack Query, prefira createEncryptedForageStorage(), que mantém os dados
- * no IndexedDB via localForage.
- */
-export function createEncryptedStorage() {
-  return {
-    async getItem(key: string): Promise<string | null> {
-      try {
-        const raw = localStorage.getItem(`enc_${key}`);
-        if (!raw) return null;
-        return await decrypt(raw);
-      } catch {
-        return null;
-      }
-    },
-    async setItem(key: string, value: string): Promise<void> {
-      try {
-        const encrypted = await encrypt(value);
-        localStorage.setItem(`enc_${key}`, encrypted);
-      } catch {
-        // Fallback: armazenar sem criptografia
-        localStorage.setItem(key, value);
-      }
-    },
-    async removeItem(key: string): Promise<void> {
-      localStorage.removeItem(`enc_${key}`);
-      localStorage.removeItem(key);
-    },
-  };
-}
-
 interface AsyncStringStorage {
   getItem(key: string): Promise<string | null>;
   setItem(key: string, value: string): Promise<unknown>;

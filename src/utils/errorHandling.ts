@@ -3,8 +3,6 @@
  * Centralized error handling for consistent error messages and logging
  */
 
-import { toast } from "sonner";
-import { showActionFeedback } from "@/components/ui/ActionFeedback";
 import { logger } from "./logger";
 
 export interface AppError {
@@ -18,26 +16,6 @@ export interface AppError {
 export const getError = (e: unknown): AppError => {
   if (typeof e === "object" && e !== null) return e as AppError;
   return {};
-};
-
-/**
- * Handle query errors
- * Logs error and throws it for React Query to handle
- */
-export const handleQueryError = (error: unknown, context: string): never => {
-  logger.error(`Erro ao ${context}`, { error });
-  throw error;
-};
-
-/**
- * Handle mutation errors
- * Logs error and shows toast message
- */
-export const handleMutationError = (error: unknown, action: string, entity: string): void => {
-  const message = `Erro ao ${action} ${entity}`;
-  logger.error(message, { error });
-  showActionFeedback("error");
-  toast.error(`${message}: ${(error as Error)?.message || "Erro desconhecido"}`);
 };
 
 /**
@@ -68,59 +46,6 @@ export const handleSupabaseError = (error: unknown, context: string): never => {
 };
 
 /**
- * Handle validation errors
- * Shows toast with validation error message
- */
-export const handleValidationError = (message: string): never => {
-  logger.warn("Erro de validação", { message });
-  showActionFeedback("error");
-  toast.error(message);
-  throw new Error(message);
-};
-
-/**
- * Handle network errors
- * Shows toast with network error message
- */
-export const handleNetworkError = (error: unknown): never => {
-  logger.error("Erro de rede", { error });
-  showActionFeedback("error");
-  toast.error("Erro de conexão. Verifique sua internet e tente novamente.");
-  throw error;
-};
-
-/**
- * Safe error handler
- * Catches all errors and provides fallback message
- */
-export const safeErrorHandler = (
-  error: unknown,
-  fallbackMessage: string = "Ocorreu um erro inesperado"
-): void => {
-  logger.error("Erro não tratado", { error });
-  showActionFeedback("error");
-
-  if (error instanceof Error) {
-    toast.error(error.message);
-  } else {
-    toast.error(fallbackMessage);
-  }
-};
-
-/**
- * Async error wrapper
- * Wraps async functions with error handling
- */
-export const withErrorHandling = <T>(fn: () => Promise<T>, errorMessage: string): Promise<T> => {
-  return fn().catch((error) => {
-    logger.error(errorMessage, { error });
-    showActionFeedback("error");
-    toast.error(`${errorMessage}: ${error.message}`);
-    throw error;
-  });
-};
-
-/**
  * Retry with exponential backoff
  * Retries a function with exponential backoff on failure
  */
@@ -146,45 +71,4 @@ export const retryWithBackoff = async <T>(
   }
 
   throw lastError;
-};
-
-/**
- * Check if error is a network error
- */
-export const isNetworkError = (error: unknown): boolean => {
-  const err = getError(error);
-  return (
-    err.message === "Network request failed" ||
-    err.message === "Failed to fetch" ||
-    !navigator.onLine
-  );
-};
-
-/**
- * Check if error is an authentication error
- */
-export const isAuthError = (error: unknown): boolean => {
-  const err = getError(error);
-  return err.status === 401 || err.code === "PGRST301" || err.message?.includes("JWT") || false;
-};
-
-/**
- * Check if error is a permission error
- */
-export const isPermissionError = (error: unknown): boolean => {
-  const err = getError(error);
-  return err.status === 403 || err.code === "42501";
-};
-
-/**
- * Format error for display
- * Extracts user-friendly message from error object
- */
-export const formatErrorMessage = (error: unknown): string => {
-  if (typeof error === "string") return error;
-  if (error instanceof Error) return error.message;
-  const err = getError(error);
-  if (err.message) return err.message;
-  if (err.error_description) return err.error_description;
-  return "Ocorreu um erro inesperado";
 };

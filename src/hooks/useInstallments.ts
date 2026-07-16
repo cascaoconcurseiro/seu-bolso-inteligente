@@ -18,46 +18,6 @@ export interface Installment {
 }
 
 /**
- * Hook para buscar todas as parcelas de uma série
- */
-export function useInstallmentSeries(seriesId: string | null) {
-  const { user } = useAuth();
-
-  return useQuery({
-    queryKey: ["installment-series", seriesId],
-    queryFn: async () => {
-      if (!seriesId) return [];
-
-      const { data, error } = await supabase
-        .from("transactions")
-        .select(
-          `
-          id,
-          description,
-          amount,
-          date,
-          competence_date,
-          current_installment,
-          total_installments,
-          series_id,
-          account_id,
-          category_id
-        `
-        )
-        .eq("user_id", user!.id)
-        .eq("series_id", seriesId)
-        .order("current_installment", { ascending: true });
-
-      if (error) throw error;
-      return data as Installment[];
-    },
-    enabled: !!user && !!seriesId,
-    staleTime: 0, // ✅ Dados sempre frescos
-    refetchOnMount: "always",
-  });
-}
-
-/**
  * Hook para buscar parcelas futuras disponíveis para adiantamento
  */
 export function useFutureInstallments(seriesId: string | null) {
@@ -134,48 +94,6 @@ export function useAdvanceInstallments() {
     },
     onError: (error) => {
       toast.error("Erro ao adiantar parcelas: " + error.message);
-    },
-  });
-}
-
-/**
- * Hook para desfazer adiantamento de parcelas
- * Restaura a competência original das parcelas
- */
-export function useUndoAdvanceInstallments() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      installmentIds,
-      originalCompetenceDates,
-    }: {
-      installmentIds: string[];
-      originalCompetenceDates: Record<string, string>;
-    }) => {
-      // Atualizar cada parcela com sua competência original
-      const updates = installmentIds.map((id) =>
-        supabase
-          .from("transactions")
-          .update({
-            competence_date: originalCompetenceDates[id],
-          })
-          .eq("id", id)
-      );
-
-      await Promise.all(updates);
-
-      return { restoredCount: installmentIds.length };
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      queryClient.invalidateQueries({ queryKey: ["installment-series"] });
-      queryClient.invalidateQueries({ queryKey: ["future-installments"] });
-      queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
-      toast.success(`${data.restoredCount} parcela(s) restaurada(s)!`);
-    },
-    onError: (error) => {
-      toast.error("Erro ao desfazer adiantamento: " + error.message);
     },
   });
 }

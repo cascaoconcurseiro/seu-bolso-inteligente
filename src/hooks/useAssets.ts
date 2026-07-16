@@ -1,11 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Asset, AssetPerformance } from "@/types/database";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { logger } from "@/utils/logger";
 
 export const useAssets = () => {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Buscar todos os investimentos
@@ -110,17 +109,10 @@ export const useAssets = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["assets"] });
       queryClient.invalidateQueries({ queryKey: ["asset-transactions"] }); // ADICIONADO
-      toast({
-        title: "Investimento criado",
-        description: "Investimento criado com sucesso!",
-      });
+      toast.success("Investimento criado com sucesso!");
     },
     onError: (error: Error) => {
-      toast({
-        title: "Erro ao criar investimento",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error("Erro ao criar investimento", { description: error.message });
     },
   });
 
@@ -139,17 +131,10 @@ export const useAssets = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["assets"] });
-      toast({
-        title: "Investimento atualizado",
-        description: "Investimento atualizado com sucesso!",
-      });
+      toast.success("Investimento atualizado com sucesso!");
     },
     onError: (error: Error) => {
-      toast({
-        title: "Erro ao atualizar investimento",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error("Erro ao atualizar investimento", { description: error.message });
     },
   });
 
@@ -168,17 +153,10 @@ export const useAssets = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["assets"] });
-      toast({
-        title: "Preço atualizado",
-        description: "Preço atualizado com sucesso!",
-      });
+      toast.success("Preço atualizado com sucesso!");
     },
     onError: (error: Error) => {
-      toast({
-        title: "Erro ao atualizar preço",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error("Erro ao atualizar preço", { description: error.message });
     },
   });
 
@@ -208,17 +186,10 @@ export const useAssets = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["assets"] });
-      toast({
-        title: "Investimento excluído",
-        description: "Investimento excluído com sucesso!",
-      });
+      toast.success("Investimento excluído com sucesso!");
     },
     onError: (error: Error) => {
-      toast({
-        title: "Erro ao excluir investimento",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error("Erro ao excluir investimento", { description: error.message });
     },
   });
 

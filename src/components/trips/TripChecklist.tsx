@@ -20,7 +20,7 @@ import {
 import { Plus, ListChecks, Trash2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { AITripSuggestions } from "./AITripSuggestions";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -60,7 +60,6 @@ export function TripChecklist({ trip }: TripChecklistProps) {
   const [, setIsApplyingAI] = useState(false);
 
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   // Fetch checklist items
   const { data: items = [], isLoading } = useQuery({
@@ -96,13 +95,13 @@ export function TripChecklist({ trip }: TripChecklistProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["trip-checklist", tripId] });
-      toast({ title: "Item adicionado" });
+      toast.success("Item adicionado");
       setNewItem("");
       setNewCategory("");
       setShowDialog(false);
     },
     onError: (error) => {
-      toast({ title: "Erro ao adicionar", description: error.message, variant: "destructive" });
+      toast.error("Erro ao adicionar", { description: error.message });
     },
   });
 
@@ -117,7 +116,7 @@ export function TripChecklist({ trip }: TripChecklistProps) {
       queryClient.invalidateQueries({ queryKey: ["trip-checklist", tripId] });
     },
     onError: (error) => {
-      toast({ title: "Erro ao atualizar", description: error.message, variant: "destructive" });
+      toast.error("Erro ao atualizar", { description: error.message });
     },
   });
 
@@ -130,10 +129,10 @@ export function TripChecklist({ trip }: TripChecklistProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["trip-checklist", tripId] });
-      toast({ title: "Item removido" });
+      toast.success("Item removido");
     },
     onError: (error) => {
-      toast({ title: "Erro ao remover", description: error.message, variant: "destructive" });
+      toast.error("Erro ao remover", { description: error.message });
     },
   });
 
@@ -162,15 +161,12 @@ export function TripChecklist({ trip }: TripChecklistProps) {
       await Promise.all(promises);
 
       queryClient.invalidateQueries({ queryKey: ["trip-checklist", tripId] });
-      toast({
-        title: "Sucesso",
+      toast.success("Sucesso", {
         description: `${suggestions.length} itens adicionados ao checklist.`,
       });
     } catch (error: unknown) {
-      toast({
-        title: "Erro ao salvar",
+      toast.error("Erro ao salvar", {
         description: getErrorMessage(error, "Não foi possível salvar as sugestões"),
-        variant: "destructive",
       });
     } finally {
       setIsApplyingAI(false);
@@ -288,10 +284,7 @@ export function TripChecklist({ trip }: TripChecklistProps) {
                           try {
                             await toggleItem.mutateAsync({ id: item.id, is_completed: !!checked });
                           } catch (error: unknown) {
-                            toast({
-                              title: getErrorMessage(error, "Erro ao atualizar item"),
-                              variant: "destructive",
-                            });
+                            toast.error(getErrorMessage(error, "Erro ao atualizar item"));
                           }
                         }}
                       />
@@ -314,10 +307,7 @@ export function TripChecklist({ trip }: TripChecklistProps) {
                         try {
                           await deleteItem.mutateAsync(item.id);
                         } catch (error: unknown) {
-                          toast({
-                            title: getErrorMessage(error, "Erro ao excluir item"),
-                            variant: "destructive",
-                          });
+                          toast.error(getErrorMessage(error, "Erro ao excluir item"));
                         }
                       }}
                       className="h-8 w-8 text-muted-foreground hover:text-destructive"

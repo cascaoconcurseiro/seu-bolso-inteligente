@@ -8,18 +8,3 @@ export function normalizeBrazilianText(str: string): string {
     .replace(/\s+/g, " ") // remove espaços múltiplos
     .trim();
 }
-
-export function cleanAiCategoryId(id: string | null): string | null {
-  if (!id) return null;
-  let finalCategoryId = id
-    .trim()
-    .replace(/['"{}[\]]/g, "")
-    .trim();
-  if (finalCategoryId.toLowerCase().startsWith("id:"))
-    finalCategoryId = finalCategoryId.slice(3).trim();
-  else if (finalCategoryId.toLowerCase().startsWith("id-"))
-    finalCategoryId = finalCategoryId.slice(3).trim();
-  else if (finalCategoryId.toLowerCase().startsWith("id_"))
-    finalCategoryId = finalCategoryId.slice(3).trim();
-  return finalCategoryId;
-}

@@ -171,31 +171,3 @@ export function useCancelInvitation() {
     },
   });
 }
-
-// Hook para reenviar convite (reseta para pending)
-export function useResendInvitation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (invitationId: string) => {
-      const { error } = await supabase
-        .from("family_invitations")
-        .update({
-          status: "pending",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", invitationId);
-
-      if (error) throw error;
-      return { success: true };
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["family-invitations-sent"] });
-      queryClient.invalidateQueries({ queryKey: ["pending-family-invitations"] });
-      toast.success("Convite reenviado!");
-    },
-    onError: (error: Error) => {
-      toast.error("Erro ao reenviar: " + error.message);
-    },
-  });
-}

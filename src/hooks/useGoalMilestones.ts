@@ -76,20 +76,3 @@ export function useDeleteGoalMilestone() {
     onError: () => toast.error("Erro ao remover marco"),
   });
 }
-
-export function useMarkMilestoneReached() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async ({ id, goalId }: { id: string; goalId: string }) => {
-      const { error } = await supabase
-        .from("goal_milestones")
-        .update({ reached_at: new Date().toISOString() })
-        .eq("id", id);
-      if (error) throw error;
-      return goalId;
-    },
-    onSuccess: (goalId) => {
-      queryClient.invalidateQueries({ queryKey: ["goal-milestones", goalId] });
-    },
-  });
-}

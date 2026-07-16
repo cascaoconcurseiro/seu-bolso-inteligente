@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Goal, GoalProgress } from "@/types/database";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
+import { goalToasts } from "@/utils/toastMessages";
 import { generateAllNotifications } from "@/services/notificationGenerator";
 import { logger } from "@/utils/logger";
 import { callRPCWithRetry } from "@/utils/supabaseHelpers";
@@ -12,7 +13,6 @@ import { callRPCWithRetry } from "@/utils/supabaseHelpers";
 // cria uma despesa genérica na categoria "Meta".
 
 export const useGoals = () => {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Buscar todas as metas
@@ -83,7 +83,7 @@ export const useGoals = () => {
     },
     onError: (error: Error, _vars, context) => {
       if (context?.previous) queryClient.setQueryData(["goals"], context.previous);
-      toast({ title: "Erro ao criar meta", description: error.message, variant: "destructive" });
+      goalToasts.error("criar", error);
     },
     mutationFn: async (
       goal: Omit<
@@ -112,7 +112,7 @@ export const useGoals = () => {
       return data;
     },
     onSuccess: () => {
-      toast({ title: "Meta criada", description: "Meta criada com sucesso!" });
+      goalToasts.created();
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["goals"] });
@@ -132,11 +132,7 @@ export const useGoals = () => {
     },
     onError: (error: Error, _vars, context) => {
       if (context?.previous) queryClient.setQueryData(["goals"], context.previous);
-      toast({
-        title: "Erro ao atualizar meta",
-        description: error.message,
-        variant: "destructive",
-      });
+      goalToasts.error("atualizar", error);
     },
     mutationFn: async ({ id, ...goal }: Partial<Goal> & { id: string }) => {
       const { data, error } = await supabase
@@ -150,7 +146,7 @@ export const useGoals = () => {
       return data;
     },
     onSuccess: () => {
-      toast({ title: "Meta atualizada", description: "Meta atualizada com sucesso!" });
+      goalToasts.updated();
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["goals"] });
@@ -192,8 +188,7 @@ export const useGoals = () => {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["accounts"] });
       queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
-      toast({
-        title: "Aporte registrado",
+      toast.success("Aporte registrado", {
         description: "Contribuição adicionada e registrada no seu extrato.",
       });
 
@@ -206,11 +201,7 @@ export const useGoals = () => {
       }
     },
     onError: (error: Error) => {
-      toast({
-        title: "Erro ao adicionar contribuição",
-        description: error.message,
-        variant: "destructive",
-      });
+      goalToasts.error("adicionar contribuição em", error);
     },
   });
 
@@ -224,7 +215,7 @@ export const useGoals = () => {
     },
     onError: (error: Error, _id, context) => {
       if (context?.previous) queryClient.setQueryData(["goals"], context.previous);
-      toast({ title: "Erro ao excluir meta", description: error.message, variant: "destructive" });
+      goalToasts.error("excluir", error);
     },
     mutationFn: async (id: string) => {
       // CRIT-06: Deleção por goal_id FK (substitui LIKE '%meta%' frágil)
@@ -236,7 +227,7 @@ export const useGoals = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast({ title: "Meta excluída", description: "Meta excluída com sucesso!" });
+      goalToasts.deleted();
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["goals"] });

@@ -2,6 +2,73 @@
 
 > Última atualização: 2026-07-16
 
+## Handoff da sessão - 16/07/2026 - Faxina de código morto + fix do toast duplicado
+
+### Objetivo
+
+Usuário pediu auditoria "de verdade" do código (não achismo, não elogio vago): quanto do projeto era gordura de sessões de IA sem convenção, e quanto dava pra deletar com segurança. Depois de apresentar o relatório (achados abaixo), usuário pediu para a "equipe" decidir e executar, incluindo revisar um por um os exports/tipos não usados e deletar o que desse.
+
+### Metodologia
+
+`knip` (análise estática do grafo de imports) rodado no projeto inteiro. Todo achado de "código morto" foi cross-checado manualmente (grep pelo nome em todo o repo, leitura do arquivo inteiro) antes de deletar — vários achados do knip eram falso-positivo porque a função era usada *internamente* no mesmo arquivo (ex.: `dateUtils.formatDateUTC` é chamado só via `dateUtils.formatDate` dentro do próprio módulo; deletar teria quebrado `useTransactionMutations.ts`). Só foi apagado o que ficou provado sem nenhum uso, interno ou externo.
+
+### Achado principal: bug real, não só sobra
+
+8 arquivos (`useGoals`, `useBudgets`(import morto), `useAssets`, `useSyncAssetPrices`, `useTripExchange`, `TripItinerary`, `TripChecklist`) chamavam `useToast()`/`toast()` do sistema antigo do shadcn (`src/hooks/use-toast.ts` + `src/components/ui/toast.tsx` + `toaster.tsx`). O `<Toaster/>` desse sistema **nunca foi montado em `App.tsx`** desde que o app migrou pro `sonner` (só `<Sonner/>` está lá, confirmado lendo `App.tsx` inteiro). Resultado: toda mensagem de sucesso/erro de metas, orçamentos, ativos, câmbio de viagem e checklist/itinerário de viagem era criada em memória e nunca aparecia pro usuário — falha silenciosa em produção, possivelmente há muito tempo. Corrigido: todos os 8 arquivos migrados pro `toast` do `sonner` (usando `toastMessages.ts`/`goalToasts` quando já existia helper equivalente, ou `toast.success`/`toast.error` direto seguindo o padrão dos outros 54 arquivos do projeto). Sistema antigo apagado por completo.
+
+### Duplicações reais encontradas (não é só "sobra", é "duas implementações da mesma coisa")
+
+- `supabaseHelpers.ts`: um CRUD genérico (`fetchUserData`, `insertRecord`, `updateRecord`, `deleteRecord`, `countRecords` etc., 10 funções) construído mas nunca adotado — todo hook real chama `supabase.from()` direto. Só `callRPCWithRetry`/`insertRecords` sobreviveram (usados de verdade).
+- `errorHandling.ts`: mesma coisa — um error-handler genérico (`handleQueryError`, `safeErrorHandler`, `withErrorHandling` etc., 10 funções) nunca adotado; o projeto usa `logger.error()` direto em todo lugar. Só `handleSupabaseError`/`retryWithBackoff` sobreviveram (usados internamente pelo `supabaseHelpers.ts`).
+- `notificationService.ts`: 14 funções mortas (CRUD de notificação + 5 helpers de notificação específica tipo `createFamilyInviteNotification`, `createSettlementRequestNotification`) — o centro de notificações real (`NotificationButton.tsx`) usa os hooks de `useNotifications.ts`, não este service. Ou seja: quando alguém pede acerto de despesa compartilhada ou envia convite de família, a notificação correspondente **nunca foi implementada de fato** apesar do código existir — gap de produto real, não só código morto. Não mexi na feature, só removi o código morto; fica registrado aqui caso queiram implementar de verdade.
+- `queryConfig.ts`: 4 configs de cache alternativas (`cachedQueryConfig`, `realtimeQueryConfig` etc.) e 3 factories nunca adotadas — todo hook usa `defaultQueryConfig` direto.
+- `currencyFormatter.ts` vs `exchangeCalculations.ts`: duas implementações de `getCurrencySymbol` — a de `exchangeCalculations.ts` (15 moedas, usada em 11+ lugares) é a real; a de `currencyFormatter.ts` (9 moedas) nunca foi importada por ninguém.
+- Hooks de "adicionar/remover membro de viagem" duplicados 3x (`useTrips.ts`, `useTripMembers.ts`) — o fluxo real de convite passa direto por `supabase.from("trip_members")` em `InviteMemberDialog.tsx`.
+- "Antecipar parcelas" implementado 2x: a versão morta em `useTransactionMutations.ts`, a real em `useAnticipateInstallments.ts` (usada por `AnticipateInstallmentsDialog.tsx`).
+
+### O que foi decidido manter apesar do knip flagar
+
+- Componentes primitivos do shadcn/radix (`dialog.tsx`, `select.tsx`, `dropdown-menu.tsx` etc.) — exports não usados hoje fazem parte do kit de design, convenção do shadcn é manter o conjunto completo.
+- `src/integrations/supabase/types.ts` — gerado automaticamente pelo Supabase CLI, nunca editar manualmente.
+- Tipos de domínio colocados junto do hook (`Family`, `TripMember`, `Installment` etc.) — custo de manter é zero, risco de deletar sem necessidade é real.
+- `supabase/functions/*` marcadas como "não usadas" pelo knip — falso positivo confirmado (chamadas via `supabase.functions.invoke("nome")`, string, invisível pra análise estática).
+- 271 migrations do banco — decisão já registrada na sessão de 13/07 (trilha de auditoria pós-baseline), não mexi.
+
+### Arquivos e limpeza de repositório
+
+- 25 scripts de debug em `scripts/` apagados (81% da pasta) — nenhum referenciado em `package.json`/CI.
+- `eslint-report.json`/`eslint-report-utf8.json` (8,1 MB commitados por engano) e `playwright-report/`/`test-results/` (já no `.gitignore` mas ainda rastreados) removidos do git; padrão adicionado ao `.gitignore` pra não voltar.
+- `CLAUDE_HANDOFF.md` (handoff paralelo parado em 02/07, sobrevivência de antes da convenção de um único `HANDOFF.md`) e os 6 relatórios de auditoria pontual de 30/06 movidos para `docs/archive/` — raiz do repo agora só com os 3 documentos vivos.
+- 3 dependências não usadas removidas do `package.json`: `@radix-ui/react-separator`, `@radix-ui/react-toast`, `sharp` (dev). `package-lock.json` resincronizado.
+
+### Números
+
+- Antes: 357 arquivos / 84.680 linhas em `src/` + 33 arquivos / 4.820 linhas em `scripts/` = 390 arquivos / 89.500 linhas.
+- Depois: 350 arquivos / 81.549 linhas em `src/`+`scripts/` combinados.
+- ~7.950 linhas de código morto confirmado removidas (script de debug + duplicações + sistema de toast morto), zero mudança de comportamento além do fix do bug do toast.
+
+### Verificação
+
+- [x] `npx tsc --noEmit -p tsconfig.app.json` = 0 erros (rodado a cada bloco de mudança, não só no final).
+- [x] `npm run lint` = 0 erros (warnings pré-existentes de `any`/unused mantidos, mesmos de antes).
+- [x] `npm run format:check` = verde (Prettier rodado nos arquivos tocados).
+- [x] `npm test -- --run` = 239/239 passam, 19 skipped (mesmo baseline de antes da sessão) — nenhuma regressão.
+- [x] `npm run build` = verde, incluindo geração do service worker PWA.
+- [x] `npm run test:secrets` = verde.
+- [ ] **Não verificado em navegador real**: sem credencial de login disponível nesta sessão para conferir visualmente que os toasts de metas/orçamentos/ativos/câmbio agora aparecem. Recomendo QA manual no próximo acesso — criar/editar uma meta e um orçamento e confirmar que a notificação de sucesso aparece na tela (antes não aparecia).
+
+### Próximo passo
+
+- QA visual manual do fix do toast (ver item acima) — é o único item desta sessão que muda comportamento visível pro usuário.
+- Decidir se vale implementar de verdade as notificações de convite de família/solicitação de acerto (gap de produto encontrado em `notificationService.ts`, ver seção acima) ou deixar como está.
+- Resolver o billing travado do GitHub Actions (ver sessões anteriores) — segue sendo o único bloqueador real de CI.
+
+### Commit desta sessão
+
+Pendente de commit + push para `main` (ver regra de push obrigatório).
+
+---
+
 ## Regras permanentes de continuidade
 
 - Atualizar este arquivo em toda entrega que altere código, banco, UX, design, infraestrutura ou decisões arquiteturais.

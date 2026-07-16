@@ -441,28 +441,3 @@ export function validateTransaction(
     warnings,
   };
 }
-
-/**
- * Valida uma conta
- */
-export function validateAccount(account: Partial<Account>): ValidationResult {
-  const errors: string[] = [];
-  const warnings: string[] = [];
-
-  if (!account.type) {
-    errors.push("Tipo de conta é obrigatório");
-  }
-
-  // Validações específicas por tipo
-  if (account.type === "CREDIT_CARD") {
-    if (!account.credit_limit || account.credit_limit <= 0) {
-      errors.push("Limite de crédito é obrigatório para cartões");
-    }
-  }
-
-  return {
-    isValid: errors.length === 0,
-    errors,
-    warnings,
-  };
-}
