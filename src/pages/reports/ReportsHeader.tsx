@@ -18,10 +18,16 @@ import { Calendar, Download } from "lucide-react";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
+import { Input } from "@/components/ui/input";
+import { isValidCustomRange, type ReportViewType } from "./reportPeriod";
 
 interface ReportsHeaderProps {
-  viewType: "MONTH" | "YEAR";
-  setViewType: (type: "MONTH" | "YEAR") => void;
+  viewType: ReportViewType;
+  setViewType: (type: ReportViewType) => void;
+  customStartDate: string;
+  customEndDate: string;
+  setCustomStartDate: (date: string) => void;
+  setCustomEndDate: (date: string) => void;
   safeCurrentDate: Date;
   availableCurrencies: string[];
   selectedCurrency: string;
@@ -32,6 +38,10 @@ interface ReportsHeaderProps {
 export function ReportsHeader({
   viewType,
   setViewType,
+  customStartDate,
+  customEndDate,
+  setCustomStartDate,
+  setCustomEndDate,
   safeCurrentDate,
   availableCurrencies,
   selectedCurrency,
@@ -49,7 +59,11 @@ export function ReportsHeader({
             {"Análise das suas finanças -"}{" "}
             {viewType === "MONTH"
               ? dateFns.format(safeCurrentDate, "MMMM yyyy", { locale: ptBR })
-              : dateFns.format(safeCurrentDate, "yyyy", { locale: ptBR })}
+              : viewType === "YEAR"
+                ? dateFns.format(safeCurrentDate, "yyyy", { locale: ptBR })
+                : customStartDate && customEndDate
+                  ? `${dateFns.format(new Date(`${customStartDate}T12:00:00`), "dd/MM/yyyy")} a ${dateFns.format(new Date(`${customEndDate}T12:00:00`), "dd/MM/yyyy")}`
+                  : "Selecione as datas"}
           </p>
         </div>
         <div className="flex flex-wrap gap-3 items-center">
@@ -77,7 +91,53 @@ export function ReportsHeader({
             >
               Anual
             </button>
+            <button
+              className={cn(
+                "px-5 py-2 rounded-2xl text-xs font-bold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                viewType === "CUSTOM"
+                  ? "bg-primary text-primary-foreground shadow-[0_4px_12px_rgba(0,0,0,0.1)] shadow-primary/30 uppercase tracking-widest scale-100"
+                  : "text-muted-foreground hover:bg-white/5 dark:hover:bg-white/5 uppercase tracking-widest scale-95 opacity-80"
+              )}
+              onClick={() => setViewType("CUSTOM")}
+            >
+              Personalizado
+            </button>
           </div>
+
+          {viewType === "CUSTOM" && (
+            <div className="flex flex-wrap items-end gap-2" aria-label="Intervalo personalizado">
+              <label className="grid gap-1 text-xs font-medium text-muted-foreground">
+                Início
+                <Input
+                  type="date"
+                  value={customStartDate}
+                  max={customEndDate || undefined}
+                  onChange={(event) => setCustomStartDate(event.target.value)}
+                  className="h-10 w-[145px] rounded-xl bg-card/50"
+                />
+              </label>
+              <label className="grid gap-1 text-xs font-medium text-muted-foreground">
+                Fim
+                <Input
+                  type="date"
+                  value={customEndDate}
+                  min={customStartDate || undefined}
+                  onChange={(event) => setCustomEndDate(event.target.value)}
+                  className="h-10 w-[145px] rounded-xl bg-card/50"
+                />
+              </label>
+              {!isValidCustomRange({
+                viewType,
+                currentDate: safeCurrentDate,
+                customStartDate,
+                customEndDate,
+              }) && (
+                <p className="w-full text-xs text-destructive">
+                  A data final deve ser igual ou posterior à inicial.
+                </p>
+              )}
+            </div>
+          )}
 
           {availableCurrencies.length > 1 && (
             <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>

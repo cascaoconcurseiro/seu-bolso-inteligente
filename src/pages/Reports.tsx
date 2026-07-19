@@ -34,6 +34,7 @@ import { TransactionModal } from "@/components/modals/TransactionModal";
 
 import { useReportsData } from "./reports/useReportsData";
 import { ReportsHeader } from "./reports/ReportsHeader";
+import { getReportQueryRange, type ReportViewType } from "./reports/reportPeriod";
 
 export function Reports() {
   const { currentDate } = useMonth();
@@ -46,7 +47,12 @@ export function Reports() {
 
   const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
   const [selectedCurrency, setSelectedCurrency] = useState<string>("BRL");
-  const [viewType, setViewType] = useState<"MONTH" | "YEAR">("MONTH");
+  const [viewType, setViewType] = useState<ReportViewType>("MONTH");
+  const [customStartDate, setCustomStartDate] = useState(() => {
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-01`;
+  });
+  const [customEndDate, setCustomEndDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [editingTransaction, setEditingTransaction] = useState<Record<string, unknown> | null>(
     null
   );
@@ -54,9 +60,12 @@ export function Reports() {
   const txTypeFilter = "ALL";
 
   const { user } = useAuth();
-  const currentYear = new Date().getFullYear();
-  const reportStartDate = `${currentYear - 1}-01-01`;
-  const reportEndDate = `${currentYear}-12-31`;
+  const { startDate: reportStartDate, endDate: reportEndDate } = getReportQueryRange({
+    viewType,
+    currentDate: safeCurrentDate,
+    customStartDate,
+    customEndDate,
+  });
 
   const { data: allTransactions = [], isLoading } = useTransactions({
     startDate: reportStartDate,
@@ -78,6 +87,8 @@ export function Reports() {
 
   const data = useReportsData({
     viewType,
+    customStartDate,
+    customEndDate,
     txSearch,
     txTypeFilter,
     selectedCurrency,
@@ -97,10 +108,7 @@ export function Reports() {
     return `${getCurrencySymbol(currency)} ${value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
-  const handleExport = async (
-    format: "csv" | "pdf",
-    exportViewType: "MONTH" | "YEAR" = viewType
-  ) => {
+  const handleExport = async (format: "csv" | "pdf", exportViewType: ReportViewType = viewType) => {
     const { exportToCSV, exportToPDF } = await import("@/utils/exportData");
     if (format === "csv") exportToCSV(data.filteredTxList, `relatorio-${exportViewType}`);
     else
@@ -146,6 +154,10 @@ export function Reports() {
       <ReportsHeader
         viewType={viewType}
         setViewType={setViewType}
+        customStartDate={customStartDate}
+        customEndDate={customEndDate}
+        setCustomStartDate={setCustomStartDate}
+        setCustomEndDate={setCustomEndDate}
         safeCurrentDate={safeCurrentDate}
         availableCurrencies={data.availableCurrencies}
         selectedCurrency={selectedCurrency}

@@ -1,8 +1,9 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { moneyUtils } from "@/utils/money";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { isInReportPeriod, type ReportViewType } from "./reportPeriod";
 
 const getTransactionCurrency = (tx: any): string => {
   if (tx.currency && tx.currency !== "BRL") return tx.currency;
@@ -13,7 +14,9 @@ const getTransactionCurrency = (tx: any): string => {
 };
 
 interface UseReportsDataProps {
-  viewType: "MONTH" | "YEAR";
+  viewType: ReportViewType;
+  customStartDate: string;
+  customEndDate: string;
   txSearch: string;
   txTypeFilter: string;
   selectedCurrency: string;
@@ -29,6 +32,8 @@ interface UseReportsDataProps {
 
 export function useReportsData({
   viewType,
+  customStartDate,
+  customEndDate,
   txSearch,
   txTypeFilter,
   selectedCurrency,
@@ -41,6 +46,20 @@ export function useReportsData({
   myMemberId,
   user,
 }: UseReportsDataProps) {
+  const reportPeriod = useMemo(
+    () => ({ viewType, currentDate: safeCurrentDate, customStartDate, customEndDate }),
+    [customEndDate, customStartDate, safeCurrentDate, viewType]
+  );
+
+  const getReportDate = useCallback(
+    (tx: any) => {
+      const isCreditCard =
+        tx.account_id &&
+        accounts.some((account) => account.id === tx.account_id && account.type === "CREDIT_CARD");
+      return isCreditCard && tx.competence_date ? tx.competence_date : tx.date;
+    },
+    [accounts]
+  );
   const availableCurrencies = useMemo(() => {
     const currencies = new Set<string>(["BRL"]);
     allTransactions.forEach((tx) => {
@@ -166,57 +185,23 @@ export function useReportsData({
 
   const periodTransactions = useMemo(() => {
     return allCombinedTransactions.filter((tx: any) => {
-      const creditCardIds = accounts.filter((a) => a.type === "CREDIT_CARD").map((a) => a.id);
-      const isCreditCard = tx.account_id && creditCardIds.includes(tx.account_id);
-
-      const txDateStr = isCreditCard && tx.competence_date ? tx.competence_date : tx.date;
-      if (!txDateStr) return false;
-      const parts = txDateStr.split("-");
-      if (parts.length < 2) return false;
-      const txYear = parseInt(parts[0], 10);
-      const txMonth = parseInt(parts[1], 10) - 1;
-
-      const targetYear = safeCurrentDate.getFullYear();
-      const targetMonth = safeCurrentDate.getMonth();
-
-      const isInPeriod =
-        viewType === "MONTH"
-          ? txYear === targetYear && txMonth === targetMonth
-          : txYear === targetYear;
-
-      if (!isInPeriod) return false;
+      const txDateStr = getReportDate(tx);
+      if (!txDateStr || !isInReportPeriod(txDateStr, reportPeriod)) return false;
       const txCurr = getTransactionCurrency(tx);
       const matchesCurrency = selectedCurrency === "ALL" || txCurr === selectedCurrency;
 
       return matchesCurrency;
     });
-  }, [allCombinedTransactions, safeCurrentDate, selectedCurrency, viewType, accounts]);
+  }, [allCombinedTransactions, getReportDate, reportPeriod, selectedCurrency]);
 
   const sharedPeriodTransactions = useMemo(() => {
-    const targetYear = safeCurrentDate.getFullYear();
-    const targetMonth = safeCurrentDate.getMonth();
-
     return sharedTransactions.filter((tx: any) => {
-      const creditCardIds = accounts.filter((a) => a.type === "CREDIT_CARD").map((a) => a.id);
-      const isCreditCard = tx.account_id && creditCardIds.includes(tx.account_id);
-
-      const txDateStr = isCreditCard && tx.competence_date ? tx.competence_date : tx.date;
-      if (!txDateStr) return false;
-      const parts = txDateStr.split("-");
-      if (parts.length < 2) return false;
-      const txYear = parseInt(parts[0], 10);
-      const txMonth = parseInt(parts[1], 10) - 1;
-
-      const isInPeriod =
-        viewType === "MONTH"
-          ? txYear === targetYear && txMonth === targetMonth
-          : txYear === targetYear;
-
-      if (!isInPeriod) return false;
+      const txDateStr = getReportDate(tx);
+      if (!txDateStr || !isInReportPeriod(txDateStr, reportPeriod)) return false;
       const txCurr = getTransactionCurrency(tx);
       return selectedCurrency === "ALL" || txCurr === selectedCurrency;
     });
-  }, [sharedTransactions, safeCurrentDate, selectedCurrency, viewType, accounts]);
+  }, [getReportDate, reportPeriod, selectedCurrency, sharedTransactions]);
 
   const { totalIncome, totalExpense, balance } = useMemo(() => {
     const income = periodTransactions
@@ -424,8 +409,6 @@ export function useReportsData({
 
   const installmentsByPerson = useMemo(() => {
     const map: Record<string, any> = {};
-    const targetYear = safeCurrentDate.getFullYear();
-    const targetMonth = safeCurrentDate.getMonth();
 
     sharedTransactions
       .filter(
@@ -435,20 +418,8 @@ export function useReportsData({
           (selectedCurrency === "ALL" || getTransactionCurrency(tx) === selectedCurrency)
       )
       .forEach((tx: any) => {
-        const creditCardIds = accounts.filter((a) => a.type === "CREDIT_CARD").map((a) => a.id);
-        const isCreditCard = tx.account_id && creditCardIds.includes(tx.account_id);
-        const txDateStr = isCreditCard && tx.competence_date ? tx.competence_date : tx.date;
-
-        if (!txDateStr) return;
-        const parts = txDateStr.split("-");
-        if (parts.length < 2) return;
-        const txYear = parseInt(parts[0], 10);
-        const txMonth = parseInt(parts[1], 10) - 1;
-
-        const isInPeriod =
-          viewType === "MONTH"
-            ? txYear === targetYear && txMonth === targetMonth
-            : txYear === targetYear;
+        const txDateStr = getReportDate(tx);
+        const isInPeriod = Boolean(txDateStr && isInReportPeriod(txDateStr, reportPeriod));
 
         if (tx.is_shared && tx.transaction_splits) {
           (tx as any).transaction_splits.forEach((split: any) => {
@@ -520,7 +491,7 @@ export function useReportsData({
     return Object.values(map)
       .map((p) => ({ ...p, seriesCount: p.series.size }))
       .sort((a, b) => b.periodAmount - a.periodAmount);
-  }, [sharedTransactions, familyMembers, safeCurrentDate, viewType, selectedCurrency, accounts]);
+  }, [familyMembers, getReportDate, reportPeriod, selectedCurrency, sharedTransactions]);
 
   const largestExpense = useMemo(() => {
     const expenses = periodTransactions.filter((t) => t.type === "EXPENSE");
@@ -533,10 +504,20 @@ export function useReportsData({
 
   const dailyAverageExpense = useMemo(() => {
     if (totalExpense <= 0) return 0;
-    const isYearly = viewType === "YEAR";
-    const days = isYearly ? 365 : dateFns.getDaysInMonth(safeCurrentDate);
+    const days =
+      viewType === "CUSTOM"
+        ? Math.max(
+            1,
+            dateFns.differenceInCalendarDays(
+              new Date(`${customEndDate}T12:00:00`),
+              new Date(`${customStartDate}T12:00:00`)
+            ) + 1
+          )
+        : viewType === "YEAR"
+          ? 365
+          : dateFns.getDaysInMonth(safeCurrentDate);
     return moneyUtils.round(totalExpense / days);
-  }, [totalExpense, viewType, safeCurrentDate]);
+  }, [customEndDate, customStartDate, totalExpense, viewType, safeCurrentDate]);
 
   const topCategory = useMemo(() => {
     if (categoryData.length === 0) return null;

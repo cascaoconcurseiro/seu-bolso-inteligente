@@ -44,7 +44,7 @@ Usuário pediu auditoria "de verdade" do código (não achismo, não elogio vago
 
 ### Metodologia
 
-`knip` (análise estática do grafo de imports) rodado no projeto inteiro. Todo achado de "código morto" foi cross-checado manualmente (grep pelo nome em todo o repo, leitura do arquivo inteiro) antes de deletar — vários achados do knip eram falso-positivo porque a função era usada *internamente* no mesmo arquivo (ex.: `dateUtils.formatDateUTC` é chamado só via `dateUtils.formatDate` dentro do próprio módulo; deletar teria quebrado `useTransactionMutations.ts`). Só foi apagado o que ficou provado sem nenhum uso, interno ou externo.
+`knip` (análise estática do grafo de imports) rodado no projeto inteiro. Todo achado de "código morto" foi cross-checado manualmente (grep pelo nome em todo o repo, leitura do arquivo inteiro) antes de deletar — vários achados do knip eram falso-positivo porque a função era usada _internamente_ no mesmo arquivo (ex.: `dateUtils.formatDateUTC` é chamado só via `dateUtils.formatDate` dentro do próprio módulo; deletar teria quebrado `useTransactionMutations.ts`). Só foi apagado o que ficou provado sem nenhum uso, interno ou externo.
 
 ### Achado principal: bug real, não só sobra
 
@@ -176,10 +176,11 @@ Usuário pediu auditoria do que "realmente" ainda precisa ser feito (não confia
 Via API pública do GitHub (repo é público, sem precisar de token): **todas as execuções do workflow `CI` em `main` desde a run #120 (12/07) até a #149 (16/07) falharam**, nos 6 jobs, incluindo nos commits que sessões anteriores relataram como "typecheck zerado"/"CI verde".
 
 Diagnóstico rodando localmente cada step do `ci.yml`:
+
 - `npx tsc --noEmit` ✅, `npm run lint` ✅ (0 erros), `npm test -- --coverage` ✅ (239/239), `npm run build` ✅, `npm run test:secrets` ✅, `npm audit --omit=dev` ✅ (0 vulnerabilidades).
 - `npm run format:check` ❌ — 6 arquivos não formatados; 3 deles (`TripItinerary.tsx`, `TripRouteMap.tsx`, `overpassService.ts`) são da feature de mapa de viagens (`3cb451ba`), que nunca passou pelo Prettier. Corrigido nesta sessão com `prettier --write` e commitado/pushado (`b6abecb7`).
 
-**Causa raiz real, confirmada após o push do fix**: o run #150 (do próprio fix) falhou nos 6 jobs em ~5s, 0 steps executados. O usuário abriu a página do run no GitHub e confirmou o texto exato exibido: *"The job was not started because your account is locked due to a billing issue."* — bloqueio de nível de **conta pessoal** do GitHub (não é config do repositório: "Actions permissions" já estava em "Allow all actions and reusable workflows", a opção mais permissiva). Isso explica todo o histórico de falhas desde 12/07, independente de qualquer coisa no código. O fix de Prettier continua correto e necessário, só não vai aparecer verde em CI até o billing ser resolvido.
+**Causa raiz real, confirmada após o push do fix**: o run #150 (do próprio fix) falhou nos 6 jobs em ~5s, 0 steps executados. O usuário abriu a página do run no GitHub e confirmou o texto exato exibido: _"The job was not started because your account is locked due to a billing issue."_ — bloqueio de nível de **conta pessoal** do GitHub (não é config do repositório: "Actions permissions" já estava em "Allow all actions and reusable workflows", a opção mais permissiva). Isso explica todo o histórico de falhas desde 12/07, independente de qualquer coisa no código. O fix de Prettier continua correto e necessário, só não vai aparecer verde em CI até o billing ser resolvido.
 
 Investigado até o fim do self-service e descartado como causa aparente: `github.com/settings/billing` não mostra cobrança recusada, cartão pendente ou banner de aviso — uso do mês é $0,07, totalmente coberto pelo free tier, nada devendo. Ou seja, é um **flag interno do GitHub sem causa visível na UI**. Ação exclusiva do usuário (fora do escopo do assistente): abrir chamado em `support.github.com` citando o texto exato do erro e o link do run `.../actions/runs/29462019436`. Não reinvestigar billing em sessões futuras até o suporte responder — já foi esgotado o que dava pra checar pela interface.
 
@@ -292,6 +293,42 @@ Integrar as correcoes TypeScript das quatro frentes por dominio, zerar o typeche
 
 - Decisao/execucao do `[LGPD-DELETE]`.
 - Itens de desempenho ainda abertos: paginacao cursor-based + remover `SELECT *`; reduzir chunk page-shared; PDF export via Web Worker. HIBP e billing do GitHub Actions dependem de acao do proprietario (plano/billing).
+
+---
+
+## Handoff da sessao - 19/07/2026 - Periodo personalizado em Relatorios
+
+### Objetivo
+
+Permitir que a pessoa gere relatorios financeiros por qualquer intervalo de datas, alem dos modos mensal e anual.
+
+### Decisoes e alteracoes
+
+- Adicionado o modo `Personalizado` no cabecalho dos relatorios, com campos nativos de data para inicio e fim.
+- O intervalo e inclusivo e valida que a data final nao seja anterior a inicial.
+- A consulta de transacoes usa o intervalo escolhido quando o modo personalizado esta ativo; nao e apenas um filtro visual sobre um recorte fixo.
+- Totais, categorias, listas, exportacao, parcelas compartilhadas e a media diaria usam o mesmo contrato de periodo.
+- Em cartoes, a selecao continua respeitando `competence_date`, como nos modos existentes.
+
+### Arquivos
+
+- `src/pages/Reports.tsx`.
+- `src/pages/reports/ReportsHeader.tsx`.
+- `src/pages/reports/useReportsData.ts`.
+- `src/pages/reports/reportPeriod.ts` e `reportPeriod.test.ts`.
+
+### Verificacao
+
+- [x] Teste unitario: limites inclusivos, query por intervalo e intervalo invertido.
+- [x] `npx vitest run src/pages/reports/reportPeriod.test.ts` (3 testes aprovados).
+- [x] `npx tsc --noEmit -p tsconfig.app.json --pretty false`.
+- [x] ESLint nos arquivos alterados, sem avisos introduzidos.
+- [x] `git diff --check`.
+- [ ] QA visual autenticado: o navegador isolado desta sessao recusou conexao com o localhost, apesar do Vite iniciar fora do sandbox. Precisa ser repetido no navegador do usuario antes de considerar o item visual concluido.
+
+### Proximo passo
+
+- Validar os tres modos de relatorio com dados reais em desktop e celular e continuar a reducao de consultas amplas/paginacao do checklist de performance.
 
 ---
 
@@ -921,6 +958,7 @@ Auditar e classificar todas as RPCs `SECURITY DEFINER`, revogando acesso anônim
 ### Smoke test de integração (database-level)
 
 Simulou 38 operações que o frontend faz, com usuário teste:
+
 - Contas: criar (CHECKING/SAVINGS/CREDIT_CARD), saldo inicial, soft delete, check dependencies
 - Transações: criar, editar, soft delete (NONE/ALL cascade), restore
 - Parcelas: `create_installment_series` (simples e compartilhada)
