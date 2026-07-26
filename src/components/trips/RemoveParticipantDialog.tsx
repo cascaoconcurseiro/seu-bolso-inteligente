@@ -154,7 +154,7 @@ export function RemoveParticipantDialog({
                         ? "bg-success text-white"
                         : owesGroup
                           ? "bg-warning text-white"
-                          : "bg-accent text-white"
+                          : "bg-accent text-accent-foreground"
                     )}
                   >
                     {isSettled ? (

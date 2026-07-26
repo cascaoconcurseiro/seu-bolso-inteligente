@@ -23,7 +23,7 @@
     --text-muted: 218 11% 65%; /* #9CA3AF */
 
     /* ===== SEMANTIC TOKENS (Light) ===== */
-    --accent: 263 72% 52%; /* #6B35C9 — violeta premium */
+    --accent: 176 77% 26%; /* #0F766E — verde-petróleo da marca */
     --accent-foreground: 0 0% 100%;
     --success: 152 68% 31%; /* #179560 — verde-esmeralda */
     --success-foreground: 0 0% 100%;
@@ -39,7 +39,7 @@
     --card-foreground: var(--text-primary);
     --popover: var(--bg-surface);
     --popover-foreground: var(--text-primary);
-    --primary: 263 72% 52%; /* = --accent — cor da marca */
+    --primary: 176 77% 26%; /* = --accent — cor da marca */
     --primary-foreground: 0 0% 100%;
     --secondary: var(--bg-subtle);
     --secondary-foreground: var(--text-primary);
@@ -49,7 +49,7 @@
     --destructive-foreground: var(--danger-foreground);
     --border: var(--border-color);
     --input: var(--border-color);
-    --ring: 263 72% 52%;
+    --ring: 176 77% 26%;
 
     /* ===== FINANCEIRO ===== */
     --positive: 142 76% 36%;
@@ -86,19 +86,19 @@
     --card-foreground: var(--text-primary);
     --popover: var(--bg-surface);
     --popover-foreground: var(--text-primary);
-    --primary: 263 72% 62%; /* = --accent dark — cor da marca */
-    --primary-foreground: 0 0% 100%;
+    --primary: 173 66% 50%; /* #2DD4BF — verde-petróleo luminoso */
+    --primary-foreground: 179 84% 10%; /* #042F2E */
     --secondary: var(--bg-subtle);
     --secondary-foreground: var(--text-primary);
     --muted: var(--bg-subtle);
     --muted-foreground: var(--text-secondary);
-    --accent: 263 72% 62%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 173 66% 50%;
+    --accent-foreground: 179 84% 10%;
     --destructive: var(--danger);
     --destructive-foreground: var(--danger-foreground);
     --border: var(--border-color);
     --input: var(--border-color);
-    --ring: 263 72% 62%;
+    --ring: 173 66% 50%;
 
     /* ===== FINANCEIRO + SEMANTICO (Dark) ===== */
     --success: 152 60% 42%;

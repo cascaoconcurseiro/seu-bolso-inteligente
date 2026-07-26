@@ -2,6 +2,31 @@
 
 > Última atualização: 2026-07-26
 
+## Handoff da sessão - 26/07/2026 - Identidade visual verde-petróleo
+
+### Entrega
+
+- A identidade roxa genérica foi substituída nos tokens globais `primary`, `accent` e `ring` pelo verde-petróleo já presente no ícone do Pé de Meia.
+- Tema claro usa `#0F766E`; tema escuro usa `#2DD4BF` com foreground `#042F2E`, preservando contraste WCAG AA.
+- Verde de entrada/sucesso, vermelho de saída/erro e cores escolhidas pelo usuário para avatar, cartão ou categorias permanecem semanticamente separados.
+- Componentes com foreground branco hardcoded foram migrados para os tokens adaptativos e o manifesto `.claude/commands/design-review.md` foi atualizado para impedir regressão ao violeta.
+
+### Verificação
+
+- [x] Compilação isolada do Tailwind.
+- [x] ESLint sem erros nos arquivos alterados; apenas warnings antigos.
+- [x] `DashboardHero.test.tsx`: 3 testes aprovados e snapshots atualizados.
+- [x] `git diff --check`.
+- [ ] Suíte global: 266 testes aprovados, 19 ignorados e 2 falhas em `TripItinerary.test.tsx` causadas pelas mudanças paralelas ainda não commitadas no planejador.
+- [ ] Typecheck global: 5 erros preexistentes e fora da troca de identidade.
+- [ ] Build completo: sandbox bloqueou a leitura do caminho pai; execução externa foi recusada porque o plugin do Sentry poderia enviar sourcemaps.
+
+### Próximo passo concreto
+
+Abrir o dashboard autenticado em 390 px e 1440 px e conferir botões, item ativo da navegação, foco por teclado, calendários, badges e cartões nos temas claro e escuro. As mudanças paralelas de viagens e as skills untracked continuam fora deste commit.
+
+---
+
 ## Handoff da sessão - 26/07/2026 - Paridade operacional de viagens e correção do deploy
 
 ### Entrega

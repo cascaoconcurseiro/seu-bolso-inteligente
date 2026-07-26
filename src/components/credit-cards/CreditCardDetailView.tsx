@@ -370,7 +370,7 @@ export function CreditCardDetailView({
                         ? "bg-destructive/20 text-destructive-foreground border-destructive/50 animate-pulse"
                         : isClosed
                           ? "bg-warning/20 text-warning border-warning/50"
-                          : "bg-accent/20 text-accent-foreground border-accent/50"
+                          : "bg-accent/20 text-accent border-accent/50"
                   )}
                 >
                   {isPaid

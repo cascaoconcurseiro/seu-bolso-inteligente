@@ -410,7 +410,7 @@ export function BackupManager() {
                 accept=".json"
                 onChange={handleFileChange}
                 disabled={isImporting}
-                className="cursor-pointer bg-muted/20 border-border/50 rounded-xl file:bg-primary file:text-white file:border-0 file:rounded-lg file:mr-2 file:text-sm file:font-semibold"
+                className="cursor-pointer bg-muted/20 border-border/50 rounded-xl file:bg-primary file:text-primary-foreground file:border-0 file:rounded-lg file:mr-2 file:text-sm file:font-semibold"
               />
             </div>
           </div>

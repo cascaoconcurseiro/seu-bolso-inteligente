@@ -75,7 +75,7 @@ export function SharedTripCard({
       <div className="p-4 bg-accent/5 dark:bg-accent/10">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-white bg-accent shrink-0 shadow-lg shadow-accent/20">
+            <div className="w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-accent-foreground bg-accent shrink-0 shadow-lg shadow-accent/20">
               <Plane className="h-6 w-6" />
             </div>
             <div className="min-w-0">

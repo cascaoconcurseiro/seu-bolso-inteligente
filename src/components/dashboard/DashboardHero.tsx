@@ -96,7 +96,7 @@ export const DashboardHero = memo(function DashboardHero({
 
           <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3 w-full">
             <div className="animate-stagger stagger-1 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl bg-accent/10 border border-accent/20 group/patrimony transition-all hover:bg-accent/15 overflow-hidden">
-              <div className="shrink-0 p-1.5 rounded-full bg-accent text-white shadow-lg shadow-accent/20 group-hover/patrimony:scale-110 transition-transform">
+              <div className="shrink-0 p-1.5 rounded-full bg-accent text-accent-foreground shadow-lg shadow-accent/20 group-hover/patrimony:scale-110 transition-transform">
                 <Globe className="h-3 w-3" />
               </div>
               <div className="min-w-0">

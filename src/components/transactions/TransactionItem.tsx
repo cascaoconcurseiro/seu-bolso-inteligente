@@ -159,7 +159,7 @@ export function TransactionItem({
     >
       {/* Background Edit Button (revealed on swipe RIGHT) */}
       <div
-        className="absolute left-0 top-0 bottom-0 w-20 bg-primary flex items-center justify-center text-white cursor-pointer"
+        className="absolute left-0 top-0 bottom-0 w-20 bg-primary flex items-center justify-center text-primary-foreground cursor-pointer"
         onClick={(e) => {
           e.stopPropagation();
           onEdit(transaction);

@@ -1,7 +1,17 @@
 # CHECKLIST.md — Sprint Kanban: Seu Bolso Inteligente
 
 > Kanban de tarefas em markdown. Atualizar a cada sessão.
-> Última atualização: **2026-07-26 — Planejador de viagens centrado no mapa**
+> Última atualização: **2026-07-26 — Identidade visual verde-petróleo**
+
+---
+
+## Concluído - 26/07/2026 - Identidade visual do produto
+
+- [x] **[BRAND-COLOR]** Roxo genérico substituído nos tokens globais `primary`, `accent` e `ring` por verde-petróleo alinhado ao ícone do Pé de Meia.
+- [x] **[BRAND-CONTRAST]** Foregrounds adaptativos aplicados: branco no tema claro e verde quase preto no escuro; contrastes entre `5,47:1` e `10,14:1`.
+- [x] **[BRAND-CONSISTENCY]** Componentes que forçavam `text-white` sobre a cor de marca migrados para `text-accent-foreground`/`text-primary-foreground`; manifesto interno de design atualizado.
+- [x] **[BRAND-VERIFY]** Tailwind compilado isoladamente, ESLint sem erros nos arquivos alterados, `git diff --check` aprovado e 3 testes/snapshots do dashboard aprovados.
+- [ ] **[BRAND-QA-AUTH]** Validar visualmente a nova paleta com sessão autenticada em 390 px e 1440 px.
 
 ---
 

@@ -95,7 +95,7 @@ exports[`DashboardHero > renders correctly with default props (snapshot) 1`] = `
           class="animate-stagger stagger-1 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl bg-accent/10 border border-accent/20 group/patrimony transition-all hover:bg-accent/15 overflow-hidden"
         >
           <div
-            class="shrink-0 p-1.5 rounded-full bg-accent text-white shadow-lg shadow-accent/20 group-hover/patrimony:scale-110 transition-transform"
+            class="shrink-0 p-1.5 rounded-full bg-accent text-accent-foreground shadow-lg shadow-accent/20 group-hover/patrimony:scale-110 transition-transform"
           >
             <svg
               class="lucide lucide-globe h-3 w-3"
@@ -370,7 +370,7 @@ exports[`DashboardHero > renders with wealth history and monthly budget (snapsho
           class="animate-stagger stagger-1 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl bg-accent/10 border border-accent/20 group/patrimony transition-all hover:bg-accent/15 overflow-hidden"
         >
           <div
-            class="shrink-0 p-1.5 rounded-full bg-accent text-white shadow-lg shadow-accent/20 group-hover/patrimony:scale-110 transition-transform"
+            class="shrink-0 p-1.5 rounded-full bg-accent text-accent-foreground shadow-lg shadow-accent/20 group-hover/patrimony:scale-110 transition-transform"
           >
             <svg
               class="lucide lucide-globe h-3 w-3"
@@ -765,7 +765,7 @@ exports[`DashboardHero > shows negative balance correctly (snapshot) 1`] = `
           class="animate-stagger stagger-1 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl bg-accent/10 border border-accent/20 group/patrimony transition-all hover:bg-accent/15 overflow-hidden"
         >
           <div
-            class="shrink-0 p-1.5 rounded-full bg-accent text-white shadow-lg shadow-accent/20 group-hover/patrimony:scale-110 transition-transform"
+            class="shrink-0 p-1.5 rounded-full bg-accent text-accent-foreground shadow-lg shadow-accent/20 group-hover/patrimony:scale-110 transition-transform"
           >
             <svg
               class="lucide lucide-globe h-3 w-3"

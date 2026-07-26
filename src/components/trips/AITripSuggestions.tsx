@@ -104,7 +104,7 @@ export function AITripSuggestions({
         size="sm"
         className={
           buttonClassName ||
-          "relative overflow-hidden group bg-accent hover:bg-accent/92 text-white border-none shadow-lg shadow-accent/25 transition-all duration-300 hover:scale-105 active:scale-95"
+          "relative overflow-hidden group bg-accent hover:bg-accent/92 text-accent-foreground border-none shadow-lg shadow-accent/25 transition-all duration-300 hover:scale-105 active:scale-95"
         }
       >
         <div className="absolute inset-0 bg-white/20 group-hover:translate-x-full transition-transform duration-1000 -skew-x-12 -translate-x-full z-0" />
@@ -255,7 +255,7 @@ export function AITripSuggestions({
             <Button
               onClick={handleApply}
               disabled={isLoading || suggestions.length === 0 || selectedIndices.size === 0}
-              className="bg-accent hover:bg-accent/90 text-white"
+              className="bg-accent hover:bg-accent/90 text-accent-foreground"
             >
               Adicionar {selectedIndices.size} {selectedIndices.size === 1 ? "item" : "itens"}
             </Button>
