@@ -1331,23 +1331,42 @@ function ItineraryDialog({
       setTimeError("");
       return;
     }
+  const [showMoreFields, setShowMoreFields] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      searchRequestId.current += 1;
+      mapsResolveRequestId.current += 1;
+      setPlaceQuery("");
+      setPlaceResults([]);
+      setPlaceSearchFinished(false);
+      setActivePlaceIndex(-1);
+      setResolvedPlaceName("");
+      setTimeError("");
+      setShowMoreFields(false);
+      return;
+    }
     const query = placeQuery.trim();
-    if (query.length < 3) {
+    const catLabel = PLACE_CATEGORIES.find((c) => c.id === category)?.label;
+    const effectiveQuery = query.length >= 2 ? query : (category ? (catLabel || "") : "");
+
+    if (!effectiveQuery) {
       setPlaceResults([]);
       setPlaceSearchFinished(false);
       return;
     }
+
     const requestId = ++searchRequestId.current;
     setIsSearchingPlaces(true);
     setPlaceSearchFinished(false);
     const timer = setTimeout(async () => {
-      const results = await searchPlaces(query, searchNear ?? undefined, category ?? undefined);
+      const results = await searchPlaces(effectiveQuery, searchNear ?? undefined, category ?? undefined);
       if (searchRequestId.current !== requestId) return;
       setPlaceResults(results);
       setIsSearchingPlaces(false);
       setPlaceSearchFinished(true);
       setActivePlaceIndex(results.length ? 0 : -1);
-    }, 400);
+    }, 300);
     return () => clearTimeout(timer);
   }, [placeQuery, open, searchNear, category]);
 
@@ -1452,45 +1471,24 @@ function ItineraryDialog({
             submitActivity();
           }}
         >
-          <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5 sm:px-6">
-            {/* Data */}
-            <div className="space-y-2">
-              <Label htmlFor="itinerary-date">Data</Label>
-              <Input
-                id="itinerary-date"
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                disabled={dateLocked}
-                aria-required="true"
-                required
-                className="h-11"
-              />
-              {dateLocked && (
-                <p className="text-xs text-muted-foreground">
-                  Para trocar o dia, use “Mover para outro dia” no cartão.
-                </p>
-              )}
-            </div>
-
-            {/* Título */}
-            <div className="space-y-2">
-              <Label htmlFor="itinerary-title">Título</Label>
-              <Input
-                id="itinerary-title"
-                placeholder="Ex: Visita ao museu"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                aria-required="true"
-                required
-                className="h-11"
-              />
-            </div>
-
-            {/* Horários */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="itinerary-start-time">Horário de início</Label>
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4 sm:px-6">
+            {/* Data e Horários numa linha compacta */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="space-y-1.5 sm:col-span-1">
+                <Label htmlFor="itinerary-date" className="text-xs font-semibold">Data</Label>
+                <Input
+                  id="itinerary-date"
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  disabled={dateLocked}
+                  aria-required="true"
+                  required
+                  className="h-10 text-sm"
+                />
+              </div>
+              <div className="space-y-1.5 sm:col-span-1">
+                <Label htmlFor="itinerary-start-time" className="text-xs font-semibold">Início</Label>
                 <Input
                   id="itinerary-start-time"
                   type="time"
@@ -1499,13 +1497,11 @@ function ItineraryDialog({
                     setStartTime(e.target.value);
                     setTimeError("");
                   }}
-                  aria-invalid={!!timeError}
-                  aria-describedby={timeError ? "itinerary-time-error" : undefined}
-                  className="h-11"
+                  className="h-10 text-sm"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="itinerary-end-time">Horário de fim</Label>
+              <div className="space-y-1.5 sm:col-span-1">
+                <Label htmlFor="itinerary-end-time" className="text-xs font-semibold">Fim</Label>
                 <Input
                   id="itinerary-end-time"
                   type="time"
@@ -1514,41 +1510,51 @@ function ItineraryDialog({
                     setEndTime(e.target.value);
                     setTimeError("");
                   }}
-                  aria-invalid={!!timeError}
-                  aria-describedby={timeError ? "itinerary-time-error" : undefined}
-                  className="h-11"
+                  className="h-10 text-sm"
                 />
               </div>
             </div>
             {timeError && (
-              <p
-                id="itinerary-time-error"
-                role="alert"
-                aria-label={timeError}
-                className="text-sm font-medium text-destructive"
-              >
+              <p role="alert" className="text-xs font-medium text-destructive">
                 {timeError}
               </p>
             )}
 
-            {/* Local + busca com autocomplete */}
-            <div className="space-y-2">
-              <Label htmlFor="itinerary-location">Buscar local</Label>
+            {/* Título */}
+            <div className="space-y-1.5">
+              <Label htmlFor="itinerary-title" className="text-xs font-semibold">Título da atividade *</Label>
+              <Input
+                id="itinerary-title"
+                placeholder="Ex: Visita ao Museu, Jantar no Centro..."
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                aria-required="true"
+                required
+                className="h-10 text-sm"
+              />
+            </div>
 
-              {/* Categoria — filtra a busca e define a cor do pin no mapa */}
-              <div className="flex flex-wrap gap-1.5" role="group" aria-label="Categoria do lugar">
+            {/* Local + Categoria com sugestões automáticas do destino */}
+            <div className="space-y-2 rounded-xl border border-border/60 bg-muted/20 p-3">
+              <Label className="text-xs font-semibold text-foreground">Buscar local no destino (sugestões)</Label>
+
+              {/* Categoria — ativa busca direta das melhores atrações/restaurantes do destino */}
+              <div className="flex flex-wrap gap-1.5" role="group" aria-label="Sugestões por categoria">
                 {PLACE_CATEGORIES.map((cat) => {
                   const isSelected = category === cat.id;
                   return (
                     <button
                       key={cat.id}
                       type="button"
-                      onClick={() => setCategory(isSelected ? null : cat.id)}
+                      onClick={() => {
+                        const nextCat = isSelected ? null : cat.id;
+                        setCategory(nextCat);
+                      }}
                       aria-pressed={isSelected}
-                      className={`rounded-full px-3 py-1 text-xs font-medium border transition-colors ${
+                      className={`rounded-full px-3 py-1 text-xs font-medium border transition-all ${
                         isSelected
-                          ? "text-white"
-                          : "border-border text-foreground hover:bg-accent/50"
+                          ? "text-white shadow-sm"
+                          : "border-border/80 bg-background text-foreground hover:bg-accent"
                       }`}
                       style={
                         isSelected
@@ -1566,7 +1572,7 @@ function ItineraryDialog({
                 <div className="flex gap-2">
                   <Input
                     id="itinerary-location"
-                    placeholder="Ex: Museu do Louvre"
+                    placeholder={category ? `Buscando sugestões de ${PLACE_CATEGORIES.find(c=>c.id===category)?.label}...` : "Digite o nome do lugar ou selecione uma categoria acima..."}
                     value={location}
                     onChange={(e) => {
                       setLocation(e.target.value);
@@ -1575,24 +1581,13 @@ function ItineraryDialog({
                       setResolvedPlaceName("");
                     }}
                     onKeyDown={handlePlaceKeyDown}
-                    className="h-11"
-                    role="combobox"
-                    aria-label="Buscar local"
-                    aria-autocomplete="list"
-                    aria-expanded={placeResults.length > 0 || isSearchingPlaces}
-                    aria-controls="itinerary-place-results"
-                    aria-activedescendant={
-                      activePlaceIndex >= 0
-                        ? `itinerary-place-result-${activePlaceIndex}`
-                        : undefined
-                    }
-                    aria-busy={isSearchingPlaces}
+                    className="h-10 text-sm"
                   />
                   <Button
                     type="button"
                     variant="outline"
                     size="icon"
-                    className="h-11 w-11 shrink-0"
+                    className="h-10 w-10 shrink-0"
                     onClick={openMapsSearch}
                     disabled={!location && !title}
                     aria-label="Buscar local no Maps"
@@ -1600,15 +1595,15 @@ function ItineraryDialog({
                     <Search className="h-4 w-4" />
                   </Button>
                 </div>
+
                 {(placeResults.length > 0 || isSearchingPlaces) && (
                   <div
                     id="itinerary-place-results"
                     role="listbox"
-                    aria-label="Resultados de lugares"
-                    className="absolute left-0 right-0 top-full z-50 mt-1 max-h-56 overflow-y-auto rounded-xl border border-border bg-popover shadow-lg"
+                    className="absolute left-0 right-0 top-full z-50 mt-1 max-h-56 overflow-y-auto rounded-xl border border-border bg-popover shadow-xl"
                   >
                     {isSearchingPlaces && placeResults.length === 0 && (
-                      <p className="px-3 py-2.5 text-sm text-muted-foreground">Buscando lugares…</p>
+                      <p className="px-3 py-2.5 text-xs text-muted-foreground">Buscando sugestões para esta cidade…</p>
                     )}
                     {placeResults.map((place, idx) => (
                       <button
@@ -1617,18 +1612,18 @@ function ItineraryDialog({
                         type="button"
                         role="option"
                         aria-selected={idx === activePlaceIndex}
-                        className={`flex min-h-11 w-full items-start gap-2 px-3 py-2.5 text-left transition-colors ${
+                        className={`flex min-h-10 w-full items-start gap-2 px-3 py-2 text-left transition-colors ${
                           idx === activePlaceIndex ? "bg-accent" : "hover:bg-accent/50"
                         }`}
                         onClick={() => handlePickPlace(place)}
                       >
-                        <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                        <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
                         <span className="min-w-0">
-                          <span className="block text-sm font-medium leading-tight">
+                          <span className="block text-xs font-semibold leading-tight text-foreground">
                             {place.name}
                           </span>
                           {place.address && (
-                            <span className="block truncate text-xs text-muted-foreground">
+                            <span className="block truncate text-[11px] text-muted-foreground">
                               {place.address}
                             </span>
                           )}
@@ -1638,75 +1633,67 @@ function ItineraryDialog({
                   </div>
                 )}
               </div>
-              {placeSearchFinished &&
-                !isSearchingPlaces &&
-                placeResults.length === 0 &&
-                !hasCoords && (
-                  <p className="text-sm text-muted-foreground">
-                    Nenhum lugar encontrado. Inclua a cidade ou cole um link do Maps.
-                  </p>
-                )}
-              {hasCoords ? (
-                <p
-                  className="flex items-center gap-1 text-sm font-medium text-emerald-700 dark:text-emerald-400"
-                  role="status"
-                >
+              {hasCoords && (
+                <p className="flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
                   <MapPin className="h-3 w-3" />
-                  {resolvedPlaceName ? "Local encontrado e marcado no mapa" : "Pin fixado no mapa"}
-                </p>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  Digite para buscar e fixar o lugar no mapa do roteiro.
+                  {resolvedPlaceName ? `Local selecionado: ${resolvedPlaceName}` : "Pin marcado no mapa"}
                 </p>
               )}
             </div>
 
-            {/* Link do Maps */}
-            <div className="space-y-2">
-              <Label htmlFor="itinerary-maps-url" className="flex items-center gap-1.5">
-                <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                Link do Google Maps
-              </Label>
-              <div className="flex gap-2">
-                <Input
-                  id="itinerary-maps-url"
-                  placeholder="Cole o link copiado do Maps…"
-                  value={mapsUrl}
-                  onChange={(e) => void handleMapsUrlChange(e.target.value)}
-                  className="h-11 text-sm"
-                />
-                {mapsUrl && isSafeGoogleMapsUrl(mapsUrl) && (
-                  <a
-                    href={mapsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="h-11 w-11 shrink-0 flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent transition-colors"
-                    aria-label="Abrir link do Google Maps"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
-                )}
-              </div>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                {mapsUrl && !isSafeGoogleMapsUrl(mapsUrl)
-                  ? "Use um link HTTPS válido do Google Maps."
-                  : parseGoogleMapsUrl(mapsUrl)
-                    ? "Coordenadas do link detectadas — o pin vai aparecer no mapa do roteiro."
-                    : "Toque em 🔍 para buscar, copie o link no Maps e cole aqui."}
-              </p>
-            </div>
+            {/* Toggle de Campos Opcionais Avançados */}
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowMoreFields(!showMoreFields)}
+                className="text-xs font-semibold text-sky-600 hover:text-sky-700 dark:text-sky-400 flex items-center gap-1 py-1"
+              >
+                {showMoreFields ? "− Ocultar opções avançadas" : "＋ Mais opções (Link do Maps, anotações)"}
+              </button>
 
-            {/* Descrição */}
-            <div className="space-y-2">
-              <Label htmlFor="itinerary-description">Descrição</Label>
-              <Textarea
-                id="itinerary-description"
-                placeholder="Detalhes da atividade…"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="resize-none"
-                rows={3}
-              />
+              {showMoreFields && (
+                <div className="mt-3 space-y-3 rounded-xl border border-border/50 bg-muted/10 p-3">
+                  {/* Link do Maps */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="itinerary-maps-url" className="text-xs font-semibold flex items-center gap-1">
+                      <MapPin className="h-3 w-3 text-muted-foreground" />
+                      Link do Google Maps
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="itinerary-maps-url"
+                        placeholder="Cole o link do Maps aqui…"
+                        value={mapsUrl}
+                        onChange={(e) => void handleMapsUrlChange(e.target.value)}
+                        className="h-10 text-xs"
+                      />
+                      {mapsUrl && isSafeGoogleMapsUrl(mapsUrl) && (
+                        <a
+                          href={mapsUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="h-10 w-10 shrink-0 flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Descrição */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="itinerary-description" className="text-xs font-semibold">Descrição / Notas</Label>
+                    <Textarea
+                      id="itinerary-description"
+                      placeholder="Detalhes ou observações da atividade…"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      className="resize-none text-xs"
+                      rows={2}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
