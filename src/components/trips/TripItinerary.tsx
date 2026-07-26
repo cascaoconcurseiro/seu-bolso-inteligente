@@ -205,6 +205,71 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     };
   }, [trip.destination, trip.name, trip.id, trip.latitude, trip.longitude, queryClient]);
 
+  // Helper: calcula distância entre duas coordenadas (Haversine)
+  const calculateDistanceKm = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  // Helper: estimativa de tempo e distância entre duas paradas consecutivas
+  const getTravelEstimate = (itemA: ItineraryItem, itemB: ItineraryItem): string | null => {
+    if (
+      itemA.latitude === null ||
+      itemA.longitude === null ||
+      itemB.latitude === null ||
+      itemB.longitude === null
+    ) {
+      return null;
+    }
+    const dist = calculateDistanceKm(
+      Number(itemA.latitude),
+      Number(itemA.longitude),
+      Number(itemB.latitude),
+      Number(itemB.longitude)
+    );
+    if (dist < 0.05) return null;
+
+    if (dist <= 1.5) {
+      const walkMin = Math.max(3, Math.round(dist * 12));
+      const meters = Math.round(dist * 1000);
+      return `🚶 ${walkMin} min a pé (${meters >= 1000 ? `${(meters / 1000).toFixed(1)}km` : `${meters}m`})`;
+    } else {
+      const driveMin = Math.max(5, Math.round(dist * 2.5));
+      return `🚗 ${driveMin} min de carro (${dist.toFixed(1)} km)`;
+    }
+  };
+
+  // Helper: gera rota com múltiplos pontos para abrir no Google Maps
+  const getGoogleMapsDayRouteUrl = (dayItems: ItineraryItem[], destinationName?: string): string => {
+    const mapped = dayItems.filter((i) => i.latitude !== null && i.longitude !== null);
+    if (mapped.length === 0) {
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destinationName || "Liverpool, UK")}`;
+    }
+    if (mapped.length === 1) {
+      const item = mapped[0];
+      return `https://www.google.com/maps/search/?api=1&query=${item.latitude},${item.longitude}`;
+    }
+    const origin = `${mapped[0].latitude},${mapped[0].longitude}`;
+    const dest = `${mapped[mapped.length - 1].latitude},${mapped[mapped.length - 1].longitude}`;
+    const waypoints = mapped
+      .slice(1, -1)
+      .map((i) => `${i.latitude},${i.longitude}`)
+      .join("|");
+
+    return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}${
+      waypoints ? `&waypoints=${waypoints}` : ""
+    }&travelmode=driving`;
+  };
+
   // Helper: extrai metadados embedados no description (mapsUrl, rating)
   const parseMeta = (
     desc: string | null
@@ -924,9 +989,23 @@ export function TripItinerary({ trip }: TripItineraryProps) {
                     : "Escolha um dia"}
                 </h3>
               </div>
-              <span className="text-xs text-muted-foreground">
-                {activeItems.length} {activeItems.length === 1 ? "parada" : "paradas"}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">
+                  {activeItems.length} {activeItems.length === 1 ? "parada" : "paradas"}
+                </span>
+                {activeItems.length > 0 && (
+                  <Button asChild variant="outline" size="sm" className="min-h-9 px-2 text-xs">
+                    <a
+                      href={getGoogleMapsDayRouteUrl(activeItems, trip.destination || trip.name)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Navigation className="mr-1.5 h-3.5 w-3.5 text-primary" aria-hidden="true" />
+                      Abrir Rota no Google Maps
+                    </a>
+                  </Button>
+                )}
+              </div>
             </div>
 
             {activeItems.length === 0 ? (
@@ -958,28 +1037,39 @@ export function TripItinerary({ trip }: TripItineraryProps) {
                   <ol className="space-y-2">
                     {activeItems.map((item, index) => {
                       const meta = parseMeta(item.description);
+                      const nextItem = activeItems[index + 1];
+                      const travelEstimate = nextItem ? getTravelEstimate(item, nextItem) : null;
+
                       return (
-                        <ItineraryStopCard
-                          key={item.id}
-                          item={item}
-                          position={index}
-                          itemCount={activeItems.length}
-                          destination={trip.destination}
-                          description={meta.text}
-                          rating={meta.rating}
-                          isFocused={focusedItemId === item.id}
-                          dayOptions={dayOptions}
-                          disabled={reorderItems.isPending}
-                          onFocus={() => {
-                            setFocusedItemId(focusedItemId === item.id ? null : item.id);
-                            setMobileView("map");
-                          }}
-                          onEdit={() => handleOpenDialog(item)}
-                          onDelete={() => setDeletingItem(item)}
-                          onMove={(targetDate, targetIndex) =>
-                            persistMove(item.id, targetDate, targetIndex)
-                          }
-                        />
+                        <Fragment key={item.id}>
+                          <ItineraryStopCard
+                            item={item}
+                            position={index}
+                            itemCount={activeItems.length}
+                            destination={trip.destination}
+                            description={meta.text}
+                            rating={meta.rating}
+                            isFocused={focusedItemId === item.id}
+                            dayOptions={dayOptions}
+                            disabled={reorderItems.isPending}
+                            onFocus={() => {
+                              setFocusedItemId(focusedItemId === item.id ? null : item.id);
+                              setMobileView("map");
+                            }}
+                            onEdit={() => handleOpenDialog(item)}
+                            onDelete={() => setDeletingItem(item)}
+                            onMove={(targetDate, targetIndex) =>
+                              persistMove(item.id, targetDate, targetIndex)
+                            }
+                          />
+                          {travelEstimate && (
+                            <div className="my-1 flex items-center justify-center">
+                              <span className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-muted/50 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground shadow-xs">
+                                {travelEstimate}
+                              </span>
+                            </div>
+                          )}
+                        </Fragment>
                       );
                     })}
                   </ol>
