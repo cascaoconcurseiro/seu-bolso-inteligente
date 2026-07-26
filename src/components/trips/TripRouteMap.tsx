@@ -182,9 +182,9 @@ export function TripRouteMap({
     };
   }, []);
 
-  if (mappedItems.length === 0 && !fallbackCenter) return null;
-
-  const center: [number, number] = positions[0] ?? [fallbackCenter!.lat, fallbackCenter!.lon];
+  const center: [number, number] = fallbackCenter
+    ? [fallbackCenter.lat, fallbackCenter.lon]
+    : positions[0] ?? [-23.5505, -46.6333];
 
   return (
     <section

@@ -1061,30 +1061,18 @@ export function TripItinerary({ trip }: TripItineraryProps) {
             </p>
           </div>
 
-          {destCoords || mapItems.some((item) => item.latitude !== null) ? (
-            <TripRouteMap
-              items={mapItems}
-              fallbackCenter={destCoords ?? null}
-              onMapPick={handleMapPick}
-              onMarkerMove={adjustLocations ? handleMarkerMove : undefined}
-              focusedId={focusedItemId}
-              activeDateLabel={
-                activeDate
-                  ? dateFns.format(dateFns.parseISO(activeDate), "dd 'de' MMMM", { locale: ptBR })
-                  : undefined
-              }
-            />
-          ) : (
-            <div className="grid min-h-[420px] place-items-center rounded-2xl border border-dashed border-border bg-muted/30 p-6 text-center">
-              <div>
-                <MapPin className="mx-auto h-8 w-8 text-primary" aria-hidden="true" />
-                <p className="mt-3 font-semibold text-foreground">Seu roteiro começa aqui</p>
-                <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-                  Busque um lugar ou adicione manualmente a primeira parada.
-                </p>
-              </div>
-            </div>
-          )}
+          <TripRouteMap
+            items={mapItems}
+            fallbackCenter={destCoords ?? null}
+            onMapPick={handleMapPick}
+            onMarkerMove={adjustLocations ? handleMarkerMove : undefined}
+            focusedId={focusedItemId}
+            activeDateLabel={
+              activeDate
+                ? dateFns.format(dateFns.parseISO(activeDate), "dd 'de' MMMM", { locale: ptBR })
+                : undefined
+            }
+          />
         </main>
 
         <aside className="hidden min-w-0 space-y-4 xl:block" aria-label="Adicionar lugares">
