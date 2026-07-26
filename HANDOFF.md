@@ -2,6 +2,43 @@
 
 > Última atualização: 2026-07-26
 
+## Handoff da sessão - 26/07/2026 - Paridade operacional de viagens e correção do deploy
+
+### Entrega
+
+- Benchmark completo do TREK (código, README e imagens) usado apenas como referência funcional; nenhum código/asset AGPL foi copiado.
+- Formulário de viagem substituído por um fluxo unificado de criação/edição: nome e destino independentes, notas, capa HTTPS com prévia/erro, datas, moeda, orçamento opcional e convites.
+- Cards e header ganharam capa, estados financeiros honestos (loading/erro/sem orçamento/excedido), status cancelado correto, semântica acessível e layout móvel reforçado.
+- `Planejar` agora tem biblioteca persistente de lugares separada da agenda: salvar ideia, listar e agendar no dia. As 19 paradas existentes foram migradas e vinculadas sem perda.
+- Painel contextual de reservas adicionado para voo, hospedagem, transporte, carro, restaurante, evento e atividade; confirmação e período ficam separados da fonte financeira `transactions`.
+- Encurtar datas é bloqueado quando esconderia atividades ou reservas existentes.
+- PR Dependabot que misturava React 19 com React DOM 18 foi fechado; majors coordenados de React passaram a ser ignorados para não repetir o `ERESOLVE` da Vercel.
+
+### Banco de produção
+
+- Aplicadas `harden_trip_permissions` e `add_trip_places_and_reservations` no projeto `vrrcagukyfnlhxuvnssp`.
+- RLS e grants de viagens/membros/checklist foram endurecidos; `trip_places`, `trip_reservations`, endpoints e vínculos financeiros usam isolamento por viagem, FKs compostas e identidades imutáveis.
+- Backfill confirmado: 19 lugares e 19 itens do roteiro vinculados; ordem final dos triggers de `trips` confirmada com `zz_guard_trip_protected_update` por último.
+- Tipos TypeScript regenerados do schema real.
+
+### Verificação
+
+- [x] 263 testes aprovados, 19 ignorados.
+- [x] `npx tsc --noEmit`.
+- [x] Prettier nos arquivos alterados.
+- [x] `npm install --dry-run` sem conflito React/React DOM.
+- [x] `npm run build` PWA aprovado.
+- [ ] QA visual autenticado em 390 px e 1440 px.
+
+### Próximo passo concreto
+
+Abrir uma viagem autenticada e validar visualmente: criar/editar com capa, salvar um lugar sem data, adicioná-lo ao roteiro, criar uma reserva e conferir o bloqueio ao encurtar o período. Depois implementar documentos privados (`trip_resources` + bucket privado) e colaboração avançada (notas/chat/enquetes) como próxima fase.
+
+### Observações
+
+- Advisors de segurança ainda listam avisos antigos de funções `SECURITY DEFINER` e proteção de senha vazada desativada; não foram introduzidos por estas migrations.
+- `.agents/skills/humanizar-design/` e `.agents/skills/mentor-tecnico-senior/` permanecem untracked e intocados.
+
 ## Handoff da sessão - 26/07/2026 - Planejador de viagens centrado no mapa
 
 ### Objetivo

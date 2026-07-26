@@ -15,7 +15,11 @@
 - [x] **[TRIP-PLAN-A11Y]** Alvos mínimos de 44 px, labels associados, combobox/listbox semânticos, nomes acessíveis, alternativa ao arrastar, skip link e redução de movimento no foco do mapa.
 - [x] **[TRIP-PLAN-VERIFY]** 249 testes aprovados, TypeScript sem erros, lint sem erros, build PWA verde; prova transacional da RPC com rollback confirmou stale version e invariantes financeiros.
 - [ ] **[TRIP-PLAN-QA-AUTH]** Fazer QA visual autenticado em desktop e celular com dados reais; a inspeção automatizada local confirmou boot/login sem erro, mas não possuía sessão para entrar na viagem.
-- [ ] **[TRIP-PLAN-P1]** Criar biblioteca persistente de `Ideias/Lugares` (`trip_places`) em migration separada; não simular estado apenas no frontend.
+- [x] **[TRIP-PLAN-P1]** Biblioteca persistente de `Ideias/Lugares` (`trip_places`) aplicada e integrada: salvar para decidir depois, listar e agendar no dia sem duplicar o lugar.
+- [x] **[TRIP-RESERVATIONS]** Reservas persistentes para voo, hospedagem, transportes, restaurante, evento e atividade, com confirmação e período; gastos continuam em `transactions`.
+- [x] **[TRIP-FORM]** Formulário unificado de criação/edição com título separado do destino, notas, capa HTTPS, moeda, orçamento opcional, participantes, validação e preservação da digitação.
+- [x] **[TRIP-RLS-HARDEN]** Policies de viagens, membros, checklist, lugares e reservas restritas a `authenticated`, permissões por papel/status, vínculos compostos por `trip_id` e campos de identidade protegidos.
+- [x] **[VERCEL-REACT-PEER]** PR Dependabot incompatível React 19/React DOM 18 fechado; majors coordenados de React ignorados no Dependabot; `npm install --dry-run` e build de produção aprovados.
 
 ---
 

@@ -1,7 +1,7 @@
 # MASTER_BLUEPRINT.md — Mapa do Projeto: Seu Bolso Inteligente
 
 > Este documento é a fonte única de verdade arquitetural do projeto. Leia antes de qualquer implementação.
-> Última atualização: 2026-07-26 (novo Planejar de viagens + ordenação atômica do roteiro)
+> Última atualização: 2026-07-26 (lugares e reservas persistentes + RLS de viagens)
 
 ---
 
@@ -73,6 +73,8 @@
 | `goals` | Metas financeiras | `deleted_at` |
 | `goal_milestones` | Marcos de metas (alerta 7 dias antes) | - |
 | `trips` | Viagens com suporte multi-moeda | `deleted_at` |
+| `trip_places` | Biblioteca persistente de lugares/ideias, separada da agenda | exclusão física vinculada à viagem |
+| `trip_reservations` | Reservas operacionais (voo, hospedagem, transporte, atividade) | exclusão física vinculada à viagem |
 | `trip_itinerary` | Paradas do roteiro; ordem canônica por `trip_id`, `date`, `order_index` | ❌ |
 | `budgets` | Orçamentos mensais por categoria | - |
 | `assets` | Investimentos (B3, etc.) | `deleted_at` |
@@ -130,6 +132,7 @@
 9. **Metas:** Progress tracking + pg_cron para alertas 7 dias antes do prazo
 10. **Push Notifications:** VAPID + AES-128-GCM + pg_cron + Edge Functions
 11. **Planejar viagem:** dia ativo → mapa/lista sincronizados → reorder otimista → `reorder_trip_itinerary_v1()` → versão nova ou rollback por conflito
+12. **Lugar e reserva de viagem:** salvar ideia em `trip_places` → agendar opcionalmente em `trip_itinerary`; registrar reserva em `trip_reservations` sem duplicar o gasto financeiro, que continua canônico em `transactions`
 
 ---
 

@@ -67,20 +67,31 @@ export function TripDetailHeader({
 
   return (
     <div className="relative overflow-hidden rounded-4xl p-5 md:p-8 transition-all duration-700 ease-out bg-background/60 backdrop-blur-xl border border-border/40 shadow-sm mb-8">
+      {trip.cover_image && (
+        <>
+          <img
+            src={trip.cover_image}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-background/90 md:bg-gradient-to-r md:from-background md:via-background/90 md:to-background/45" />
+        </>
+      )}
       <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
       <div className="relative flex flex-col md:flex-row md:items-start md:justify-between gap-6">
-        <div className="flex items-start gap-4">
+        <div className="flex min-w-0 items-start gap-4">
           <Button
             variant="ghost"
             size="icon"
             onClick={onBack}
             className="mt-1 rounded-full h-12 w-11 hover:bg-muted transition-all active:scale-95 shrink-0 shadow-sm border border-border/40"
+            aria-label="Voltar para a lista de viagens"
           >
             <ArrowLeft className="h-5 w-5 text-muted-foreground" />
           </Button>
 
-          <div className="space-y-3">
+          <div className="min-w-0 space-y-3">
             <div className="flex items-center gap-3 flex-wrap">
               <h1 className="font-display font-black text-3xl md:text-3xl tracking-tighter text-foreground truncate">
                 {trip.name}
@@ -111,10 +122,11 @@ export function TripDetailHeader({
                 </span>
 
                 {participants && participants.length > 0 && (
-                  <div
-                    className="flex -space-x-2 ml-2 cursor-pointer hover:opacity-90 transition-opacity"
+                  <button
+                    type="button"
+                    className="flex min-h-11 -space-x-2 ml-2 items-center rounded-full px-1 hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     onClick={onAddParticipant}
-                    title="Gerenciar participantes"
+                    aria-label="Gerenciar participantes"
                   >
                     {participants.slice(0, 4).map((p) => (
                       <div
@@ -141,7 +153,7 @@ export function TripDetailHeader({
                         <Plus className="h-3 w-3" />
                       </div>
                     )}
-                  </div>
+                  </button>
                 )}
               </div>
             </div>
@@ -158,9 +170,20 @@ export function TripDetailHeader({
                 Moeda: <strong className="text-foreground">{trip.currency}</strong>
               </span>
               {currency !== "BRL" && (
-                <span className="flex items-center gap-2 font-medium px-2.5 py-1 bg-card/60 backdrop-blur shadow-sm border border-border/50 rounded-lg">
+                <span
+                  className="flex items-center gap-2 font-medium px-2.5 py-1 bg-card/60 backdrop-blur shadow-sm border border-border/50 rounded-lg"
+                  role="status"
+                  aria-live="polite"
+                  aria-atomic="true"
+                >
                   {isRateLoading ? (
-                    <RefreshCcw className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                    <>
+                      <RefreshCcw
+                        className="h-3.5 w-3.5 animate-spin motion-reduce:animate-none text-muted-foreground"
+                        aria-hidden="true"
+                      />
+                      <span className="sr-only">Atualizando cotação de {currency} para BRL</span>
+                    </>
                   ) : realTimeRate ? (
                     <span className="font-mono text-sm font-bold text-foreground">
                       1 {currency} = R${" "}
@@ -182,20 +205,22 @@ export function TripDetailHeader({
           </div>
         </div>
 
-        <div className="flex items-center gap-3 mt-4 md:mt-0">
+        <div className="mt-4 grid w-full grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 md:mt-0 md:flex md:w-auto md:gap-3">
           <Button
             variant={hasPersonalBudget ? "outline" : "default"}
             size="default"
             onClick={onOpenBudget}
             className={cn(
-              "gap-2 rounded-2xl h-12 px-6 transition-all hover:-translate-y-1 font-bold",
+              "min-w-0 gap-2 rounded-2xl h-12 px-3 motion-safe:transition-all motion-safe:hover:-translate-y-1 font-bold md:px-6",
               !hasPersonalBudget
                 ? "shadow-xl shadow-primary/20 hover:shadow-primary/30"
                 : "bg-card/50 backdrop-blur-sm"
             )}
           >
             <Coins className="h-5 w-5" />
-            <span>{hasPersonalBudget ? "Meu Orçamento" : "Definir Orçamento"}</span>
+            <span className="truncate">
+              {hasPersonalBudget ? "Meu Orçamento" : "Definir Orçamento"}
+            </span>
           </Button>
 
           {permissions?.isOwner && (
@@ -216,6 +241,7 @@ export function TripDetailHeader({
                     variant="outline"
                     size="icon"
                     className="rounded-2xl h-12 w-12 hover:bg-muted transition-all active:scale-95 bg-card/50 backdrop-blur-sm shadow-sm"
+                    aria-label="Mais opções da viagem"
                   >
                     <MoreVertical className="h-5 w-5 text-muted-foreground" />
                   </Button>

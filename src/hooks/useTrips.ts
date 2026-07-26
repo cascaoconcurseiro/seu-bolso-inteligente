@@ -55,8 +55,9 @@ export interface CreateTripInput {
   start_date: string;
   end_date: string;
   currency?: string;
-  budget?: number;
-  notes?: string;
+  budget?: number | null;
+  notes?: string | null;
+  cover_image?: string | null;
   memberIds?: string[]; // IDs dos membros da família para adicionar
 }
 

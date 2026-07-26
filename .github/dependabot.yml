@@ -11,6 +11,21 @@ updates:
     labels:
       - "dependencies"
     versioning-strategy: increase
+    ignore:
+      # React major upgrades are a coordinated migration: runtime, DOM types,
+      # testing stack and map libraries must move together.
+      - dependency-name: "react"
+        update-types:
+          - "version-update:semver-major"
+      - dependency-name: "react-dom"
+        update-types:
+          - "version-update:semver-major"
+      - dependency-name: "@types/react"
+        update-types:
+          - "version-update:semver-major"
+      - dependency-name: "@types/react-dom"
+        update-types:
+          - "version-update:semver-major"
 
   - package-ecosystem: "github-actions"
     directory: "/"

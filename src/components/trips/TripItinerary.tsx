@@ -65,9 +65,11 @@ import { TripRouteMap } from "./TripRouteMap";
 import type { Trip } from "@/hooks/useTrips";
 import type { TripSuggestion } from "@/services/aiAdvisorService";
 import { getErrorMessage } from "./types";
+import type { Database } from "@/integrations/supabase/types";
 import { PlannerDayRail, type PlannerDay } from "./planner/PlannerDayRail";
 import { ItineraryStopCard } from "./planner/ItineraryStopCard";
 import { groupItineraryByDay, moveItineraryItem } from "./planner/itineraryOrder";
+import { TripReservationsPanel } from "./planner/TripReservationsPanel";
 
 interface ItineraryItem {
   id: string;
@@ -84,7 +86,13 @@ interface ItineraryItem {
   latitude: number | null;
   longitude: number | null;
   category: string | null;
+  place_id: string | null;
+  reservation_id: string | null;
+  duration_minutes: number | null;
+  transport_mode: string | null;
 }
+
+type TripPlace = Database["public"]["Tables"]["trip_places"]["Row"];
 
 import { AITripSuggestions } from "./AITripSuggestions";
 
@@ -118,6 +126,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
   const [adjustLocations, setAdjustLocations] = useState(false);
   const [liveMessage, setLiveMessage] = useState("");
   const [itineraryOrderVersion, setItineraryOrderVersion] = useState(trip.itinerary_order_version);
+  const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
   const sensors = useSensors(
@@ -199,6 +208,19 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     },
   });
 
+  const { data: savedPlaces = [], isLoading: arePlacesLoading } = useQuery({
+    queryKey: ["trip-places", tripId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("trip_places")
+        .select("*")
+        .eq("trip_id", tripId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
   // Create mutation
   const createItem = useMutation({
     mutationFn: async (item: Omit<ItineraryItem, "id" | "created_at">) => {
@@ -209,6 +231,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["trip-itinerary", tripId] });
+      queryClient.invalidateQueries({ queryKey: ["trip-places", tripId] });
       toast.success("Atividade adicionada");
       resetForm();
       setShowDialog(false);
@@ -436,6 +459,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     setLatitude(null);
     setLongitude(null);
     setCategory(null);
+    setSelectedPlaceId(null);
   };
 
   const handleOpenDialog = (item?: ItineraryItem) => {
@@ -457,6 +481,21 @@ export function TripItinerary({ trip }: TripItineraryProps) {
       resetForm();
       setDate(activeDate || trip.start_date);
     }
+    setShowDialog(true);
+  };
+
+  const handleOpenSavedPlace = (place: TripPlace) => {
+    setEditingItem(null);
+    resetForm();
+    setSelectedPlaceId(place.id);
+    setDate(activeDate || trip.start_date);
+    setTitle(place.name);
+    setDescription(place.description || "");
+    setLocation(place.address || "");
+    setMapsUrl(place.maps_url || "");
+    setLatitude(place.latitude);
+    setLongitude(place.longitude);
+    setCategory((place.category as PlaceCategory) || null);
     setShowDialog(true);
   };
 
@@ -491,13 +530,80 @@ export function TripItinerary({ trip }: TripItineraryProps) {
       updateItem.mutate({ id: editingItem.id, ...contentData });
     } else {
       const dayItemCount = items.filter((item) => item.date === date).length;
+      let placeId = selectedPlaceId;
+      if (!placeId) {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) {
+          toast.error("Entre novamente para salvar o lugar");
+          return;
+        }
+        const { data: place, error: placeError } = await supabase
+          .from("trip_places")
+          .insert({
+            trip_id: tripId,
+            created_by: user.id,
+            name: title,
+            description: description || null,
+            address: location || null,
+            maps_url: mapsUrl || null,
+            latitude: resolvedLatitude,
+            longitude: resolvedLongitude,
+            category,
+            source_type: "manual",
+            status: "want",
+          })
+          .select("id")
+          .single();
+        if (placeError) {
+          toast.error("Erro ao salvar lugar", { description: placeError.message });
+          return;
+        }
+        placeId = place.id;
+      }
       createItem.mutate({
         trip_id: tripId,
         date,
         order_index: dayItemCount,
+        place_id: placeId,
+        reservation_id: null,
+        duration_minutes: null,
+        transport_mode: null,
         ...contentData,
       });
     }
+  };
+
+  const handleSaveOnly = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!title || !user) {
+      toast.error("Entre novamente para salvar o lugar");
+      return;
+    }
+    const { error } = await supabase.from("trip_places").insert({
+      trip_id: tripId,
+      created_by: user.id,
+      name: title,
+      description: description || null,
+      address: location || null,
+      maps_url: mapsUrl || null,
+      latitude,
+      longitude,
+      category,
+      source_type: "manual",
+      status: "idea",
+    });
+    if (error) {
+      toast.error("Erro ao salvar lugar", { description: error.message });
+      return;
+    }
+    queryClient.invalidateQueries({ queryKey: ["trip-places", tripId] });
+    toast.success("Lugar salvo para decidir depois");
+    resetForm();
+    setShowDialog(false);
   };
 
   const groupedItems = useMemo(() => groupItineraryByDay(items), [items]);
@@ -613,7 +719,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
 
       <div
         className="grid gap-4 xl:grid-cols-[minmax(16rem,18rem)_minmax(0,1fr)_minmax(18rem,20rem)]"
-        aria-busy={isLoading || reorderItems.isPending}
+        aria-busy={isLoading || arePlacesLoading || reorderItems.isPending}
       >
         <aside
           id="itinerary-stops"
@@ -827,13 +933,44 @@ export function TripItinerary({ trip }: TripItineraryProps) {
               <h3 className="font-semibold text-foreground">Lugares</h3>
             </div>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              Busque perto de {trip.destination || "seu destino"} e já salve o pin no dia ativo.
+              {savedPlaces.length} {savedPlaces.length === 1 ? "lugar salvo" : "lugares salvos"}.
+              Guarde ideias primeiro e monte os dias quando decidir.
             </p>
             <Button className="mt-4 min-h-11 w-full" onClick={() => handleOpenDialog()}>
               <Search className="mr-2 h-4 w-4" aria-hidden="true" />
               Buscar lugares
             </Button>
+            <ul className="mt-4 max-h-72 space-y-2 overflow-y-auto" aria-label="Lugares salvos">
+              {savedPlaces.map((place) => {
+                const scheduled = items.some((item) => item.place_id === place.id);
+                return (
+                  <li key={place.id} className="rounded-xl border border-border/70 p-3">
+                    <p className="truncate text-sm font-semibold text-foreground">{place.name}</p>
+                    {place.address && (
+                      <p className="mt-1 truncate text-xs text-muted-foreground">{place.address}</p>
+                    )}
+                    {scheduled ? (
+                      <span className="mt-2 inline-flex rounded-full bg-success/10 px-2 py-1 text-xs font-medium text-success">
+                        No roteiro
+                      </span>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="relative z-20 mt-2 min-h-10 w-full"
+                        onClick={() => handleOpenSavedPlace(place)}
+                      >
+                        Adicionar ao dia
+                      </Button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
           </div>
+
+          <TripReservationsPanel tripId={tripId} />
 
           <div className="rounded-2xl border border-border/70 bg-muted/25 p-4">
             <div className="flex items-center gap-2">
@@ -914,6 +1051,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
         category={category}
         setCategory={setCategory}
         onSubmit={handleSubmit}
+        onSaveOnly={handleSaveOnly}
       />
 
       {/* Delete confirmation */}
@@ -968,6 +1106,7 @@ function ItineraryDialog({
   category,
   setCategory,
   onSubmit,
+  onSaveOnly,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -994,6 +1133,7 @@ function ItineraryDialog({
   category: PlaceCategory | null;
   setCategory: (c: PlaceCategory | null) => void;
   onSubmit: () => void;
+  onSaveOnly: () => void;
 }) {
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
@@ -1263,17 +1403,28 @@ function ItineraryDialog({
           </div>
 
           {/* Botões */}
-          <div className="flex gap-3 pt-2 pb-2">
+          <div className="flex flex-wrap gap-3 pt-2 pb-2">
             <Button
               type="button"
               variant="outline"
-              className="w-1/2 h-11"
+              className="h-11 flex-1"
               onClick={() => onOpenChange(false)}
             >
               Cancelar
             </Button>
+            {!isEditing && (
+              <Button
+                type="button"
+                variant="secondary"
+                className="h-11 flex-1"
+                onClick={onSaveOnly}
+                disabled={isLoading || !title}
+              >
+                Salvar lugar
+              </Button>
+            )}
             <Button
-              className="w-1/2 h-11 font-bold"
+              className="h-11 flex-1 font-bold"
               onClick={onSubmit}
               disabled={isLoading || !date || !title}
             >

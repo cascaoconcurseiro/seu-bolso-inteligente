@@ -1,5 +1,5 @@
-import { EditTripDialog } from "@/components/trips/EditTripDialog";
-import { NewTripDialog } from "@/components/trips/NewTripDialog";
+import { TripFormDialog } from "@/components/trips/form/TripFormDialog";
+import type { TripFormValues } from "@/components/trips/form/tripFormSchema";
 import { Button } from "@/components/ui/button";
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { useAddGuestTripMember, useTripPermissions } from "@/hooks/useTripMembers";
@@ -53,6 +53,18 @@ import { exportTripToExcel, exportTripToPDF } from "@/utils/tripExport";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+const EMPTY_TRIP_FORM: TripFormValues = {
+  name: "",
+  destination: "",
+  notes: "",
+  startDate: "",
+  endDate: "",
+  currency: "BRL",
+  budget: "",
+  coverImage: "",
+  memberIds: [],
+};
+
 export function Trips() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -73,15 +85,25 @@ export function Trips() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [tripToDelete, setTripToDelete] = useState<string | null>(null);
 
-  const [tripName, setTripName] = useState("");
-  const [tripDestination, setTripDestination] = useState("");
-  const [tripStartDate, setTripStartDate] = useState("");
-  const [tripEndDate, setTripEndDate] = useState("");
-  const [tripBudget, setTripBudget] = useState("");
-  const [tripCurrency, setTripCurrency] = useState("BRL");
-
   const { data: trips = [], isLoading } = useTrips();
   const { data: selectedTrip } = useTrip(selectedTripId);
+  const selectedTripFormValues = useMemo<TripFormValues | null>(
+    () =>
+      selectedTrip
+        ? {
+            name: selectedTrip.name,
+            destination: selectedTrip.destination || "",
+            notes: selectedTrip.notes || "",
+            startDate: selectedTrip.start_date,
+            endDate: selectedTrip.end_date,
+            currency: selectedTrip.currency,
+            budget: selectedTrip.budget?.toString() || "",
+            coverImage: selectedTrip.cover_image || "",
+            memberIds: [],
+          }
+        : null,
+    [selectedTrip]
+  );
   const { data: participants = [] } = useTripParticipants(selectedTripId);
   const { data: tripTransactions = [] } = useTripTransactions(selectedTripId);
   const { data: familyMembers = [] } = useFamilyMembers();
@@ -268,7 +290,7 @@ export function Trips() {
       </div>
     );
 
-  if (view === "detail" && selectedTrip) {
+  if (view === "detail" && selectedTrip && selectedTripFormValues) {
     return (
       <div className="animate-fade-in space-y-6">
         <TripDetailView
@@ -406,22 +428,60 @@ export function Trips() {
           }
         />
 
-        <EditTripDialog
+        <TripFormDialog
           open={showEditTripDialog}
+          formKey={selectedTrip.id}
+          mode="edit"
           onOpenChange={setShowEditTripDialog}
-          trip={selectedTrip}
-          onSubmit={async (d) => {
+          initialValues={selectedTripFormValues}
+          familyMembers={[]}
+          onSubmit={async (tripData) => {
             try {
-              await updateTrip.mutateAsync({ id: selectedTripId!, ...d });
+              const datesChanged =
+                tripData.start_date !== selectedTrip.start_date ||
+                tripData.end_date !== selectedTrip.end_date;
+              if (datesChanged) {
+                const { count, error } = await supabase
+                  .from("trip_itinerary")
+                  .select("id", { count: "exact", head: true })
+                  .eq("trip_id", selectedTrip.id)
+                  .or(`date.lt.${tripData.start_date},date.gt.${tripData.end_date}`);
+                if (error) throw error;
+                const { count: reservationCount, error: reservationError } = await supabase
+                  .from("trip_reservations")
+                  .select("id", { count: "exact", head: true })
+                  .eq("trip_id", selectedTrip.id)
+                  .or(
+                    `starts_at.lt.${tripData.start_date}T00:00:00Z,starts_at.gt.${tripData.end_date}T23:59:59Z`
+                  );
+                if (reservationError) throw reservationError;
+                const dependentCount = (count ?? 0) + (reservationCount ?? 0);
+                if (dependentCount) {
+                  throw new Error(
+                    `${dependentCount} ${dependentCount === 1 ? "item ficaria" : "itens ficariam"} fora do novo período. Reagende atividades e reservas antes de encurtar a viagem.`
+                  );
+                }
+              }
+              await updateTrip.mutateAsync({
+                id: selectedTripId!,
+                name: tripData.name,
+                destination: tripData.destination,
+                notes: tripData.notes,
+                start_date: tripData.start_date,
+                end_date: tripData.end_date,
+                currency: tripData.currency,
+                budget: tripData.budget,
+                cover_image: tripData.cover_image,
+              });
               setShowEditTripDialog(false);
               if (document.activeElement instanceof HTMLElement) {
                 document.activeElement.blur();
               }
             } catch (err) {
               logger.error("Erro ao editar viagem", err);
+              throw err;
             }
           }}
-          isLoading={updateTrip.isPending}
         />
       </div>
     );
@@ -474,27 +534,22 @@ export function Trips() {
         />
       )}
 
-      <NewTripDialog
+      <TripFormDialog
         open={showNewTripDialog}
+        formKey="new-trip"
+        mode="create"
         onOpenChange={setShowNewTripDialog}
-        onSubmit={async (mids) => {
+        initialValues={EMPTY_TRIP_FORM}
+        familyMembers={familyMembers.filter(
+          (member) => member.linked_user_id && member.linked_user_id !== user?.id
+        )}
+        onSubmit={async (tripData) => {
           try {
             await createTrip.mutateAsync({
-              name: tripDestination,
-              destination: tripDestination,
-              start_date: tripStartDate,
-              end_date: tripEndDate,
-              budget: tripBudget ? moneyUtils.parse(tripBudget) : undefined,
-              currency: tripCurrency,
-              memberIds: mids,
+              ...tripData,
+              budget: tripData.budget,
             });
             setShowNewTripDialog(false);
-            setTripName("");
-            setTripDestination("");
-            setTripStartDate("");
-            setTripEndDate("");
-            setTripBudget("");
-            setTripCurrency("BRL");
 
             // Close keyboard on mobile
             if (document.activeElement instanceof HTMLElement) {
@@ -502,21 +557,9 @@ export function Trips() {
             }
           } catch (err) {
             logger.error("Erro ao criar viagem", err);
+            throw err;
           }
         }}
-        isLoading={createTrip.isPending}
-        name={tripName}
-        setName={setTripName}
-        destination={tripDestination}
-        setDestination={setTripDestination}
-        startDate={tripStartDate}
-        setStartDate={setTripStartDate}
-        endDate={tripEndDate}
-        setEndDate={setTripEndDate}
-        budget={tripBudget}
-        setBudget={setTripBudget}
-        currency={tripCurrency}
-        setCurrency={setTripCurrency}
       />
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <AlertDialogContent className="border-border w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
