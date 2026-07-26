@@ -1,9 +1,11 @@
 import { CalendarDays } from "lucide-react";
+import type { DayWeather } from "@/services/weatherService";
 
 export interface PlannerDay {
   date: string;
   label: string;
   itemCount: number;
+  weather?: DayWeather;
 }
 
 interface PlannerDayRailProps {
@@ -36,7 +38,15 @@ export function PlannerDayRail({ days, activeDate, onSelect }: PlannerDayRailPro
                   : "border-border/70 bg-background hover:border-primary/40 hover:bg-accent/50"
               }`}
             >
-              <span className="block text-xs font-medium opacity-75">Dia {index + 1}</span>
+              <div className="flex items-center justify-between">
+                <span className="block text-xs font-medium opacity-75">Dia {index + 1}</span>
+                {day.weather && (
+                  <span className="text-xs flex items-center gap-1 font-semibold" title={day.weather.description}>
+                    <span>{day.weather.icon}</span>
+                    <span className="text-[10px]">{day.weather.maxTemp}°C</span>
+                  </span>
+                )}
+              </div>
               <span className="block truncate text-sm font-semibold">{day.label}</span>
               <span className="mt-1 block text-xs opacity-80">
                 {day.itemCount === 0

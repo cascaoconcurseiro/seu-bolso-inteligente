@@ -1,4 +1,4 @@
-import { TrendingUp, DollarSign, Route, ListChecks } from "lucide-react";
+import { TrendingUp, DollarSign, Route, ListChecks, BookOpen } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TripDetailHeader } from "@/components/trips/TripDetailHeader";
 import { TripDetailSummary } from "@/components/trips/TripDetailSummary";
@@ -7,6 +7,8 @@ import { TripExpensesTab } from "@/components/trips/TripExpensesTab";
 import { TripShopping } from "@/components/trips/TripShopping";
 import { TripExchange } from "@/components/trips/TripExchange";
 import { TripChecklist } from "@/components/trips/TripChecklist";
+import { TripBagTracker } from "@/components/trips/TripBagTracker";
+import { TripJournalTab } from "@/components/trips/TripJournalTab";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import type { TripParticipant, TripUpdateInput } from "@/hooks/useTrips";
 import type { SentTripInvitation, TripBalance, TripDetailData } from "./types";
@@ -73,8 +75,6 @@ export function TripDetailView({
     0
   );
 
-  // IMPACTO REAL NO ORÇAMENTO (Accrual Basis - Regime de Competência):
-  // 1. Gastos individuais (só meus)
   const myIndividualExpenses = tripTransactions
     .filter(
       (t) =>
@@ -84,7 +84,6 @@ export function TripDetailView({
     )
     .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)).toNumber(), 0);
 
-  // 2. Minha parte nos gastos compartilhados (mesmo que eu não tenha pago)
   const myShareOfShared = tripTransactions
     .filter((t) => t.type === "EXPENSE" && t.is_shared)
     .reduce((sum, t) => {
@@ -93,16 +92,17 @@ export function TripDetailView({
       return sum + (mySplit ? Number(mySplit.amount) : 0);
     }, 0);
 
-  // myTotalSpent = o impacto real no meu orçamento, independente de quem já pagou
   const myTotalSpent = myIndividualExpenses + myShareOfShared;
   const primaryTab =
     activeTab === "itinerary"
       ? "planner"
       : activeTab === "expenses" || activeTab === "exchange"
         ? "expenses"
-        : activeTab === "shopping" || activeTab === "checklist" || activeTab === "preparation"
+        : activeTab === "shopping" || activeTab === "checklist" || activeTab === "preparation" || activeTab === "bags"
           ? "preparation"
-          : "summary";
+          : activeTab === "journal"
+            ? "journal"
+            : "summary";
 
   return (
     <div className="space-y-6 animate-fade-in pb-20">
@@ -149,6 +149,15 @@ export function TripDetailView({
               </div>
             </TabsTrigger>
             <TabsTrigger
+              value="journal"
+              className="shrink-0 snap-start rounded-xl py-3 px-5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300 hover:bg-muted/50"
+            >
+              <div className="flex items-center gap-2">
+                <BookOpen className="h-4 w-4" />
+                <span className="font-bold uppercase tracking-widest text-sm">Diário</span>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger
               value="expenses"
               className="shrink-0 snap-start rounded-xl py-3 px-5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300 hover:bg-muted/50"
             >
@@ -168,7 +177,6 @@ export function TripDetailView({
             </TabsTrigger>
           </TabsList>
 
-          {/* Sombra para indicar scroll no mobile */}
           <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background to-transparent pointer-events-none md:hidden z-20" />
         </div>
 
@@ -214,6 +222,9 @@ export function TripDetailView({
             <TripItinerary trip={trip} />
           </Suspense>
         </TabsContent>
+        <TabsContent value="journal">
+          <TripJournalTab />
+        </TabsContent>
         <TabsContent value="expenses">
           <Tabs
             value={trip.currency !== "BRL" && activeTab === "exchange" ? "exchange" : "expenses"}
@@ -245,15 +256,19 @@ export function TripDetailView({
         </TabsContent>
         <TabsContent value="preparation">
           <Tabs
-            value={activeTab === "shopping" ? "shopping" : "checklist"}
+            value={activeTab === "shopping" ? "shopping" : activeTab === "bags" ? "bags" : "checklist"}
             onValueChange={setActiveTab}
           >
             <TabsList className="mb-4">
               <TabsTrigger value="checklist">Checklist</TabsTrigger>
+              <TabsTrigger value="bags">Controle de Malas</TabsTrigger>
               <TabsTrigger value="shopping">Compras</TabsTrigger>
             </TabsList>
             <TabsContent value="checklist">
               <TripChecklist trip={trip} />
+            </TabsContent>
+            <TabsContent value="bags">
+              <TripBagTracker />
             </TabsContent>
             <TabsContent value="shopping">
               <TripShopping trip={trip} onUpdateTrip={onUpdateTrip} isUpdating={false} />

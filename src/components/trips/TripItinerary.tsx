@@ -50,6 +50,8 @@ import {
   Plus,
   Route,
   Search,
+  Upload,
+  FileText,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import {
@@ -74,6 +76,11 @@ import { ItineraryStopCard } from "./planner/ItineraryStopCard";
 import { groupItineraryByDay, moveItineraryItem } from "./planner/itineraryOrder";
 import { TripReservationsPanel } from "./planner/TripReservationsPanel";
 import { PlaceDiscoveryDialog, type DiscoveredPlace } from "./planner/PlaceDiscoveryDialog";
+import { fetchWeatherForecast } from "@/services/weatherService";
+import { ImportPlacesDialog } from "./planner/ImportPlacesDialog";
+import { RouteOptimizerDialog } from "./planner/RouteOptimizerDialog";
+import { exportTripToPdf } from "@/utils/tripPdfExporter";
+import type { ParsedPlace } from "@/utils/gpxKmlParser";
 
 interface ItineraryItem {
   id: string;
@@ -108,6 +115,8 @@ export function TripItinerary({ trip }: TripItineraryProps) {
   const tripId = trip.id;
   const [showDialog, setShowDialog] = useState(false);
   const [showPlaceDialog, setShowPlaceDialog] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [showOptimizerDialog, setShowOptimizerDialog] = useState(false);
   const [editingItem, setEditingItem] = useState<ItineraryItem | null>(null);
   const [deletingItem, setDeletingItem] = useState<ItineraryItem | null>(null);
   const [, setIsApplyingAI] = useState(false);
@@ -666,6 +675,15 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     setShowDialog(false);
   };
 
+  const { data: weatherData = {} } = useQuery({
+    queryKey: ["weather-forecast", destCoords?.lat, destCoords?.lon],
+    queryFn: async () => {
+      if (!destCoords) return {};
+      return fetchWeatherForecast(destCoords.lat, destCoords.lon);
+    },
+    enabled: !!destCoords,
+  });
+
   const groupedItems = useMemo(() => groupItineraryByDay(items), [items]);
   const plannerDays = useMemo<PlannerDay[]>(() => {
     const dates = new Set(items.map((item) => item.date));
@@ -686,8 +704,9 @@ export function TripItinerary({ trip }: TripItineraryProps) {
       date: dayDate,
       label: dateFns.format(dateFns.parseISO(dayDate), "EEE, dd MMM", { locale: ptBR }),
       itemCount: groupedItems[dayDate]?.length ?? 0,
+      weather: weatherData[dayDate],
     }));
-  }, [groupedItems, items, trip.end_date, trip.start_date]);
+  }, [groupedItems, items, trip.end_date, trip.start_date, weatherData]);
 
   useEffect(() => {
     if (plannerDays.length === 0) return;
@@ -741,6 +760,52 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     persistMove(String(active.id), activeDate, targetIndex);
   };
 
+  const handleBulkImportPlaces = async (places: ParsedPlace[]) => {
+    const targetDate = activeDate || trip.start_date;
+    const currentCount = items.filter((i) => i.date === targetDate).length;
+
+    const newItems = places.map((p, idx) => ({
+      trip_id: tripId,
+      date: targetDate,
+      title: p.title,
+      description: p.description || null,
+      location: p.title,
+      start_time: null,
+      end_time: null,
+      order_index: currentCount + idx,
+      latitude: p.latitude || null,
+      longitude: p.longitude || null,
+      category: p.category || "sightseeing",
+    }));
+
+    const { error } = await supabase.from("trip_itinerary").insert(newItems);
+    if (error) {
+      toast.error("Erro ao importar paradas", { description: error.message });
+      return;
+    }
+
+    queryClient.invalidateQueries({ queryKey: ["trip-itinerary", tripId] });
+    toast.success(`${places.length} locais importados com sucesso para o dia!`);
+  };
+
+  const handleApplyRouteOptimization = (orderedIds: string[]) => {
+    const activeItemMap = new Map(activeItems.map((item) => [item.id, item]));
+    const reorderedActive = orderedIds
+      .map((id, index) => {
+        const item = activeItemMap.get(id);
+        return item ? { ...item, order_index: index } : null;
+      })
+      .filter(Boolean) as ItineraryItem[];
+
+    const otherItems = items.filter((item) => item.date !== activeDate);
+    const nextItems = [...otherItems, ...reorderedActive];
+
+    reorderItems.mutate({
+      nextItems,
+      announcement: "Rota otimizada aplicada com sucesso.",
+    });
+  };
+
   return (
     <div className="space-y-4">
       <a
@@ -770,6 +835,33 @@ export function TripItinerary({ trip }: TripItineraryProps) {
               </a>
             </Button>
           )}
+          <Button
+            type="button"
+            variant="outline"
+            className="min-h-11 text-emerald-600 hover:text-emerald-700"
+            onClick={() => setShowOptimizerDialog(true)}
+          >
+            <Route className="mr-2 h-4 w-4" aria-hidden="true" />
+            Otimizar Rota
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="min-h-11 text-sky-600 hover:text-sky-700"
+            onClick={() => setShowImportDialog(true)}
+          >
+            <Upload className="mr-2 h-4 w-4" aria-hidden="true" />
+            Importar
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="min-h-11 text-amber-600 hover:text-amber-700"
+            onClick={() => exportTripToPdf(trip, items)}
+          >
+            <FileText className="mr-2 h-4 w-4" aria-hidden="true" />
+            PDF
+          </Button>
           <Button
             type="button"
             variant="outline"
@@ -1153,6 +1245,19 @@ export function TripItinerary({ trip }: TripItineraryProps) {
           </div>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ImportPlacesDialog
+        open={showImportDialog}
+        onOpenChange={setShowImportDialog}
+        onImportPlaces={handleBulkImportPlaces}
+      />
+
+      <RouteOptimizerDialog
+        open={showOptimizerDialog}
+        onOpenChange={setShowOptimizerDialog}
+        stops={activeItems}
+        onApplyOptimization={handleApplyRouteOptimization}
+      />
     </div>
   );
 }
