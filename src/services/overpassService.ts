@@ -171,11 +171,24 @@ export function getCategoryColor(category: string | null | undefined): string {
   return PLACE_CATEGORIES.find((c) => c.id === category)?.color ?? "#111827";
 }
 
+function calculateHaversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
 /**
- * Search places by free text using Photon (komoot) — OSM-based geocoder
- * designed for autocomplete. Free, no API key.
- * `near` biases results toward the trip destination.
- * `category` filtra por tipo de lugar via `osm_tag` do Photon.
+ * Search places strictly bounded around the trip destination.
+ * `near` sets the geographic center of the destination city.
+ * Results > 50km from the destination are strictly discarded.
  */
 export async function searchPlaces(
   query: string,
@@ -184,85 +197,118 @@ export async function searchPlaces(
   destinationName?: string
 ): Promise<PlaceSearchResult[]> {
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 6000);
-    const url = new URL("https://photon.komoot.io/api/");
-
-    // Garantir que a busca inclua explicitamente a cidade de destino da viagem (ex: "Liverpool" ou "Tokyo")
     const cleanQuery = query.trim();
-    const fullQuery =
-      destinationName && !cleanQuery.toLowerCase().includes(destinationName.toLowerCase())
-        ? `${cleanQuery} ${destinationName}`
-        : cleanQuery;
-
-    url.searchParams.set("q", fullQuery);
-    url.searchParams.set("limit", "10");
-    if (near) {
-      url.searchParams.set("lat", String(near.lat));
-      url.searchParams.set("lon", String(near.lon));
-    }
-    const osmTag = PLACE_CATEGORIES.find((c) => c.id === category)?.osmTag;
-    if (osmTag) url.searchParams.set("osm_tag", osmTag);
-
-    const res = await fetch(url.toString(), { signal: controller.signal });
-    clearTimeout(timeout);
-    if (!res.ok) return [];
-    const data = await res.json();
-    const features: Array<{
-      properties?: Record<string, string>;
-      geometry?: { coordinates?: [number, number] };
-    }> = data.features || [];
-
     const results: PlaceSearchResult[] = [];
     const seen = new Set<string>();
-    for (const f of features) {
-      const p = f.properties || {};
-      const coords = f.geometry?.coordinates;
-      if (!p.name || !coords) continue;
-      const [lon, lat] = coords;
-      const address = [p.street, p.district, p.city, p.state, p.country].filter(Boolean).join(", ");
-      const key = `${p.name}|${address}`.toLowerCase();
-      if (seen.has(key)) continue;
-      seen.add(key);
-      results.push({
-        name: p.name,
-        address,
-        lat,
-        lon,
-        category,
-        imageUrl: getPlaceCategoryFallbackImage(p.name, category),
-      });
-    }
 
-    // Se a busca pelo Photon retornar poucos resultados, tentar Nominatim como fallback direcionado à cidade
-    if (results.length < 3 && destinationName) {
-      try {
-        const nomUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-          `${cleanQuery} ${destinationName}`
-        )}&format=json&limit=8`;
-        const nomRes = await fetch(nomUrl, {
-          headers: { "Accept-Language": "pt-BR,pt;q=0.9", "User-Agent": "SeuBolsoInteligente/1.0" },
-        });
-        if (nomRes.ok) {
-          const nomData = await nomRes.json();
-          for (const item of nomData) {
-            const name = item.display_name.split(",")[0].trim();
-            const key = `${name}|${item.display_name}`.toLowerCase();
-            if (!seen.has(key)) {
-              seen.add(key);
-              results.push({
-                name,
-                address: item.display_name,
-                lat: parseFloat(item.lat),
-                lon: parseFloat(item.lon),
-                category,
-                imageUrl: getPlaceCategoryFallbackImage(name, category),
-              });
-            }
+    // 1. Se possuímos a coordenada `near` do destino, fazer busca direcionada com bounded=1 e viewbox
+    if (near) {
+      const delta = 0.25; // ~25km em torno da cidade de destino
+      const minLon = near.lon - delta;
+      const maxLon = near.lon + delta;
+      const minLat = near.lat - delta;
+      const maxLat = near.lat + delta;
+      const viewbox = `${minLon},${maxLat},${maxLon},${minLat}`;
+
+      let nomQuery = cleanQuery;
+      if (category === "restaurant") nomQuery = "restaurant";
+      else if (category === "hotel") nomQuery = "hotel";
+      else if (category === "attraction") nomQuery = "attraction tourism";
+      else if (category === "beach") nomQuery = "beach";
+      else if (category === "transport") nomQuery = "station airport";
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 6000);
+      const nomUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+        nomQuery
+      )}&viewbox=${viewbox}&bounded=1&format=json&limit=15&addressdetails=1`;
+
+      const nomRes = await fetch(nomUrl, {
+        headers: { "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8", "User-Agent": "SeuBolsoInteligente/1.0" },
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+
+      if (nomRes.ok) {
+        const nomData: any[] = await nomRes.json();
+        for (const item of nomData) {
+          const lat = parseFloat(item.lat);
+          const lon = parseFloat(item.lon);
+
+          // Filtro rigoroso: descartar qualquer lugar fora do raio de 45km da cidade de destino
+          const distKm = calculateHaversineDistance(near.lat, near.lon, lat, lon);
+          if (distKm > 45) continue;
+
+          const name = item.display_name.split(",")[0].trim();
+          const key = `${name}|${item.display_name}`.toLowerCase();
+          if (!seen.has(key)) {
+            seen.add(key);
+            results.push({
+              name,
+              address: item.display_name,
+              lat,
+              lon,
+              category,
+              imageUrl: getPlaceCategoryFallbackImage(name, category),
+            });
           }
         }
-      } catch {
-        // Ignorar erros no fallback
+      }
+    }
+
+    // 2. Se a busca por viewbox não for suficiente ou se near não foi passado, usar Photon com validação de distância
+    if (results.length < 5) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 6000);
+      const url = new URL("https://photon.komoot.io/api/");
+      const fullQuery =
+        destinationName && !cleanQuery.toLowerCase().includes(destinationName.toLowerCase())
+          ? `${cleanQuery} ${destinationName}`
+          : cleanQuery;
+
+      url.searchParams.set("q", fullQuery);
+      url.searchParams.set("limit", "12");
+      if (near) {
+        url.searchParams.set("lat", String(near.lat));
+        url.searchParams.set("lon", String(near.lon));
+      }
+      const osmTag = PLACE_CATEGORIES.find((c) => c.id === category)?.osmTag;
+      if (osmTag) url.searchParams.set("osm_tag", osmTag);
+
+      const res = await fetch(url.toString(), { signal: controller.signal });
+      clearTimeout(timeout);
+      if (res.ok) {
+        const data = await res.json();
+        const features: Array<{
+          properties?: Record<string, string>;
+          geometry?: { coordinates?: [number, number] };
+        }> = data.features || [];
+
+        for (const f of features) {
+          const p = f.properties || {};
+          const coords = f.geometry?.coordinates;
+          if (!p.name || !coords) continue;
+          const [lon, lat] = coords;
+
+          // SE near FOR INFORMADO, DISCARTAR LUGARES EM OUTROS PAÍSES OU CIDADES DISTANTES (>50km)
+          if (near) {
+            const distKm = calculateHaversineDistance(near.lat, near.lon, lat, lon);
+            if (distKm > 50) continue;
+          }
+
+          const address = [p.street, p.district, p.city, p.state, p.country].filter(Boolean).join(", ");
+          const key = `${p.name}|${address}`.toLowerCase();
+          if (seen.has(key)) continue;
+          seen.add(key);
+          results.push({
+            name: p.name,
+            address,
+            lat,
+            lon,
+            category,
+            imageUrl: getPlaceCategoryFallbackImage(p.name, category),
+          });
+        }
       }
     }
 
