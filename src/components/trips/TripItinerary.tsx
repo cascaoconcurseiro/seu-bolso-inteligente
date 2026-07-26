@@ -1317,20 +1317,6 @@ function ItineraryDialog({
   const [resolvedPlaceName, setResolvedPlaceName] = useState("");
   const [timeError, setTimeError] = useState("");
   const searchRequestId = useRef(0);
-  const mapsResolveRequestId = useRef(0);
-
-  useEffect(() => {
-    if (!open) {
-      searchRequestId.current += 1;
-      mapsResolveRequestId.current += 1;
-      setPlaceQuery("");
-      setPlaceResults([]);
-      setPlaceSearchFinished(false);
-      setActivePlaceIndex(-1);
-      setResolvedPlaceName("");
-      setTimeError("");
-      return;
-    }
   const [showMoreFields, setShowMoreFields] = useState(false);
 
   useEffect(() => {
