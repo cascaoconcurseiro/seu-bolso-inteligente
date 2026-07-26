@@ -12,7 +12,7 @@ import {
   useMap,
   useMapEvents,
 } from "react-leaflet";
-import { getCategoryColor } from "@/services/overpassService";
+import { getCategoryColor, getPlaceCategoryFallbackImage } from "@/services/overpassService";
 
 export interface MappedItineraryItem {
   id: string;
@@ -23,6 +23,7 @@ export interface MappedItineraryItem {
   latitude: number | null;
   longitude: number | null;
   category?: string | null;
+  image_url?: string | null;
 }
 
 interface TripRouteMapProps {
@@ -210,8 +211,10 @@ export function TripRouteMap({
           className="h-[52vh] min-h-[420px] max-h-[680px] w-full"
         >
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+            subdomains="abcd"
+            maxZoom={19}
           />
           {onMapPick && <MapClickHandler onPick={onMapPick} />}
           <FitRoute positions={positions} />
@@ -221,7 +224,7 @@ export function TripRouteMap({
               positions={osrmRoute.geometry ?? positions}
               pathOptions={
                 osrmRoute.geometry
-                  ? { color: "#2563eb", weight: 4, opacity: 0.8 }
+                  ? { color: "#2563eb", weight: 4, opacity: 0.85 }
                   : { color: "#2563eb", weight: 4, opacity: 0.72, dashArray: "8 8" }
               }
             />
@@ -229,6 +232,10 @@ export function TripRouteMap({
           {mappedItems.map((item, index) => {
             const isFocused = focusedId === item.id;
             const position: [number, number] = [Number(item.latitude), Number(item.longitude)];
+            const imgSrc = item.image_url || getPlaceCategoryFallbackImage(item.title, item.category);
+            const catColor = getCategoryColor(item.category);
+            const markerSize = isFocused ? 44 : 36;
+
             return (
               <Marker
                 key={item.id}
@@ -246,14 +253,26 @@ export function TripRouteMap({
                 }
                 icon={L.divIcon({
                   className: "",
-                  html: `<div style="width:${isFocused ? 38 : 30}px;height:${isFocused ? 38 : 30}px;border-radius:50%;display:grid;place-items:center;background:${isFocused ? "hsl(var(--primary))" : getCategoryColor(item.category)};color:#fff;border:3px solid #fff;box-shadow:0 2px ${isFocused ? 14 : 8}px rgba(0,0,0,.32);font:700 ${isFocused ? 14 : 12}px system-ui">${index + 1}</div>`,
-                  iconSize: [isFocused ? 38 : 30, isFocused ? 38 : 30],
-                  iconAnchor: [isFocused ? 19 : 15, isFocused ? 19 : 15],
+                  html: `
+                    <div style="position:relative;width:${markerSize}px;height:${markerSize}px;border-radius:50%;border:3px solid #ffffff;box-shadow:0 4px 14px rgba(0,0,0,0.38);background:#1e293b;overflow:hidden;transition:all 0.2s ease;">
+                      <img src="${imgSrc}" style="width:100%;height:100%;object-fit:cover;" alt="" />
+                      <div style="position:absolute;bottom:0;right:0;width:18px;height:18px;border-radius:50%;background:${catColor};color:#ffffff;font-size:10px;font-weight:800;display:grid;place-items:center;border:1.5px solid #ffffff;box-shadow:0 1px 4px rgba(0,0,0,0.3);">
+                        ${index + 1}
+                      </div>
+                    </div>
+                  `,
+                  iconSize: [markerSize, markerSize],
+                  iconAnchor: [markerSize / 2, markerSize / 2],
                 })}
               >
-                <Tooltip direction="top" offset={[0, -16]}>
-                  <strong>{item.title}</strong>
-                  {item.location && <span className="block">{item.location}</span>}
+                <Tooltip direction="top" offset={[0, -18]}>
+                  <div className="flex items-center gap-2 p-0.5">
+                    <img src={imgSrc} className="h-8 w-8 rounded-full object-cover border border-white shadow-sm" alt="" />
+                    <div>
+                      <strong className="block text-xs font-semibold">{item.title}</strong>
+                      {item.location && <span className="block text-[11px] text-muted-foreground">{item.location}</span>}
+                    </div>
+                  </div>
                 </Tooltip>
               </Marker>
             );

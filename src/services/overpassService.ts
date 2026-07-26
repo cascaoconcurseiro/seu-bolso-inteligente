@@ -91,17 +91,29 @@ export async function geocodeDestination(
 ): Promise<{ lat: number; lon: number } | null> {
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(destination)}&format=json&limit=1`;
+    const timeout = setTimeout(() => controller.abort(), 6000);
+    // Solicitar múltiplos resultados com detalhes de endereço para filtrar cidades/países sobre lojas comerciais
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+      destination
+    )}&format=json&limit=5&addressdetails=1`;
     const res = await fetch(url, {
       headers: { "Accept-Language": "pt-BR,pt;q=0.9", "User-Agent": "SeuBolsoInteligente/1.0" },
       signal: controller.signal,
     });
     clearTimeout(timeout);
     if (!res.ok) return null;
-    const data = await res.json();
-    if (!data.length) return null;
-    return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+    const data: any[] = await res.json();
+    if (!data || !data.length) return null;
+
+    // Priorizar entidades geográficas reais (cidade, município, país, distrito) sobre lojas de departamento/marcas comerciais (ex: lojas Liverpool no México)
+    const cityResult = data.find(
+      (item) =>
+        ["city", "town", "administrative", "village", "municipality", "country", "state"].includes(item.type) ||
+        ["place", "boundary"].includes(item.class)
+    );
+
+    const chosen = cityResult || data[0];
+    return { lat: parseFloat(chosen.lat), lon: parseFloat(chosen.lon) };
   } catch {
     return null;
   }
@@ -112,6 +124,36 @@ export interface PlaceSearchResult {
   address: string;
   lat: number;
   lon: number;
+  imageUrl?: string;
+  category?: PlaceCategory | null;
+}
+
+export function getPlaceCategoryFallbackImage(name: string, category?: string | null): string {
+  const lowerName = name.toLowerCase();
+
+  if (lowerName.includes("museum") || lowerName.includes("museu") || lowerName.includes("art") || lowerName.includes("gallery")) {
+    return "https://images.unsplash.com/photo-1566127444979-b3d2b654e3d7?auto=format&fit=crop&w=400&q=80";
+  }
+  if (lowerName.includes("park") || lowerName.includes("parque") || lowerName.includes("garden") || lowerName.includes("jardim")) {
+    return "https://images.unsplash.com/photo-1519331379826-f10be5486c6f?auto=format&fit=crop&w=400&q=80";
+  }
+  if (lowerName.includes("beach") || lowerName.includes("praia") || lowerName.includes("coast")) {
+    return "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=400&q=80";
+  }
+  if (lowerName.includes("hotel") || lowerName.includes("resort") || lowerName.includes("inn")) {
+    return "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=400&q=80";
+  }
+  if (lowerName.includes("cafe") || lowerName.includes("café") || lowerName.includes("coffee")) {
+    return "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=400&q=80";
+  }
+  if (category === "restaurant" || lowerName.includes("resto") || lowerName.includes("burger") || lowerName.includes("bar") || lowerName.includes("pizza") || lowerName.includes("food")) {
+    return "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=400&q=80";
+  }
+  if (category === "transport" || lowerName.includes("station") || lowerName.includes("airport") || lowerName.includes("estação")) {
+    return "https://images.unsplash.com/photo-1543716627-839b54c40519?auto=format&fit=crop&w=400&q=80";
+  }
+
+  return "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=400&q=80";
 }
 
 /** Categorias de lugar do roteiro — usadas no filtro de busca e no ícone do pin no mapa. */
@@ -182,7 +224,14 @@ export async function searchPlaces(
       const key = `${p.name}|${address}`.toLowerCase();
       if (seen.has(key)) continue;
       seen.add(key);
-      results.push({ name: p.name, address, lat, lon });
+      results.push({
+        name: p.name,
+        address,
+        lat,
+        lon,
+        category,
+        imageUrl: getPlaceCategoryFallbackImage(p.name, category),
+      });
     }
 
     // Se a busca pelo Photon retornar poucos resultados, tentar Nominatim como fallback direcionado à cidade
@@ -206,6 +255,8 @@ export async function searchPlaces(
                 address: item.display_name,
                 lat: parseFloat(item.lat),
                 lon: parseFloat(item.lon),
+                category,
+                imageUrl: getPlaceCategoryFallbackImage(name, category),
               });
             }
           }
