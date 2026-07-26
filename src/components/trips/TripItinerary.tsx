@@ -1317,6 +1317,7 @@ function ItineraryDialog({
   const [resolvedPlaceName, setResolvedPlaceName] = useState("");
   const [timeError, setTimeError] = useState("");
   const searchRequestId = useRef(0);
+  const mapsResolveRequestId = useRef(0);
   const [showMoreFields, setShowMoreFields] = useState(false);
 
   useEffect(() => {
