@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       account_reconciliations: {
@@ -2435,6 +2460,7 @@ export type Database = {
           start_time: string | null
           title: string
           trip_id: string
+          updated_at: string
         }
         Insert: {
           category?: string | null
@@ -2451,6 +2477,7 @@ export type Database = {
           start_time?: string | null
           title: string
           trip_id: string
+          updated_at?: string
         }
         Update: {
           category?: string | null
@@ -2467,6 +2494,7 @@ export type Database = {
           start_time?: string | null
           title?: string
           trip_id?: string
+          updated_at?: string
         }
         Relationships: [
           {
@@ -2595,6 +2623,7 @@ export type Database = {
           exchange_entries: Json | null
           id: string
           is_archived: boolean | null
+          itinerary_order_version: number
           latitude: number | null
           longitude: number | null
           name: string
@@ -2621,6 +2650,7 @@ export type Database = {
           exchange_entries?: Json | null
           id?: string
           is_archived?: boolean | null
+          itinerary_order_version?: number
           latitude?: number | null
           longitude?: number | null
           name: string
@@ -2647,6 +2677,7 @@ export type Database = {
           exchange_entries?: Json | null
           id?: string
           is_archived?: boolean | null
+          itinerary_order_version?: number
           latitude?: number | null
           longitude?: number | null
           name?: string
@@ -4460,6 +4491,10 @@ export type Database = {
         Args: { p_member_id: string; p_reason?: string; p_removed_by?: string }
         Returns: undefined
       }
+      reorder_trip_itinerary_v1: {
+        Args: { p_expected_version: number; p_items: Json; p_trip_id: string }
+        Returns: number
+      }
       request_settlement: {
         Args: {
           p_account_id: string
@@ -4784,6 +4819,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       account_type: [

@@ -1,7 +1,7 @@
 # MASTER_BLUEPRINT.md — Mapa do Projeto: Seu Bolso Inteligente
 
 > Este documento é a fonte única de verdade arquitetural do projeto. Leia antes de qualquer implementação.
-> Última atualização: 2026-07-15 (auditoria ao vivo — banco de produção via Supabase MCP + código + CI)
+> Última atualização: 2026-07-26 (novo Planejar de viagens + ordenação atômica do roteiro)
 
 ---
 
@@ -73,6 +73,7 @@
 | `goals` | Metas financeiras | `deleted_at` |
 | `goal_milestones` | Marcos de metas (alerta 7 dias antes) | - |
 | `trips` | Viagens com suporte multi-moeda | `deleted_at` |
+| `trip_itinerary` | Paradas do roteiro; ordem canônica por `trip_id`, `date`, `order_index` | ❌ |
 | `budgets` | Orçamentos mensais por categoria | - |
 | `assets` | Investimentos (B3, etc.) | `deleted_at` |
 | `push_subscriptions` | Subscrições VAPID para push notifications | - |
@@ -108,6 +109,12 @@
 ### RPCs `_v2` (API autenticada v2)
 - `create_transaction_with_splits_v2`, `create_installment_series_v2`, `get_current_shared_debts_v2`, `get_trip_participant_balances_v2` e mais uma dezena — todas escopadas por `auth.uid()`, sem `p_user_id` do cliente. Assinaturas legadas revogadas de `authenticated`.
 
+### `reorder_trip_itinerary_v1(p_trip_id, p_expected_version, p_items)`
+- Autoridade única para alterar `trip_itinerary.date` e `order_index`; updates diretos desses campos são bloqueados por trigger.
+- Recebe o snapshot completo do roteiro, bloqueia viagem e itens, valida posições contíguas por dia e usa `trips.itinerary_order_version` para impedir lost update.
+- Somente proprietário ou membro `active` diferente de `viewer`; `anon` e `service_role` não executam.
+- Não lê nem escreve transações, rateios, câmbio, orçamento pessoal ou saldos.
+
 ---
 
 ## 6. FLUXOS E2E CRÍTICOS
@@ -122,6 +129,7 @@
 8. **Fatura de cartão:** Agrupamento por `competence_date` YYYY-MM-01
 9. **Metas:** Progress tracking + pg_cron para alertas 7 dias antes do prazo
 10. **Push Notifications:** VAPID + AES-128-GCM + pg_cron + Edge Functions
+11. **Planejar viagem:** dia ativo → mapa/lista sincronizados → reorder otimista → `reorder_trip_itinerary_v1()` → versão nova ou rollback por conflito
 
 ---
 

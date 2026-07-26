@@ -309,8 +309,11 @@ export function AppLayout({ children }: AppLayoutProps) {
 
         {/* Month Selector - Below TopBar */}
         {/* Hide month selector on pages that don't use monthly context */}
-        {!["/cartoes", "/simuladores", "/configuracoes", "/familia"].includes(location.pathname) &&
-          !location.pathname.startsWith("/cartoes/") && (
+        {!["/cartoes", "/simuladores", "/configuracoes", "/familia", "/viagens"].includes(
+          location.pathname
+        ) &&
+          !location.pathname.startsWith("/cartoes/") &&
+          !location.pathname.startsWith("/viagens/") && (
             <div className="border-t border-border bg-background shadow-sm">
               <div className="w-full px-4 md:px-6 lg:px-8 py-1.5 md:py-2 flex items-center justify-between gap-4">
                 <div className="flex-1 hidden md:block" />
@@ -332,7 +335,11 @@ export function AppLayout({ children }: AppLayoutProps) {
 
       {/* Main Content */}
       <main id="main-content" className="flex-1 pb-32 md:pb-8" tabIndex={-1}>
-        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-5">
+        <div
+          className={`mx-auto px-4 py-4 md:px-6 md:py-5 lg:px-8 ${
+            location.pathname.startsWith("/viagens/") ? "max-w-[1600px]" : "max-w-7xl"
+          }`}
+        >
           <OnboardingGuard>{children}</OnboardingGuard>
         </div>
       </main>

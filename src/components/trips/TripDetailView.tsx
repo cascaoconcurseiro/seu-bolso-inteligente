@@ -1,4 +1,4 @@
-import { TrendingUp, DollarSign, ShoppingCart, Plane, Route, ListChecks } from "lucide-react";
+import { TrendingUp, DollarSign, Route, ListChecks } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TripDetailHeader } from "@/components/trips/TripDetailHeader";
 import { TripDetailSummary } from "@/components/trips/TripDetailSummary";
@@ -6,11 +6,17 @@ import { TripSummaryTab } from "@/components/trips/TripSummaryTab";
 import { TripExpensesTab } from "@/components/trips/TripExpensesTab";
 import { TripShopping } from "@/components/trips/TripShopping";
 import { TripExchange } from "@/components/trips/TripExchange";
-import { TripItinerary } from "@/components/trips/TripItinerary";
 import { TripChecklist } from "@/components/trips/TripChecklist";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import type { TripParticipant, TripUpdateInput } from "@/hooks/useTrips";
 import type { SentTripInvitation, TripBalance, TripDetailData } from "./types";
+import { lazy, Suspense } from "react";
+
+const TripItinerary = lazy(() =>
+  import("@/components/trips/TripItinerary").then((module) => ({
+    default: module.TripItinerary,
+  }))
+);
 
 interface TripDetailViewProps extends TripDetailData {
   activeTab: string;
@@ -89,6 +95,14 @@ export function TripDetailView({
 
   // myTotalSpent = o impacto real no meu orçamento, independente de quem já pagou
   const myTotalSpent = myIndividualExpenses + myShareOfShared;
+  const primaryTab =
+    activeTab === "itinerary"
+      ? "planner"
+      : activeTab === "expenses" || activeTab === "exchange"
+        ? "expenses"
+        : activeTab === "shopping" || activeTab === "checklist" || activeTab === "preparation"
+          ? "preparation"
+          : "summary";
 
   return (
     <div className="space-y-6 animate-fade-in pb-20">
@@ -107,17 +121,13 @@ export function TripDetailView({
         onExportPDF={onExportPDF}
         onExportExcel={onExportExcel}
       />
-      <TripDetailSummary
-        totalExpenses={totalExpenses}
-        myTotalSpent={myTotalSpent}
-        myPersonalBudget={myPersonalBudget}
-        startDate={trip.start_date}
-        endDate={trip.end_date}
-        currency={trip.currency}
-        formatCurrency={formatCurrency}
-      />
-
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs
+        value={primaryTab}
+        onValueChange={(tab) => {
+          if (tab === "planner") setActiveTab("itinerary");
+          else setActiveTab(tab);
+        }}
+      >
         <div className="mb-6 relative">
           <TabsList className="w-full h-auto flex overflow-x-auto snap-x hide-scrollbar bg-card/60 backdrop-blur-md rounded-3xl shadow-inner border border-border/40 p-2 gap-2 justify-start relative z-10">
             <TabsTrigger
@@ -130,6 +140,15 @@ export function TripDetailView({
               </div>
             </TabsTrigger>
             <TabsTrigger
+              value="planner"
+              className="shrink-0 snap-start rounded-xl py-3 px-5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300 hover:bg-muted/50"
+            >
+              <div className="flex items-center gap-2">
+                <Route className="h-4 w-4" />
+                <span className="font-bold uppercase tracking-widest text-sm">Planejar</span>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger
               value="expenses"
               className="shrink-0 snap-start rounded-xl py-3 px-5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300 hover:bg-muted/50"
             >
@@ -139,41 +158,12 @@ export function TripDetailView({
               </div>
             </TabsTrigger>
             <TabsTrigger
-              value="shopping"
-              className="shrink-0 snap-start rounded-xl py-3 px-5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300 hover:bg-muted/50"
-            >
-              <div className="flex items-center gap-2">
-                <ShoppingCart className="h-4 w-4" />
-                <span className="font-bold uppercase tracking-widest text-sm">Compras</span>
-              </div>
-            </TabsTrigger>
-            {trip.currency !== "BRL" && (
-              <TabsTrigger
-                value="exchange"
-                className="shrink-0 snap-start rounded-xl py-3 px-5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300 hover:bg-muted/50"
-              >
-                <div className="flex items-center gap-2">
-                  <Plane className="h-4 w-4" />
-                  <span className="font-bold uppercase tracking-widest text-sm">Câmbio</span>
-                </div>
-              </TabsTrigger>
-            )}
-            <TabsTrigger
-              value="itinerary"
-              className="shrink-0 snap-start rounded-xl py-3 px-5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300 hover:bg-muted/50"
-            >
-              <div className="flex items-center gap-2">
-                <Route className="h-4 w-4" />
-                <span className="font-bold uppercase tracking-widest text-sm">Roteiro</span>
-              </div>
-            </TabsTrigger>
-            <TabsTrigger
-              value="checklist"
+              value="preparation"
               className="shrink-0 snap-start rounded-xl py-3 px-5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300 hover:bg-muted/50"
             >
               <div className="flex items-center gap-2">
                 <ListChecks className="h-4 w-4" />
-                <span className="font-bold uppercase tracking-widest text-sm">Checklist</span>
+                <span className="font-bold uppercase tracking-widest text-sm">Preparar</span>
               </div>
             </TabsTrigger>
           </TabsList>
@@ -183,46 +173,92 @@ export function TripDetailView({
         </div>
 
         <TabsContent value="summary">
-          <TripSummaryTab
-            selectedTrip={trip}
-            myTotalSpent={myTotalSpent}
-            myPersonalBudget={myPersonalBudget}
-            participants={participants}
-            balances={balances}
-            tripTransactions={tripTransactions}
-            user={user}
-            onAddParticipant={onAddParticipant}
-            permissions={permissions}
-            onRemoveClick={onRemoveParticipantClick}
-            pendingInvitations={pendingInvitations}
-            onCancelInvitation={onCancelInvitation}
-            setActiveTab={setActiveTab}
-          />
+          <div className="space-y-6">
+            <TripDetailSummary
+              totalExpenses={totalExpenses}
+              myTotalSpent={myTotalSpent}
+              myPersonalBudget={myPersonalBudget}
+              startDate={trip.start_date}
+              endDate={trip.end_date}
+              currency={trip.currency}
+              formatCurrency={formatCurrency}
+            />
+            <TripSummaryTab
+              selectedTrip={trip}
+              myTotalSpent={myTotalSpent}
+              myPersonalBudget={myPersonalBudget}
+              participants={participants}
+              balances={balances}
+              tripTransactions={tripTransactions}
+              user={user}
+              onAddParticipant={onAddParticipant}
+              permissions={permissions}
+              onRemoveClick={onRemoveParticipantClick}
+              pendingInvitations={pendingInvitations}
+              onCancelInvitation={onCancelInvitation}
+              setActiveTab={setActiveTab}
+            />
+          </div>
+        </TabsContent>
+        <TabsContent value="planner">
+          <Suspense
+            fallback={
+              <div
+                className="grid min-h-[420px] place-items-center rounded-2xl border border-border bg-muted/30 text-sm text-muted-foreground"
+                role="status"
+              >
+                Preparando mapa e roteiro…
+              </div>
+            }
+          >
+            <TripItinerary trip={trip} />
+          </Suspense>
         </TabsContent>
         <TabsContent value="expenses">
-          <TripExpensesTab
-            tripTransactions={tripTransactions}
-            participants={participants}
-            selectedTrip={trip}
-            user={user}
-            formatCurrency={formatCurrency}
-            balances={balances}
-            myTotalSpent={myTotalSpent}
-          />
+          <Tabs
+            value={trip.currency !== "BRL" && activeTab === "exchange" ? "exchange" : "expenses"}
+            onValueChange={setActiveTab}
+          >
+            {trip.currency !== "BRL" && (
+              <TabsList className="mb-4">
+                <TabsTrigger value="expenses">Despesas</TabsTrigger>
+                <TabsTrigger value="exchange">Câmbio</TabsTrigger>
+              </TabsList>
+            )}
+            <TabsContent value="expenses">
+              <TripExpensesTab
+                tripTransactions={tripTransactions}
+                participants={participants}
+                selectedTrip={trip}
+                user={user}
+                formatCurrency={formatCurrency}
+                balances={balances}
+                myTotalSpent={myTotalSpent}
+              />
+            </TabsContent>
+            {trip.currency !== "BRL" && (
+              <TabsContent value="exchange">
+                <TripExchange trip={trip} totalExpenses={totalExpenses} />
+              </TabsContent>
+            )}
+          </Tabs>
         </TabsContent>
-        <TabsContent value="shopping">
-          <TripShopping trip={trip} onUpdateTrip={onUpdateTrip} isUpdating={false} />
-        </TabsContent>
-        {trip.currency !== "BRL" && (
-          <TabsContent value="exchange">
-            <TripExchange trip={trip} totalExpenses={totalExpenses} />
-          </TabsContent>
-        )}
-        <TabsContent value="itinerary">
-          <TripItinerary trip={trip} />
-        </TabsContent>
-        <TabsContent value="checklist">
-          <TripChecklist trip={trip} />
+        <TabsContent value="preparation">
+          <Tabs
+            value={activeTab === "shopping" ? "shopping" : "checklist"}
+            onValueChange={setActiveTab}
+          >
+            <TabsList className="mb-4">
+              <TabsTrigger value="checklist">Checklist</TabsTrigger>
+              <TabsTrigger value="shopping">Compras</TabsTrigger>
+            </TabsList>
+            <TabsContent value="checklist">
+              <TripChecklist trip={trip} />
+            </TabsContent>
+            <TabsContent value="shopping">
+              <TripShopping trip={trip} onUpdateTrip={onUpdateTrip} isUpdating={false} />
+            </TabsContent>
+          </Tabs>
         </TabsContent>
       </Tabs>
     </div>

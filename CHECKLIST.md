@@ -1,7 +1,21 @@
 # CHECKLIST.md — Sprint Kanban: Seu Bolso Inteligente
 
 > Kanban de tarefas em markdown. Atualizar a cada sessão.
-> Última atualização: **2026-07-16 — Faxina de código morto + fix do toast duplicado**
+> Última atualização: **2026-07-26 — Planejador de viagens centrado no mapa**
+
+---
+
+## Concluído - 26/07/2026 - Planejador de viagens
+
+- [x] **[TRIP-PLAN-UX]** Viagem reorganizada em quatro áreas: `Resumo`, `Planejar`, `Gastos` e `Preparar`; cards financeiros aparecem somente no Resumo e o seletor de mês foi removido do contexto de Viagens.
+- [x] **[TRIP-PLAN-MAP]** Planejar ganhou dia ativo, mapa central, pins numerados por dia, alternância `Dia atual | Todos os dias`, seleção lista↔pin, rota diária e métricas de distância/duração com fallback aproximado/offline.
+- [x] **[TRIP-PLAN-ORDER]** Drag-and-drop com `dnd-kit`, teclado, mover para cima/baixo/outro dia, feedback `aria-live`, atualização otimista e rollback em erro ou conflito colaborativo.
+- [x] **[TRIP-PLAN-DB]** `reorder_trip_itinerary_v1` aplicada em produção com lock pai+filhos, snapshot completo, versão otimista, posições únicas/contíguas, RLS por status/papel e guards contra update estrutural direto.
+- [x] **[TRIP-PLAN-CATEGORY]** Migration pendente de categorias aplicada; produção aceita os 11 tipos usados pela busca e pelos pins.
+- [x] **[TRIP-PLAN-A11Y]** Alvos mínimos de 44 px, labels associados, combobox/listbox semânticos, nomes acessíveis, alternativa ao arrastar, skip link e redução de movimento no foco do mapa.
+- [x] **[TRIP-PLAN-VERIFY]** 249 testes aprovados, TypeScript sem erros, lint sem erros, build PWA verde; prova transacional da RPC com rollback confirmou stale version e invariantes financeiros.
+- [ ] **[TRIP-PLAN-QA-AUTH]** Fazer QA visual autenticado em desktop e celular com dados reais; a inspeção automatizada local confirmou boot/login sem erro, mas não possuía sessão para entrar na viagem.
+- [ ] **[TRIP-PLAN-P1]** Criar biblioteca persistente de `Ideias/Lugares` (`trip_places`) em migration separada; não simular estado apenas no frontend.
 
 ---
 

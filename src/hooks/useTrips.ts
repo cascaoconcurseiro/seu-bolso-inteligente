@@ -24,6 +24,7 @@ export interface Trip {
   archived_at: string | null;
   latitude: number | null;
   longitude: number | null;
+  itinerary_order_version: number;
   created_at: string;
   updated_at: string;
 }

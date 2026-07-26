@@ -1,6 +1,50 @@
 # HANDOFF.md — Ponto de Continuidade
 
-> Última atualização: 2026-07-16
+> Última atualização: 2026-07-26
+
+## Handoff da sessão - 26/07/2026 - Planejador de viagens centrado no mapa
+
+### Objetivo
+
+Incorporar o melhor do benchmark `liketrek/TREK` — mapa como área de trabalho, roteiro manipulável e experiência móvel específica — sem copiar código AGPL e preservando o diferencial financeiro do Resumo.
+
+### Entrega
+
+- A navegação da viagem passou a `Resumo | Planejar | Gastos | Preparar`. Despesas/Câmbio ficaram em Gastos; Checklist/Compras em Preparar. `TripDetailSummary` aparece apenas no Resumo.
+- `Planejar` usa três áreas no desktop (dias/roteiro, mapa, lugares/sugestões), e no mobile alterna Mapa/Roteiro com navegação anterior/próximo dia.
+- Mapa limitado ao dia ativo por padrão, com opção de todos os dias, pins numerados na mesma ordem da lista, seleção sincronizada, distância/duração OSRM, traçado aproximado em falha e estado offline.
+- Roteiro reordenável por drag-and-drop/teclado, botões subir/descer e seletor de outro dia. O cache é otimista e volta ao snapshot anterior em erro; conflito `40001` refaz a consulta sem sobrescrever outra sessão.
+- Busca, inclusão manual, inclusão tocando o mapa, IA, edição de conteúdo e ajuste de coordenadas foram preservados. Sugestões de IA agora usam um único insert em lote.
+- A edição comum não envia mais `date/order_index`; movimento estrutural passa exclusivamente pela RPC.
+- `TripItinerary` e Leaflet são carregados sob demanda ao abrir Planejar.
+
+### Banco de produção
+
+- Aplicada a expansão de categorias pendente (`20260716120000_expand_itinerary_categories.sql`) sem alterar o arquivo original.
+- Aplicada `20260726180103_atomic_trip_itinerary_reorder.sql`: `itinerary_order_version`, `updated_at`, normalização, constraint única deferrable, guards, policies autenticadas e `reorder_trip_itinerary_v1`.
+- Aplicada `20260726182038_restrict_itinerary_reorder_grant.sql`: execução da RPC restrita a `authenticated` (sem `anon`/`service_role`).
+- Pós-migration: 19 itens, zero posições negativas, duplicadas ou descontínuas; quatro policies somente para `authenticated`; tipos TypeScript regenerados do schema real.
+- Prova real em transação com `ROLLBACK`: owner reordenou snapshot completo, versão subiu exatamente uma vez, versão antiga recebeu `40001`, e `transactions`/`trip_members.personal_budget` permaneceram idênticos.
+- Advisor: nenhum alerta de performance ligado aos novos objetos. O aviso de RPC `SECURITY DEFINER` executável por autenticados é intencional; a função valida `auth.uid()`, status, papel, snapshot, versão e locks internamente.
+
+### Verificação
+
+- [x] `npx tsc --noEmit`
+- [x] `npm run lint` — 0 erros; warnings antigos do repositório permanecem.
+- [x] `npm test` — 249 aprovados, 19 ignorados.
+- [x] `npm run build` — build PWA de produção aprovado.
+- [x] Boot local em Edge headless: HTTP 200, redirecionamento esperado para `/auth`, zero erros de console/runtime.
+- [ ] QA visual autenticado com dados reais em desktop e celular.
+
+### Próximo passo concreto
+
+Entrar em uma viagem real, abrir `Planejar` e validar: arrastar uma parada, mover entre dias, recarregar a página, alternar Dia atual/Todos e conferir rota/pins em viewport 390 px e 1440 px. Depois criar `trip_places` e o painel de Ideias em uma migration/feature separada.
+
+### Bloqueios e observações
+
+- A inspeção local não tinha sessão autenticada, então não fotografou o planner com dados reais.
+- O histórico remoto de migrations já estava divergente da pasta local antes desta sessão; `supabase db push --dry-run` recusou operar. Não foi feito `migration repair`. As migrations foram aplicadas pelo canal transacional do projeto e verificadas ao vivo.
+- `.agents/skills/humanizar-design/` e `.agents/skills/mentor-tecnico-senior/` continuam untracked e foram preservadas sem alteração.
 
 ## Handoff da sessão - 16/07/2026 - Abertura instantânea (app shell precache) + splash único
 

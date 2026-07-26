@@ -21,20 +21,37 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  closestCenter,
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
-  Clock,
   ExternalLink,
+  ChevronLeft,
+  ChevronRight,
+  Layers3,
+  List,
+  LocateFixed,
+  Map,
   MapPin,
   Navigation,
-  Pencil,
   Plus,
   Route,
   Search,
-  Trash2,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   geocodeDestination,
   parseGoogleMapsUrl,
@@ -48,6 +65,9 @@ import { TripRouteMap } from "./TripRouteMap";
 import type { Trip } from "@/hooks/useTrips";
 import type { TripSuggestion } from "@/services/aiAdvisorService";
 import { getErrorMessage } from "./types";
+import { PlannerDayRail, type PlannerDay } from "./planner/PlannerDayRail";
+import { ItineraryStopCard } from "./planner/ItineraryStopCard";
+import { groupItineraryByDay, moveItineraryItem } from "./planner/itineraryOrder";
 
 interface ItineraryItem {
   id: string;
@@ -66,7 +86,6 @@ interface ItineraryItem {
   category: string | null;
 }
 
-import { EmptyState } from "@/components/ui/empty-state";
 import { AITripSuggestions } from "./AITripSuggestions";
 
 interface TripItineraryProps {
@@ -93,17 +112,34 @@ export function TripItinerary({ trip }: TripItineraryProps) {
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [focusedItemId, setFocusedItemId] = useState<string | null>(null);
   const [category, setCategory] = useState<PlaceCategory | null>(null);
+  const [activeDate, setActiveDate] = useState(trip.start_date);
+  const [mapScope, setMapScope] = useState<"day" | "all">("day");
+  const [mobileView, setMobileView] = useState<"map" | "list">("map");
+  const [adjustLocations, setAdjustLocations] = useState(false);
+  const [liveMessage, setLiveMessage] = useState("");
+  const [itineraryOrderVersion, setItineraryOrderVersion] = useState(trip.itinerary_order_version);
 
   const queryClient = useQueryClient();
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  useEffect(() => {
+    setItineraryOrderVersion(trip.itinerary_order_version);
+  }, [trip.itinerary_order_version]);
 
   // Coordenada base da viagem — cacheada em trips.latitude/longitude para não
   // re-geocodificar trip.destination toda vez que a tela abre. Se ainda não
   // existir, geocodifica uma vez e persiste silenciosamente pra próxima carga.
   const [localDestCoords, setLocalDestCoords] = useState<{ lat: number; lon: number } | null>(null);
-  const destCoords =
-    trip.latitude !== null && trip.longitude !== null
-      ? { lat: trip.latitude, lon: trip.longitude }
-      : localDestCoords;
+  const destCoords = useMemo(
+    () =>
+      trip.latitude !== null && trip.longitude !== null
+        ? { lat: trip.latitude, lon: trip.longitude }
+        : localDestCoords,
+    [localDestCoords, trip.latitude, trip.longitude]
+  );
 
   useEffect(() => {
     if (destCoords || !trip.destination) return;
@@ -155,7 +191,8 @@ export function TripItinerary({ trip }: TripItineraryProps) {
         .select("*")
         .eq("trip_id", tripId)
         .order("date", { ascending: true })
-        .order("start_time", { ascending: true });
+        .order("order_index", { ascending: true })
+        .order("id", { ascending: true });
 
       if (error) throw error;
       return data as ItineraryItem[];
@@ -233,6 +270,59 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     },
   });
 
+  const reorderItems = useMutation({
+    mutationFn: async ({ nextItems }: { nextItems: ItineraryItem[]; announcement: string }) => {
+      const { data, error } = await supabase.rpc("reorder_trip_itinerary_v1", {
+        p_trip_id: tripId,
+        p_expected_version: itineraryOrderVersion,
+        p_items: nextItems.map(({ id, date: itemDate, order_index }) => ({
+          id,
+          date: itemDate,
+          order_index,
+        })),
+      });
+
+      if (error) throw error;
+      return Number(data);
+    },
+    onMutate: async ({ nextItems }) => {
+      setLiveMessage("Salvando nova ordem…");
+      await queryClient.cancelQueries({ queryKey: ["trip-itinerary", tripId] });
+      const previousItems = queryClient.getQueryData<ItineraryItem[]>(["trip-itinerary", tripId]);
+      queryClient.setQueryData(["trip-itinerary", tripId], nextItems);
+      return { previousItems };
+    },
+    onSuccess: (newVersion, { announcement }) => {
+      setItineraryOrderVersion(newVersion);
+      setLiveMessage(announcement);
+      queryClient.setQueryData<Trip | undefined>(["trip", tripId], (cachedTrip) =>
+        cachedTrip ? { ...cachedTrip, itinerary_order_version: newVersion } : cachedTrip
+      );
+      queryClient.invalidateQueries({ queryKey: ["trip-itinerary", tripId] });
+      toast.success("Roteiro atualizado");
+    },
+    onError: (error: unknown, _variables, context) => {
+      if (context?.previousItems) {
+        queryClient.setQueryData(["trip-itinerary", tripId], context.previousItems);
+      }
+      const errorCode = (error as { code?: string }).code;
+      if (errorCode === "40001") {
+        setLiveMessage("O roteiro mudou em outro dispositivo. A ordem mais recente foi carregada.");
+        toast.error("O roteiro foi atualizado por outra pessoa", {
+          description:
+            "Recarregamos a ordem mais recente. Repita o movimento se ainda for preciso.",
+        });
+      } else {
+        setLiveMessage("Não foi possível salvar a nova ordem. A alteração foi desfeita.");
+        toast.error("Não foi possível reordenar", {
+          description: getErrorMessage(error, "A alteração foi desfeita."),
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ["trip-itinerary", tripId] });
+      queryClient.invalidateQueries({ queryKey: ["trip", tripId] });
+    },
+  });
+
   // Delete mutation
   const deleteItem = useMutation({
     mutationFn: async (id: string) => {
@@ -255,7 +345,8 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     const startDate = trip.start_date || dateFns.format(new Date(), "yyyy-MM-dd");
 
     try {
-      const promises = suggestions.map((s, idx) => {
+      const firstDayItemCount = items.filter((item) => item.date === startDate).length;
+      const suggestionsToInsert = suggestions.map((s, idx) => {
         // Embed mapsUrl and rating as JSON metadata in description
         const metadata = JSON.stringify({ mapsUrl: s.mapsUrl || "", rating: s.rating || null });
         const fullDescription = s.description
@@ -264,7 +355,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
 
         const matchedCategory = PLACE_CATEGORIES.find((c) => c.id === s.category)?.id ?? null;
 
-        return supabase.from("trip_itinerary").insert({
+        return {
           trip_id: tripId,
           date: startDate,
           title: s.title || "Atividade sugerida",
@@ -272,15 +363,16 @@ export function TripItinerary({ trip }: TripItineraryProps) {
           location: s.location || null,
           start_time: null,
           end_time: null,
-          order_index: items.length + idx,
+          order_index: firstDayItemCount + idx,
           maps_url: s.mapsUrl || null,
           latitude: s.lat ?? null,
           longitude: s.lon ?? null,
           category: matchedCategory,
-        });
+        };
       });
 
-      await Promise.all(promises);
+      const { error } = await supabase.from("trip_itinerary").insert(suggestionsToInsert);
+      if (error) throw error;
 
       queryClient.invalidateQueries({ queryKey: ["trip-itinerary", tripId] });
       toast.success("Sucesso", {
@@ -299,7 +391,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
   const handleMapPick = async (pick: { lat: number; lon: number }) => {
     setEditingItem(null);
     resetForm();
-    setDate(trip.start_date || dateFns.format(new Date(), "yyyy-MM-dd"));
+    setDate(activeDate || trip.start_date || dateFns.format(new Date(), "yyyy-MM-dd"));
     setLatitude(pick.lat);
     setLongitude(pick.lon);
     setShowDialog(true);
@@ -363,6 +455,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     } else {
       setEditingItem(null);
       resetForm();
+      setDate(activeDate || trip.start_date);
     }
     setShowDialog(true);
   };
@@ -382,15 +475,12 @@ export function TripItinerary({ trip }: TripItineraryProps) {
       resolvedLongitude = coordinates?.lon ?? null;
     }
 
-    const itemData = {
-      trip_id: tripId,
-      date,
+    const contentData = {
       title,
       description: description || null,
       location: location || null,
       start_time: startTime || null,
       end_time: endTime || null,
-      order_index: items.length,
       maps_url: mapsUrl || null,
       latitude: resolvedLatitude,
       longitude: resolvedLongitude,
@@ -398,261 +488,408 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     };
 
     if (editingItem) {
-      updateItem.mutate({ id: editingItem.id, ...itemData });
+      updateItem.mutate({ id: editingItem.id, ...contentData });
     } else {
-      createItem.mutate(itemData);
+      const dayItemCount = items.filter((item) => item.date === date).length;
+      createItem.mutate({
+        trip_id: tripId,
+        date,
+        order_index: dayItemCount,
+        ...contentData,
+      });
     }
   };
 
-  // Agrupar por data
-  const groupedItems = items.reduce(
-    (acc, item) => {
-      const dateKey = item.date;
-      if (!acc[dateKey]) acc[dateKey] = [];
-      acc[dateKey].push(item);
-      return acc;
-    },
-    {} as Record<string, ItineraryItem[]>
-  );
+  const groupedItems = useMemo(() => groupItineraryByDay(items), [items]);
+  const plannerDays = useMemo<PlannerDay[]>(() => {
+    const dates = new Set(items.map((item) => item.date));
+    const tripStart = dateFns.parseISO(trip.start_date);
+    const tripEnd = dateFns.parseISO(trip.end_date);
 
-  // Numeração dos pins — mesma ordem/índice usado pelo TripRouteMap, pra lista e mapa combinarem
-  const pinNumberByItemId = new Map<string, number>();
-  items
-    .filter((item) => item.latitude !== null && item.longitude !== null)
-    .forEach((item, idx) => pinNumberByItemId.set(item.id, idx + 1));
+    if (
+      dateFns.isValid(tripStart) &&
+      dateFns.isValid(tripEnd) &&
+      !dateFns.isBefore(tripEnd, tripStart)
+    ) {
+      dateFns.eachDayOfInterval({ start: tripStart, end: tripEnd }).forEach((day) => {
+        dates.add(dateFns.format(day, "yyyy-MM-dd"));
+      });
+    }
 
-  // Estado vazio
-  if (!isLoading && items.length === 0) {
-    return (
-      <div className="space-y-6">
-        <EmptyState
-          icon={Route}
-          title="Roteiro vazio"
-          description="Adicione atividades e passeios para organizar os dias da viagem."
-          action={
-            <div className="flex items-center justify-center gap-3">
-              <Button onClick={() => handleOpenDialog()}>
-                <Plus className="h-4 w-4 mr-2" />
-                Adicionar atividade
-              </Button>
+    return [...dates].sort().map((dayDate) => ({
+      date: dayDate,
+      label: dateFns.format(dateFns.parseISO(dayDate), "EEE, dd MMM", { locale: ptBR }),
+      itemCount: groupedItems[dayDate]?.length ?? 0,
+    }));
+  }, [groupedItems, items, trip.end_date, trip.start_date]);
+
+  useEffect(() => {
+    if (plannerDays.length === 0) return;
+    if (!plannerDays.some((day) => day.date === activeDate)) {
+      setActiveDate(plannerDays[0].date);
+    }
+  }, [activeDate, plannerDays]);
+
+  const activeItems = groupedItems[activeDate] ?? [];
+  const activeDayIndex = plannerDays.findIndex((day) => day.date === activeDate);
+  const mapItems = mapScope === "all" ? items : activeItems;
+  const activeDayNavUrl = buildDayNavUrl(activeItems);
+  const dayOptions = plannerDays.map(({ date: dayDate, label }) => ({
+    date: dayDate,
+    label,
+  }));
+
+  const persistMove = (itemId: string, targetDate: string, requestedIndex: number) => {
+    const targetLength = items.filter(
+      (item) => item.date === targetDate && item.id !== itemId
+    ).length;
+    const targetIndex = Math.min(requestedIndex, targetLength);
+    const currentItem = items.find((item) => item.id === itemId);
+    if (!currentItem) return;
+
+    const nextItems = moveItineraryItem(items, itemId, targetDate, targetIndex) as ItineraryItem[];
+    const movedItem = nextItems.find((item) => item.id === itemId);
+    if (
+      !movedItem ||
+      (movedItem.date === currentItem.date && movedItem.order_index === currentItem.order_index)
+    ) {
+      return;
+    }
+
+    setActiveDate(targetDate);
+    setFocusedItemId(itemId);
+    const dayNumber = plannerDays.findIndex((day) => day.date === targetDate) + 1;
+    const targetDayCount = nextItems.filter((item) => item.date === targetDate).length;
+    reorderItems.mutate({
+      nextItems,
+      announcement: `${currentItem.title} movido para o dia ${dayNumber}, posição ${
+        movedItem.order_index + 1
+      } de ${targetDayCount}.`,
+    });
+  };
+
+  const handleDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
+    const targetIndex = activeItems.findIndex((item) => item.id === over.id);
+    if (targetIndex < 0) return;
+    persistMove(String(active.id), activeDate, targetIndex);
+  };
+
+  return (
+    <div className="space-y-4">
+      <a
+        href="#itinerary-stops"
+        className="sr-only rounded-md bg-background p-3 text-sm font-semibold focus:not-sr-only focus:absolute focus:z-[2000]"
+      >
+        Pular mapa e ir para o roteiro
+      </a>
+
+      <div className="flex flex-col gap-3 border-b border-border/60 pb-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Planejar</p>
+          <h2 className="mt-1 text-xl font-semibold tracking-tight text-foreground">
+            {trip.destination || trip.name}
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {items.length} {items.length === 1 ? "parada" : "paradas"} em {plannerDays.length}{" "}
+            {plannerDays.length === 1 ? "dia" : "dias"}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {activeDayNavUrl && (
+            <Button asChild variant="outline" className="min-h-11">
+              <a href={activeDayNavUrl} target="_blank" rel="noopener noreferrer">
+                <Navigation className="mr-2 h-4 w-4" aria-hidden="true" />
+                Navegar dia
+              </a>
+            </Button>
+          )}
+          <Button className="min-h-11" onClick={() => handleOpenDialog()}>
+            <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
+            Adicionar parada
+          </Button>
+        </div>
+      </div>
+
+      <div
+        className="grid gap-4 xl:grid-cols-[minmax(16rem,18rem)_minmax(0,1fr)_minmax(18rem,20rem)]"
+        aria-busy={isLoading || reorderItems.isPending}
+      >
+        <aside
+          id="itinerary-stops"
+          className={`${mobileView === "map" ? "hidden xl:block" : "block"} min-w-0 space-y-4 xl:max-h-[calc(100vh-12rem)] xl:overflow-y-auto xl:pr-1`}
+          aria-label="Roteiro do dia"
+        >
+          <PlannerDayRail days={plannerDays} activeDate={activeDate} onSelect={setActiveDate} />
+
+          <section aria-labelledby="active-day-title">
+            <div className="mb-3 flex items-end justify-between gap-2">
+              <div>
+                <p className="text-xs text-muted-foreground">
+                  Dia {Math.max(1, plannerDays.findIndex((day) => day.date === activeDate) + 1)}
+                </p>
+                <h3
+                  id="active-day-title"
+                  className="text-sm font-semibold capitalize text-foreground"
+                >
+                  {activeDate
+                    ? dateFns.format(dateFns.parseISO(activeDate), "EEEE, dd 'de' MMMM", {
+                        locale: ptBR,
+                      })
+                    : "Escolha um dia"}
+                </h3>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {activeItems.length} {activeItems.length === 1 ? "parada" : "paradas"}
+              </span>
+            </div>
+
+            {activeItems.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-border bg-muted/30 px-4 py-8 text-center">
+                <Route className="mx-auto h-7 w-7 text-primary" aria-hidden="true" />
+                <p className="mt-3 font-semibold text-foreground">Nenhuma parada neste dia</p>
+                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                  Adicione um lugar ou mova uma parada de outro dia.
+                </p>
+                <Button
+                  variant="outline"
+                  className="mt-4 min-h-11"
+                  onClick={() => handleOpenDialog()}
+                >
+                  <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
+                  Adicionar parada
+                </Button>
+              </div>
+            ) : (
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={activeItems.map((item) => item.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <ol className="space-y-2">
+                    {activeItems.map((item, index) => {
+                      const meta = parseMeta(item.description);
+                      return (
+                        <ItineraryStopCard
+                          key={item.id}
+                          item={item}
+                          position={index}
+                          itemCount={activeItems.length}
+                          destination={trip.destination}
+                          description={meta.text}
+                          rating={meta.rating}
+                          isFocused={focusedItemId === item.id}
+                          dayOptions={dayOptions}
+                          disabled={reorderItems.isPending}
+                          onFocus={() => {
+                            setFocusedItemId(focusedItemId === item.id ? null : item.id);
+                            setMobileView("map");
+                          }}
+                          onEdit={() => handleOpenDialog(item)}
+                          onDelete={() => setDeletingItem(item)}
+                          onMove={(targetDate, targetIndex) =>
+                            persistMove(item.id, targetDate, targetIndex)
+                          }
+                        />
+                      );
+                    })}
+                  </ol>
+                </SortableContext>
+              </DndContext>
+            )}
+          </section>
+        </aside>
+
+        <main
+          className={`${mobileView === "list" ? "hidden xl:block" : "block"} min-w-0 space-y-3`}
+          aria-label="Mapa e rota do dia"
+        >
+          <div className="flex items-center justify-between rounded-xl border border-border bg-card px-1 py-1 xl:hidden">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-11 w-11"
+              disabled={activeDayIndex <= 0}
+              onClick={() => setActiveDate(plannerDays[activeDayIndex - 1]?.date ?? activeDate)}
+              aria-label="Ver dia anterior"
+            >
+              <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+            </Button>
+            <div className="min-w-0 px-2 text-center">
+              <p className="text-xs text-muted-foreground">
+                Dia {Math.max(1, activeDayIndex + 1)} de {plannerDays.length}
+              </p>
+              <p className="truncate text-sm font-semibold capitalize text-foreground">
+                {activeDate
+                  ? dateFns.format(dateFns.parseISO(activeDate), "EEE, dd MMM", { locale: ptBR })
+                  : "Escolha um dia"}
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-11 w-11"
+              disabled={activeDayIndex < 0 || activeDayIndex >= plannerDays.length - 1}
+              onClick={() => setActiveDate(plannerDays[activeDayIndex + 1]?.date ?? activeDate)}
+              aria-label="Ver próximo dia"
+            >
+              <ChevronRight className="h-5 w-5" aria-hidden="true" />
+            </Button>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="inline-flex rounded-xl border border-border bg-muted/40 p-1">
+                <button
+                  type="button"
+                  onClick={() => setMapScope("day")}
+                  aria-pressed={mapScope === "day"}
+                  className={`min-h-11 rounded-lg px-3 text-xs font-semibold ${
+                    mapScope === "day"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground"
+                  }`}
+                >
+                  Dia atual
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMapScope("all")}
+                  aria-pressed={mapScope === "all"}
+                  className={`min-h-11 rounded-lg px-3 text-xs font-semibold ${
+                    mapScope === "all"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground"
+                  }`}
+                >
+                  Todos os dias
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAdjustLocations((current) => !current)}
+                aria-pressed={adjustLocations}
+                className={`min-h-11 rounded-lg px-3 text-xs font-semibold ${
+                  adjustLocations
+                    ? "bg-primary text-primary-foreground"
+                    : "border border-border text-muted-foreground hover:bg-accent"
+                }`}
+              >
+                <LocateFixed className="mr-1.5 inline h-4 w-4" aria-hidden="true" />
+                {adjustLocations ? "Concluir ajustes" : "Ajustar pins"}
+              </button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {adjustLocations
+                ? "Arraste um pin; também é possível corrigir o local editando a parada."
+                : mapScope === "day"
+                  ? "Pins numerados na ordem do dia"
+                  : "Visão geral da viagem"}
+            </p>
+          </div>
+
+          {destCoords || mapItems.some((item) => item.latitude !== null) ? (
+            <TripRouteMap
+              items={mapItems}
+              fallbackCenter={destCoords ?? null}
+              onMapPick={handleMapPick}
+              onMarkerMove={adjustLocations ? handleMarkerMove : undefined}
+              focusedId={focusedItemId}
+              activeDateLabel={
+                activeDate
+                  ? dateFns.format(dateFns.parseISO(activeDate), "dd 'de' MMMM", { locale: ptBR })
+                  : undefined
+              }
+            />
+          ) : (
+            <div className="grid min-h-[420px] place-items-center rounded-2xl border border-dashed border-border bg-muted/30 p-6 text-center">
+              <div>
+                <MapPin className="mx-auto h-8 w-8 text-primary" aria-hidden="true" />
+                <p className="mt-3 font-semibold text-foreground">Seu roteiro começa aqui</p>
+                <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+                  Busque um lugar ou adicione manualmente a primeira parada.
+                </p>
+              </div>
+            </div>
+          )}
+        </main>
+
+        <aside className="hidden min-w-0 space-y-4 xl:block" aria-label="Adicionar lugares">
+          <div className="rounded-2xl border border-border/70 bg-card p-4">
+            <div className="flex items-center gap-2">
+              <Search className="h-4 w-4 text-primary" aria-hidden="true" />
+              <h3 className="font-semibold text-foreground">Lugares</h3>
+            </div>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              Busque perto de {trip.destination || "seu destino"} e já salve o pin no dia ativo.
+            </p>
+            <Button className="mt-4 min-h-11 w-full" onClick={() => handleOpenDialog()}>
+              <Search className="mr-2 h-4 w-4" aria-hidden="true" />
+              Buscar lugares
+            </Button>
+          </div>
+
+          <div className="rounded-2xl border border-border/70 bg-muted/25 p-4">
+            <div className="flex items-center gap-2">
+              <Layers3 className="h-4 w-4 text-primary" aria-hidden="true" />
+              <h3 className="font-semibold text-foreground">Sugestões para o roteiro</h3>
+            </div>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              Gere uma primeira versão e ajuste a ordem arrastando ou usando os controles dos
+              cartões.
+            </p>
+            <div className="mt-4">
               <AITripSuggestions
                 type="itinerary"
                 destination={trip.destination || trip.name}
                 onApply={handleApplyAISuggestions}
               />
             </div>
-          }
-        />
-
-        {destCoords && (
-          <TripRouteMap items={[]} fallbackCenter={destCoords} onMapPick={handleMapPick} />
-        )}
-
-        <ItineraryDialog
-          open={showDialog}
-          onOpenChange={setShowDialog}
-          isEditing={!!editingItem}
-          isLoading={createItem.isPending || updateItem.isPending || isGeocoding}
-          date={date}
-          setDate={setDate}
-          title={title}
-          setTitle={setTitle}
-          description={description}
-          setDescription={setDescription}
-          location={location}
-          setLocation={setLocation}
-          startTime={startTime}
-          setStartTime={setStartTime}
-          endTime={endTime}
-          setEndTime={setEndTime}
-          mapsUrl={mapsUrl}
-          setMapsUrl={setMapsUrl}
-          hasCoords={latitude !== null && longitude !== null}
-          onCoordsChange={(c) => {
-            setLatitude(c?.lat ?? null);
-            setLongitude(c?.lon ?? null);
-          }}
-          searchNear={destCoords ?? null}
-          category={category}
-          setCategory={setCategory}
-          onSubmit={handleSubmit}
-        />
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm uppercase tracking-widest text-muted-foreground font-medium">
-          Roteiro ({items.length} atividades)
-        </h2>
-        <div className="flex items-center gap-2">
-          <AITripSuggestions
-            type="itinerary"
-            destination={trip.destination || trip.name}
-            onApply={handleApplyAISuggestions}
-          />
-          <Button variant="outline" size="sm" onClick={() => handleOpenDialog()}>
-            <Plus className="h-4 w-4 mr-1" />
-            Adicionar
-          </Button>
-        </div>
+          </div>
+        </aside>
       </div>
 
-      {/* Mapa interativo do roteiro */}
-      <TripRouteMap
-        items={items}
-        fallbackCenter={destCoords ?? null}
-        onMapPick={handleMapPick}
-        onMarkerMove={handleMarkerMove}
-        focusedId={focusedItemId}
-      />
-
-      <div className="space-y-6">
-        {Object.entries(groupedItems).map(([dateKey, dayItems]) => {
-          const dayNavUrl = buildDayNavUrl(dayItems);
-          return (
-            <div key={dateKey} className="space-y-3">
-              <div className="flex items-center justify-between gap-2">
-                <h3 className="text-sm font-semibold capitalize text-foreground">
-                  {dateFns.format(new Date(dateKey + "T12:00:00"), "EEEE, dd 'de' MMMM", {
-                    locale: ptBR,
-                  })}
-                </h3>
-                {dayNavUrl && (
-                  <a
-                    href={dayNavUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors"
-                    title="Abrir a rota do dia no Google Maps"
-                  >
-                    <Navigation className="h-3.5 w-3.5" />
-                    Navegar dia
-                  </a>
-                )}
-              </div>
-              <div className="space-y-2">
-                {dayItems.map((item) => {
-                  const meta = parseMeta(item.description);
-                  const pinNumber = pinNumberByItemId.get(item.id);
-                  const isFocused = focusedItemId === item.id;
-                  return (
-                    <div
-                      key={item.id}
-                      className={`flex items-start justify-between p-4 rounded-xl border transition-colors ${
-                        isFocused
-                          ? "border-blue-500 ring-1 ring-blue-500/40"
-                          : "border-border hover:border-foreground/20"
-                      }`}
-                    >
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          {pinNumber && (
-                            <button
-                              type="button"
-                              onClick={() => setFocusedItemId(isFocused ? null : item.id)}
-                              className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white transition-colors ${
-                                isFocused ? "bg-blue-600" : "bg-foreground/80 hover:bg-blue-600"
-                              }`}
-                              title="Localizar no mapa"
-                              aria-label={`Localizar atividade ${pinNumber} no mapa`}
-                              aria-pressed={isFocused}
-                            >
-                              {pinNumber}
-                            </button>
-                          )}
-                          {item.start_time && (
-                            <span className="text-sm text-muted-foreground flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {item.start_time.slice(0, 5)}
-                              {item.end_time && ` - ${item.end_time.slice(0, 5)}`}
-                            </span>
-                          )}
-                        </div>
-                        <p className="font-medium mt-1">{item.title}</p>
-                        {item.location && (
-                          <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                            <MapPin className="h-3 w-3" />
-                            {item.location}
-                          </p>
-                        )}
-                        {meta.text && (
-                          <p className="text-sm text-muted-foreground mt-2">{meta.text}</p>
-                        )}
-                        <div className="flex gap-1 mt-2">
-                          <a
-                            href={(() => {
-                              if (item.maps_url || meta.mapsUrl)
-                                return item.maps_url || meta.mapsUrl;
-                              const query = encodeURIComponent(
-                                (item.location || item.title) +
-                                  (trip.destination ? ", " + trip.destination : "")
-                              );
-                              return `https://www.google.com/maps/search/?api=1&query=${query}`;
-                            })()}
-                            onClick={(e) => {
-                              const query = encodeURIComponent(
-                                (item.location || item.title) +
-                                  (trip.destination ? ", " + trip.destination : "")
-                              );
-                              const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-                              if (isIOS) {
-                                e.preventDefault();
-                                // Tenta abrir o app do Google Maps; fallback para web
-                                window.location.href = `comgooglemaps://?q=${query}`;
-                                setTimeout(() => {
-                                  window.open(
-                                    `https://www.google.com/maps/search/?api=1&query=${query}`,
-                                    "_blank"
-                                  );
-                                }, 500);
-                              }
-                            }}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-950 dark:text-blue-400 dark:hover:bg-blue-900 transition-colors"
-                            title="Abrir no Google Maps"
-                          >
-                            <MapPin className="h-3 w-3" />
-                            Maps{item.maps_url || meta.mapsUrl ? " ✓" : ""}
-                          </a>
-                          {meta.rating && (
-                            <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-1 rounded-md bg-yellow-50 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400">
-                              ⭐ {meta.rating}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(item)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setDeletingItem(item)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
+      <div className="fixed inset-x-3 bottom-20 z-[1100] flex rounded-2xl border border-border bg-background/95 p-1 shadow-xl backdrop-blur xl:hidden">
+        <button
+          type="button"
+          onClick={() => setMobileView("map")}
+          aria-pressed={mobileView === "map"}
+          className={`flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl text-sm font-semibold ${
+            mobileView === "map" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+          }`}
+        >
+          <Map className="h-4 w-4" aria-hidden="true" />
+          Mapa
+        </button>
+        <button
+          type="button"
+          onClick={() => setMobileView("list")}
+          aria-pressed={mobileView === "list"}
+          className={`flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl text-sm font-semibold ${
+            mobileView === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+          }`}
+        >
+          <List className="h-4 w-4" aria-hidden="true" />
+          Roteiro ({activeItems.length})
+        </button>
       </div>
+
+      <p className="sr-only" aria-live="polite" aria-atomic="true">
+        {liveMessage}
+      </p>
 
       {/* Dialog */}
       <ItineraryDialog
         open={showDialog}
         onOpenChange={setShowDialog}
         isEditing={!!editingItem}
+        dateLocked={!!editingItem}
         isLoading={createItem.isPending || updateItem.isPending || isGeocoding}
         date={date}
         setDate={setDate}
@@ -709,6 +946,7 @@ function ItineraryDialog({
   open,
   onOpenChange,
   isEditing,
+  dateLocked,
   isLoading,
   date,
   setDate,
@@ -734,6 +972,7 @@ function ItineraryDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isEditing: boolean;
+  dateLocked: boolean;
   isLoading: boolean;
   date: string;
   setDate: (v: string) => void;
@@ -800,10 +1039,7 @@ function ItineraryDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="max-w-lg max-h-[90vh] overflow-y-auto w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-3xl !rounded-b-none sm:!rounded-3xl transition-transform duration-500 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-2xl"
-        onOpenAutoFocus={(e) => e.preventDefault()}
-      >
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-3xl !rounded-b-none sm:!rounded-3xl transition-transform duration-500 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-2xl">
         <div className="w-full flex justify-center pt-4 sm:hidden">
           <div className="w-12 h-1.5 bg-muted rounded-full" />
         </div>
@@ -818,19 +1054,27 @@ function ItineraryDialog({
         <div className="space-y-4">
           {/* Data */}
           <div className="space-y-2">
-            <Label>Data *</Label>
+            <Label htmlFor="itinerary-date">Data *</Label>
             <Input
+              id="itinerary-date"
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
+              disabled={dateLocked}
               className="h-11"
             />
+            {dateLocked && (
+              <p className="text-xs text-muted-foreground">
+                Para trocar o dia, use “Mover para outro dia” no cartão.
+              </p>
+            )}
           </div>
 
           {/* Título */}
           <div className="space-y-2">
-            <Label>Título *</Label>
+            <Label htmlFor="itinerary-title">Título *</Label>
             <Input
+              id="itinerary-title"
               placeholder="Ex: Visita ao museu"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -841,8 +1085,9 @@ function ItineraryDialog({
           {/* Horários */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label>Horário início</Label>
+              <Label htmlFor="itinerary-start-time">Horário início</Label>
               <Input
+                id="itinerary-start-time"
                 type="time"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
@@ -850,8 +1095,9 @@ function ItineraryDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label>Horário fim</Label>
+              <Label htmlFor="itinerary-end-time">Horário fim</Label>
               <Input
+                id="itinerary-end-time"
                 type="time"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
@@ -862,7 +1108,7 @@ function ItineraryDialog({
 
           {/* Local + busca com autocomplete */}
           <div className="space-y-2">
-            <Label>Local</Label>
+            <Label htmlFor="itinerary-location">Local</Label>
 
             {/* Categoria — filtra a busca e define a cor do pin no mapa */}
             <div className="flex flex-wrap gap-1.5" role="group" aria-label="Categoria do lugar">
@@ -892,6 +1138,7 @@ function ItineraryDialog({
             <div className="relative">
               <div className="flex gap-2">
                 <Input
+                  id="itinerary-location"
                   placeholder="Ex: Museu do Louvre"
                   value={location}
                   onChange={(e) => {
@@ -900,6 +1147,10 @@ function ItineraryDialog({
                     onCoordsChange(null);
                   }}
                   className="h-11"
+                  role="combobox"
+                  aria-autocomplete="list"
+                  aria-expanded={placeResults.length > 0 || isSearchingPlaces}
+                  aria-controls="itinerary-place-results"
                 />
                 <Button
                   type="button"
@@ -908,13 +1159,18 @@ function ItineraryDialog({
                   className="h-11 w-11 shrink-0"
                   onClick={openMapsSearch}
                   disabled={!location && !title}
-                  title="Buscar no Maps"
+                  aria-label="Buscar local no Maps"
                 >
                   <Search className="h-4 w-4" />
                 </Button>
               </div>
               {(placeResults.length > 0 || isSearchingPlaces) && (
-                <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-56 overflow-y-auto rounded-xl border border-border bg-popover shadow-lg">
+                <div
+                  id="itinerary-place-results"
+                  role="listbox"
+                  aria-label="Resultados de lugares"
+                  className="absolute left-0 right-0 top-full z-50 mt-1 max-h-56 overflow-y-auto rounded-xl border border-border bg-popover shadow-lg"
+                >
                   {isSearchingPlaces && placeResults.length === 0 && (
                     <p className="px-3 py-2.5 text-sm text-muted-foreground">Buscando lugares…</p>
                   )}
@@ -922,6 +1178,8 @@ function ItineraryDialog({
                     <button
                       key={`${place.lat}-${place.lon}-${idx}`}
                       type="button"
+                      role="option"
+                      aria-selected="false"
                       className="flex w-full items-start gap-2 px-3 py-2.5 text-left hover:bg-accent/50 transition-colors"
                       onClick={() => handlePickPlace(place)}
                     >
@@ -955,12 +1213,13 @@ function ItineraryDialog({
 
           {/* Link do Maps */}
           <div className="space-y-2">
-            <Label className="flex items-center gap-1.5">
+            <Label htmlFor="itinerary-maps-url" className="flex items-center gap-1.5">
               <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
               Link do Google Maps
             </Label>
             <div className="flex gap-2">
               <Input
+                id="itinerary-maps-url"
                 placeholder="Cole o link copiado do Maps…"
                 value={mapsUrl}
                 onChange={(e) => {
@@ -977,6 +1236,7 @@ function ItineraryDialog({
                   target="_blank"
                   rel="noopener noreferrer"
                   className="h-11 w-11 shrink-0 flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent transition-colors"
+                  aria-label="Abrir link do Google Maps"
                 >
                   <ExternalLink className="h-4 w-4" />
                 </a>
@@ -991,8 +1251,9 @@ function ItineraryDialog({
 
           {/* Descrição */}
           <div className="space-y-2">
-            <Label>Descrição</Label>
+            <Label htmlFor="itinerary-description">Descrição</Label>
             <Textarea
+              id="itinerary-description"
               placeholder="Detalhes da atividade…"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
