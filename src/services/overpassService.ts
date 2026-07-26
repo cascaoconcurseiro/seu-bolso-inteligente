@@ -138,20 +138,30 @@ export function getCategoryColor(category: string | null | undefined): string {
 export async function searchPlaces(
   query: string,
   near?: { lat: number; lon: number },
-  category?: PlaceCategory
+  category?: PlaceCategory,
+  destinationName?: string
 ): Promise<PlaceSearchResult[]> {
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
+    const timeout = setTimeout(() => controller.abort(), 6000);
     const url = new URL("https://photon.komoot.io/api/");
-    url.searchParams.set("q", query);
-    url.searchParams.set("limit", "6");
+
+    // Garantir que a busca inclua explicitamente a cidade de destino da viagem (ex: "Liverpool" ou "Tokyo")
+    const cleanQuery = query.trim();
+    const fullQuery =
+      destinationName && !cleanQuery.toLowerCase().includes(destinationName.toLowerCase())
+        ? `${cleanQuery} ${destinationName}`
+        : cleanQuery;
+
+    url.searchParams.set("q", fullQuery);
+    url.searchParams.set("limit", "10");
     if (near) {
       url.searchParams.set("lat", String(near.lat));
       url.searchParams.set("lon", String(near.lon));
     }
     const osmTag = PLACE_CATEGORIES.find((c) => c.id === category)?.osmTag;
     if (osmTag) url.searchParams.set("osm_tag", osmTag);
+
     const res = await fetch(url.toString(), { signal: controller.signal });
     clearTimeout(timeout);
     if (!res.ok) return [];
@@ -174,6 +184,37 @@ export async function searchPlaces(
       seen.add(key);
       results.push({ name: p.name, address, lat, lon });
     }
+
+    // Se a busca pelo Photon retornar poucos resultados, tentar Nominatim como fallback direcionado à cidade
+    if (results.length < 3 && destinationName) {
+      try {
+        const nomUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+          `${cleanQuery} ${destinationName}`
+        )}&format=json&limit=8`;
+        const nomRes = await fetch(nomUrl, {
+          headers: { "Accept-Language": "pt-BR,pt;q=0.9", "User-Agent": "SeuBolsoInteligente/1.0" },
+        });
+        if (nomRes.ok) {
+          const nomData = await nomRes.json();
+          for (const item of nomData) {
+            const name = item.display_name.split(",")[0].trim();
+            const key = `${name}|${item.display_name}`.toLowerCase();
+            if (!seen.has(key)) {
+              seen.add(key);
+              results.push({
+                name,
+                address: item.display_name,
+                lat: parseFloat(item.lat),
+                lon: parseFloat(item.lon),
+              });
+            }
+          }
+        }
+      } catch {
+        // Ignorar erros no fallback
+      }
+    }
+
     return results;
   } catch {
     return [];

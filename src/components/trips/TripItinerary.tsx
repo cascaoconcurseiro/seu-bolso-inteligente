@@ -1199,6 +1199,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
         searchNear={destCoords ?? null}
         category={category}
         setCategory={setCategory}
+        destinationName={trip.destination || trip.name}
         onSubmit={handleSubmit}
         onSaveOnly={handleSaveOnly}
       />
@@ -1207,6 +1208,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
         open={showPlaceDialog}
         onOpenChange={setShowPlaceDialog}
         searchNear={destCoords}
+        destinationName={trip.destination || trip.name}
         isSaving={isSavingPlace}
         onSave={handleSaveDiscoveredPlace}
         onAddToDay={handleAddDiscoveredPlaceToDay}
@@ -1276,6 +1278,7 @@ function ItineraryDialog({
   searchNear,
   category,
   setCategory,
+  destinationName,
   onSubmit,
   onSaveOnly,
 }: {
@@ -1303,6 +1306,7 @@ function ItineraryDialog({
   searchNear: { lat: number; lon: number } | null;
   category: PlaceCategory | null;
   setCategory: (c: PlaceCategory | null) => void;
+  destinationName?: string;
   onSubmit: () => void;
   onSaveOnly: () => void;
 }) {
@@ -1347,7 +1351,12 @@ function ItineraryDialog({
     setIsSearchingPlaces(true);
     setPlaceSearchFinished(false);
     const timer = setTimeout(async () => {
-      const results = await searchPlaces(effectiveQuery, searchNear ?? undefined, category ?? undefined);
+      const results = await searchPlaces(
+        effectiveQuery,
+        searchNear ?? undefined,
+        category ?? undefined,
+        destinationName
+      );
       if (searchRequestId.current !== requestId) return;
       setPlaceResults(results);
       setIsSearchingPlaces(false);

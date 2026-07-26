@@ -31,6 +31,7 @@ interface PlaceDiscoveryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   searchNear: { lat: number; lon: number } | null;
+  destinationName?: string;
   isSaving: boolean;
   onSave: (place: DiscoveredPlace) => void;
   onAddToDay: (place: DiscoveredPlace) => void;
@@ -40,6 +41,7 @@ export function PlaceDiscoveryDialog({
   open,
   onOpenChange,
   searchNear,
+  destinationName,
   isSaving,
   onSave,
   onAddToDay,
@@ -63,7 +65,8 @@ export function PlaceDiscoveryDialog({
     }
 
     const normalized = query.trim();
-    if (normalized.length < 3 || selected) {
+    const effectiveQuery = normalized.length >= 2 ? normalized : (category ? (PLACE_CATEGORIES.find(c=>c.id===category)?.label || "") : "");
+    if (!effectiveQuery || selected) {
       setResults([]);
       setStatus("idle");
       return;
@@ -74,9 +77,10 @@ export function PlaceDiscoveryDialog({
     const timer = window.setTimeout(async () => {
       try {
         const places = await searchPlaces(
-          normalized,
+          effectiveQuery,
           searchNear ?? undefined,
-          category ?? undefined
+          category ?? undefined,
+          destinationName
         );
         if (requestId.current !== currentRequest) return;
         setResults(places);
