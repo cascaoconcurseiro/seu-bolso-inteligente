@@ -51,9 +51,12 @@ import {
   Route,
   Search,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import {
+  buildGoogleMapsUrl,
   geocodeDestination,
+  isSafeGoogleMapsUrl,
+  parseGoogleMapsPlaceName,
   parseGoogleMapsUrl,
   PLACE_CATEGORIES,
   reverseGeocode,
@@ -70,6 +73,7 @@ import { PlannerDayRail, type PlannerDay } from "./planner/PlannerDayRail";
 import { ItineraryStopCard } from "./planner/ItineraryStopCard";
 import { groupItineraryByDay, moveItineraryItem } from "./planner/itineraryOrder";
 import { TripReservationsPanel } from "./planner/TripReservationsPanel";
+import { PlaceDiscoveryDialog, type DiscoveredPlace } from "./planner/PlaceDiscoveryDialog";
 
 interface ItineraryItem {
   id: string;
@@ -103,6 +107,7 @@ interface TripItineraryProps {
 export function TripItinerary({ trip }: TripItineraryProps) {
   const tripId = trip.id;
   const [showDialog, setShowDialog] = useState(false);
+  const [showPlaceDialog, setShowPlaceDialog] = useState(false);
   const [editingItem, setEditingItem] = useState<ItineraryItem | null>(null);
   const [deletingItem, setDeletingItem] = useState<ItineraryItem | null>(null);
   const [, setIsApplyingAI] = useState(false);
@@ -118,6 +123,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
   const [isGeocoding, setIsGeocoding] = useState(false);
+  const [isSavingPlace, setIsSavingPlace] = useState(false);
   const [focusedItemId, setFocusedItemId] = useState<string | null>(null);
   const [category, setCategory] = useState<PlaceCategory | null>(null);
   const [activeDate, setActiveDate] = useState(trip.start_date);
@@ -499,6 +505,60 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     setShowDialog(true);
   };
 
+  const fillFormFromDiscoveredPlace = (place: DiscoveredPlace) => {
+    resetForm();
+    setDate(activeDate || trip.start_date);
+    setTitle(place.name);
+    setLocation(place.address);
+    setMapsUrl(place.mapsUrl);
+    setLatitude(place.latitude);
+    setLongitude(place.longitude);
+    setCategory(place.category);
+  };
+
+  const handleAddDiscoveredPlaceToDay = (place: DiscoveredPlace) => {
+    fillFormFromDiscoveredPlace(place);
+    setShowPlaceDialog(false);
+    setShowDialog(true);
+  };
+
+  const handleSaveDiscoveredPlace = async (place: DiscoveredPlace) => {
+    setIsSavingPlace(true);
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Entre novamente para salvar o lugar");
+        return;
+      }
+      const { error } = await supabase.from("trip_places").insert({
+        trip_id: tripId,
+        created_by: user.id,
+        name: place.name,
+        description: null,
+        address: place.address,
+        maps_url: place.mapsUrl,
+        latitude: place.latitude,
+        longitude: place.longitude,
+        category: place.category,
+        source_type: "osm",
+        source_url: place.mapsUrl,
+        source_attribution: "© OpenStreetMap contributors",
+        status: "idea",
+      });
+      if (error) {
+        toast.error("Erro ao salvar lugar", { description: error.message });
+        return;
+      }
+      queryClient.invalidateQueries({ queryKey: ["trip-places", tripId] });
+      toast.success("Lugar guardado nas ideias");
+      setShowPlaceDialog(false);
+    } finally {
+      setIsSavingPlace(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!date || !title) return;
 
@@ -710,6 +770,15 @@ export function TripItinerary({ trip }: TripItineraryProps) {
               </a>
             </Button>
           )}
+          <Button
+            type="button"
+            variant="outline"
+            className="min-h-11"
+            onClick={() => setShowPlaceDialog(true)}
+          >
+            <Search className="mr-2 h-4 w-4" aria-hidden="true" />
+            Buscar lugares
+          </Button>
           <Button className="min-h-11" onClick={() => handleOpenDialog()}>
             <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
             Adicionar parada
@@ -936,7 +1005,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
               {savedPlaces.length} {savedPlaces.length === 1 ? "lugar salvo" : "lugares salvos"}.
               Guarde ideias primeiro e monte os dias quando decidir.
             </p>
-            <Button className="mt-4 min-h-11 w-full" onClick={() => handleOpenDialog()}>
+            <Button className="mt-4 min-h-11 w-full" onClick={() => setShowPlaceDialog(true)}>
               <Search className="mr-2 h-4 w-4" aria-hidden="true" />
               Buscar lugares
             </Button>
@@ -1054,6 +1123,15 @@ export function TripItinerary({ trip }: TripItineraryProps) {
         onSaveOnly={handleSaveOnly}
       />
 
+      <PlaceDiscoveryDialog
+        open={showPlaceDialog}
+        onOpenChange={setShowPlaceDialog}
+        searchNear={destCoords}
+        isSaving={isSavingPlace}
+        onSave={handleSaveDiscoveredPlace}
+        onAddToDay={handleAddDiscoveredPlaceToDay}
+      />
+
       {/* Delete confirmation */}
       <AlertDialog open={!!deletingItem} onOpenChange={() => setDeletingItem(null)}>
         <AlertDialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-2xl !rounded-b-none sm:!rounded-b-2xl p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
@@ -1141,32 +1219,96 @@ function ItineraryDialog({
   const [placeQuery, setPlaceQuery] = useState("");
   const [placeResults, setPlaceResults] = useState<PlaceSearchResult[]>([]);
   const [isSearchingPlaces, setIsSearchingPlaces] = useState(false);
+  const [placeSearchFinished, setPlaceSearchFinished] = useState(false);
+  const [activePlaceIndex, setActivePlaceIndex] = useState(-1);
+  const [resolvedPlaceName, setResolvedPlaceName] = useState("");
+  const [timeError, setTimeError] = useState("");
+  const searchRequestId = useRef(0);
+  const mapsResolveRequestId = useRef(0);
 
   useEffect(() => {
     if (!open) {
+      searchRequestId.current += 1;
+      mapsResolveRequestId.current += 1;
       setPlaceQuery("");
       setPlaceResults([]);
+      setPlaceSearchFinished(false);
+      setActivePlaceIndex(-1);
+      setResolvedPlaceName("");
+      setTimeError("");
       return;
     }
     const query = placeQuery.trim();
     if (query.length < 3) {
       setPlaceResults([]);
+      setPlaceSearchFinished(false);
       return;
     }
+    const requestId = ++searchRequestId.current;
     setIsSearchingPlaces(true);
+    setPlaceSearchFinished(false);
     const timer = setTimeout(async () => {
       const results = await searchPlaces(query, searchNear ?? undefined, category ?? undefined);
+      if (searchRequestId.current !== requestId) return;
       setPlaceResults(results);
       setIsSearchingPlaces(false);
+      setPlaceSearchFinished(true);
+      setActivePlaceIndex(results.length ? 0 : -1);
     }, 400);
     return () => clearTimeout(timer);
   }, [placeQuery, open, searchNear, category]);
 
   const handlePickPlace = (place: PlaceSearchResult) => {
-    setLocation(place.name);
+    if (!title.trim()) setTitle(place.name);
+    setLocation(place.address || place.name);
+    setMapsUrl(buildGoogleMapsUrl(place.lat, place.lon));
     onCoordsChange({ lat: place.lat, lon: place.lon });
+    setResolvedPlaceName(place.name);
     setPlaceQuery("");
     setPlaceResults([]);
+    setPlaceSearchFinished(false);
+    setActivePlaceIndex(-1);
+  };
+
+  const handlePlaceKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (!placeResults.length) return;
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setActivePlaceIndex((index) => (index + 1) % placeResults.length);
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setActivePlaceIndex((index) => (index <= 0 ? placeResults.length - 1 : index - 1));
+    } else if (event.key === "Enter" && activePlaceIndex >= 0) {
+      event.preventDefault();
+      handlePickPlace(placeResults[activePlaceIndex]);
+    } else if (event.key === "Escape") {
+      setPlaceResults([]);
+      setActivePlaceIndex(-1);
+    }
+  };
+
+  const handleMapsUrlChange = async (value: string) => {
+    const requestId = ++mapsResolveRequestId.current;
+    setMapsUrl(value);
+    if (!isSafeGoogleMapsUrl(value)) {
+      onCoordsChange(null);
+      setResolvedPlaceName("");
+      return;
+    }
+    const coordinates = parseGoogleMapsUrl(value);
+    if (!coordinates) return;
+
+    onCoordsChange(coordinates);
+    const nameFromUrl = parseGoogleMapsPlaceName(value);
+    if (nameFromUrl && !title.trim()) setTitle(nameFromUrl);
+    setResolvedPlaceName(nameFromUrl || "Lugar do Google Maps");
+
+    const resolved = await reverseGeocode(coordinates.lat, coordinates.lon);
+    if (mapsResolveRequestId.current !== requestId) return;
+    if (!resolved) return;
+    setLocation(resolved.address || resolved.name);
+    if (!title.trim() && !nameFromUrl) setTitle(resolved.name);
+    setResolvedPlaceName(nameFromUrl || resolved.name);
   };
 
   const openMapsSearch = () => {
@@ -1177,237 +1319,309 @@ function ItineraryDialog({
     window.open(url, "_blank");
   };
 
+  const submitActivity = () => {
+    if (startTime && endTime && endTime <= startTime) {
+      setTimeError("O horário de fim deve ser posterior ao horário de início");
+      return;
+    }
+    setTimeError("");
+    onSubmit();
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-3xl !rounded-b-none sm:!rounded-3xl transition-transform duration-500 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-2xl">
-        <div className="w-full flex justify-center pt-4 sm:hidden">
-          <div className="w-12 h-1.5 bg-muted rounded-full" />
+      <DialogContent className="flex max-h-[92dvh] w-[calc(100%-1rem)] flex-col gap-0 overflow-hidden rounded-t-3xl p-0 shadow-2xl motion-safe:transition-transform sm:max-w-xl sm:rounded-3xl">
+        <div className="flex w-full justify-center pt-3 sm:hidden" aria-hidden="true">
+          <div className="h-1 w-12 rounded-full bg-muted" />
         </div>
 
-        <DialogHeader>
-          <DialogTitle>{isEditing ? "Editar Atividade" : "Nova Atividade"}</DialogTitle>
-          <DialogDescription className="sr-only">
-            Formulário de atividade do roteiro
-          </DialogDescription>
+        <DialogHeader className="border-b border-border/70 px-5 pb-5 pt-3 pr-16 sm:px-6 sm:pt-5">
+          <div className="flex items-start gap-3">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary">
+              <Route className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <div>
+              <DialogTitle>{isEditing ? "Editar atividade" : "Nova atividade"}</DialogTitle>
+              <DialogDescription className="mt-1">
+                {isEditing
+                  ? "Atualize os detalhes desta parada."
+                  : "Defina quando e onde ela entra no roteiro."}
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Data */}
-          <div className="space-y-2">
-            <Label htmlFor="itinerary-date">Data *</Label>
-            <Input
-              id="itinerary-date"
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              disabled={dateLocked}
-              className="h-11"
-            />
-            {dateLocked && (
-              <p className="text-xs text-muted-foreground">
-                Para trocar o dia, use “Mover para outro dia” no cartão.
+        <form
+          className="flex min-h-0 flex-1 flex-col"
+          aria-busy={isLoading || isSearchingPlaces}
+          onSubmit={(event) => {
+            event.preventDefault();
+            submitActivity();
+          }}
+        >
+          <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5 sm:px-6">
+            {/* Data */}
+            <div className="space-y-2">
+              <Label htmlFor="itinerary-date">Data</Label>
+              <Input
+                id="itinerary-date"
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                disabled={dateLocked}
+                aria-required="true"
+                required
+                className="h-11"
+              />
+              {dateLocked && (
+                <p className="text-xs text-muted-foreground">
+                  Para trocar o dia, use “Mover para outro dia” no cartão.
+                </p>
+              )}
+            </div>
+
+            {/* Título */}
+            <div className="space-y-2">
+              <Label htmlFor="itinerary-title">Título</Label>
+              <Input
+                id="itinerary-title"
+                placeholder="Ex: Visita ao museu"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                aria-required="true"
+                required
+                className="h-11"
+              />
+            </div>
+
+            {/* Horários */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="itinerary-start-time">Horário de início</Label>
+                <Input
+                  id="itinerary-start-time"
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => {
+                    setStartTime(e.target.value);
+                    setTimeError("");
+                  }}
+                  aria-invalid={!!timeError}
+                  aria-describedby={timeError ? "itinerary-time-error" : undefined}
+                  className="h-11"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="itinerary-end-time">Horário de fim</Label>
+                <Input
+                  id="itinerary-end-time"
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => {
+                    setEndTime(e.target.value);
+                    setTimeError("");
+                  }}
+                  aria-invalid={!!timeError}
+                  aria-describedby={timeError ? "itinerary-time-error" : undefined}
+                  className="h-11"
+                />
+              </div>
+            </div>
+            {timeError && (
+              <p
+                id="itinerary-time-error"
+                role="alert"
+                aria-label={timeError}
+                className="text-sm font-medium text-destructive"
+              >
+                {timeError}
               </p>
             )}
-          </div>
 
-          {/* Título */}
-          <div className="space-y-2">
-            <Label htmlFor="itinerary-title">Título *</Label>
-            <Input
-              id="itinerary-title"
-              placeholder="Ex: Visita ao museu"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="h-11"
-            />
-          </div>
-
-          {/* Horários */}
-          <div className="grid grid-cols-2 gap-3">
+            {/* Local + busca com autocomplete */}
             <div className="space-y-2">
-              <Label htmlFor="itinerary-start-time">Horário início</Label>
-              <Input
-                id="itinerary-start-time"
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="h-11"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="itinerary-end-time">Horário fim</Label>
-              <Input
-                id="itinerary-end-time"
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="h-11"
-              />
-            </div>
-          </div>
+              <Label htmlFor="itinerary-location">Buscar local</Label>
 
-          {/* Local + busca com autocomplete */}
-          <div className="space-y-2">
-            <Label htmlFor="itinerary-location">Local</Label>
+              {/* Categoria — filtra a busca e define a cor do pin no mapa */}
+              <div className="flex flex-wrap gap-1.5" role="group" aria-label="Categoria do lugar">
+                {PLACE_CATEGORIES.map((cat) => {
+                  const isSelected = category === cat.id;
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setCategory(isSelected ? null : cat.id)}
+                      aria-pressed={isSelected}
+                      className={`rounded-full px-3 py-1 text-xs font-medium border transition-colors ${
+                        isSelected
+                          ? "text-white"
+                          : "border-border text-foreground hover:bg-accent/50"
+                      }`}
+                      style={
+                        isSelected
+                          ? { backgroundColor: cat.color, borderColor: cat.color }
+                          : undefined
+                      }
+                    >
+                      {cat.label}
+                    </button>
+                  );
+                })}
+              </div>
 
-            {/* Categoria — filtra a busca e define a cor do pin no mapa */}
-            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Categoria do lugar">
-              {PLACE_CATEGORIES.map((cat) => {
-                const isSelected = category === cat.id;
-                return (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => setCategory(isSelected ? null : cat.id)}
-                    aria-pressed={isSelected}
-                    className={`rounded-full px-3 py-1 text-xs font-medium border transition-colors ${
-                      isSelected ? "text-white" : "border-border text-foreground hover:bg-accent/50"
-                    }`}
-                    style={
-                      isSelected
-                        ? { backgroundColor: cat.color, borderColor: cat.color }
+              <div className="relative">
+                <div className="flex gap-2">
+                  <Input
+                    id="itinerary-location"
+                    placeholder="Ex: Museu do Louvre"
+                    value={location}
+                    onChange={(e) => {
+                      setLocation(e.target.value);
+                      setPlaceQuery(e.target.value);
+                      onCoordsChange(null);
+                      setResolvedPlaceName("");
+                    }}
+                    onKeyDown={handlePlaceKeyDown}
+                    className="h-11"
+                    role="combobox"
+                    aria-label="Buscar local"
+                    aria-autocomplete="list"
+                    aria-expanded={placeResults.length > 0 || isSearchingPlaces}
+                    aria-controls="itinerary-place-results"
+                    aria-activedescendant={
+                      activePlaceIndex >= 0
+                        ? `itinerary-place-result-${activePlaceIndex}`
                         : undefined
                     }
+                    aria-busy={isSearchingPlaces}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-11 w-11 shrink-0"
+                    onClick={openMapsSearch}
+                    disabled={!location && !title}
+                    aria-label="Buscar local no Maps"
                   >
-                    {cat.label}
-                  </button>
-                );
-              })}
+                    <Search className="h-4 w-4" />
+                  </Button>
+                </div>
+                {(placeResults.length > 0 || isSearchingPlaces) && (
+                  <div
+                    id="itinerary-place-results"
+                    role="listbox"
+                    aria-label="Resultados de lugares"
+                    className="absolute left-0 right-0 top-full z-50 mt-1 max-h-56 overflow-y-auto rounded-xl border border-border bg-popover shadow-lg"
+                  >
+                    {isSearchingPlaces && placeResults.length === 0 && (
+                      <p className="px-3 py-2.5 text-sm text-muted-foreground">Buscando lugares…</p>
+                    )}
+                    {placeResults.map((place, idx) => (
+                      <button
+                        key={`${place.lat}-${place.lon}-${idx}`}
+                        id={`itinerary-place-result-${idx}`}
+                        type="button"
+                        role="option"
+                        aria-selected={idx === activePlaceIndex}
+                        className={`flex min-h-11 w-full items-start gap-2 px-3 py-2.5 text-left transition-colors ${
+                          idx === activePlaceIndex ? "bg-accent" : "hover:bg-accent/50"
+                        }`}
+                        onClick={() => handlePickPlace(place)}
+                      >
+                        <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                        <span className="min-w-0">
+                          <span className="block text-sm font-medium leading-tight">
+                            {place.name}
+                          </span>
+                          {place.address && (
+                            <span className="block truncate text-xs text-muted-foreground">
+                              {place.address}
+                            </span>
+                          )}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {placeSearchFinished &&
+                !isSearchingPlaces &&
+                placeResults.length === 0 &&
+                !hasCoords && (
+                  <p className="text-sm text-muted-foreground">
+                    Nenhum lugar encontrado. Inclua a cidade ou cole um link do Maps.
+                  </p>
+                )}
+              {hasCoords ? (
+                <p
+                  className="flex items-center gap-1 text-sm font-medium text-emerald-700 dark:text-emerald-400"
+                  role="status"
+                >
+                  <MapPin className="h-3 w-3" />
+                  {resolvedPlaceName ? "Local encontrado e marcado no mapa" : "Pin fixado no mapa"}
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Digite para buscar e fixar o lugar no mapa do roteiro.
+                </p>
+              )}
             </div>
 
-            <div className="relative">
+            {/* Link do Maps */}
+            <div className="space-y-2">
+              <Label htmlFor="itinerary-maps-url" className="flex items-center gap-1.5">
+                <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                Link do Google Maps
+              </Label>
               <div className="flex gap-2">
                 <Input
-                  id="itinerary-location"
-                  placeholder="Ex: Museu do Louvre"
-                  value={location}
-                  onChange={(e) => {
-                    setLocation(e.target.value);
-                    setPlaceQuery(e.target.value);
-                    onCoordsChange(null);
-                  }}
-                  className="h-11"
-                  role="combobox"
-                  aria-autocomplete="list"
-                  aria-expanded={placeResults.length > 0 || isSearchingPlaces}
-                  aria-controls="itinerary-place-results"
+                  id="itinerary-maps-url"
+                  placeholder="Cole o link copiado do Maps…"
+                  value={mapsUrl}
+                  onChange={(e) => void handleMapsUrlChange(e.target.value)}
+                  className="h-11 text-sm"
                 />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="h-11 w-11 shrink-0"
-                  onClick={openMapsSearch}
-                  disabled={!location && !title}
-                  aria-label="Buscar local no Maps"
-                >
-                  <Search className="h-4 w-4" />
-                </Button>
+                {mapsUrl && isSafeGoogleMapsUrl(mapsUrl) && (
+                  <a
+                    href={mapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="h-11 w-11 shrink-0 flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent transition-colors"
+                    aria-label="Abrir link do Google Maps"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                )}
               </div>
-              {(placeResults.length > 0 || isSearchingPlaces) && (
-                <div
-                  id="itinerary-place-results"
-                  role="listbox"
-                  aria-label="Resultados de lugares"
-                  className="absolute left-0 right-0 top-full z-50 mt-1 max-h-56 overflow-y-auto rounded-xl border border-border bg-popover shadow-lg"
-                >
-                  {isSearchingPlaces && placeResults.length === 0 && (
-                    <p className="px-3 py-2.5 text-sm text-muted-foreground">Buscando lugares…</p>
-                  )}
-                  {placeResults.map((place, idx) => (
-                    <button
-                      key={`${place.lat}-${place.lon}-${idx}`}
-                      type="button"
-                      role="option"
-                      aria-selected="false"
-                      className="flex w-full items-start gap-2 px-3 py-2.5 text-left hover:bg-accent/50 transition-colors"
-                      onClick={() => handlePickPlace(place)}
-                    >
-                      <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                      <span className="min-w-0">
-                        <span className="block text-sm font-medium leading-tight">
-                          {place.name}
-                        </span>
-                        {place.address && (
-                          <span className="block truncate text-xs text-muted-foreground">
-                            {place.address}
-                          </span>
-                        )}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              )}
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                {mapsUrl && !isSafeGoogleMapsUrl(mapsUrl)
+                  ? "Use um link HTTPS válido do Google Maps."
+                  : parseGoogleMapsUrl(mapsUrl)
+                    ? "Coordenadas do link detectadas — o pin vai aparecer no mapa do roteiro."
+                    : "Toque em 🔍 para buscar, copie o link no Maps e cole aqui."}
+              </p>
             </div>
-            {hasCoords ? (
-              <p className="flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-                <MapPin className="h-3 w-3" />
-                Pin fixado no mapa
-              </p>
-            ) : (
-              <p className="text-[11px] text-muted-foreground">
-                Digite para buscar e fixar o lugar no mapa do roteiro.
-              </p>
-            )}
-          </div>
 
-          {/* Link do Maps */}
-          <div className="space-y-2">
-            <Label htmlFor="itinerary-maps-url" className="flex items-center gap-1.5">
-              <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-              Link do Google Maps
-            </Label>
-            <div className="flex gap-2">
-              <Input
-                id="itinerary-maps-url"
-                placeholder="Cole o link copiado do Maps…"
-                value={mapsUrl}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setMapsUrl(value);
-                  const coords = parseGoogleMapsUrl(value);
-                  if (coords) onCoordsChange(coords);
-                }}
-                className="h-11 text-sm"
+            {/* Descrição */}
+            <div className="space-y-2">
+              <Label htmlFor="itinerary-description">Descrição</Label>
+              <Textarea
+                id="itinerary-description"
+                placeholder="Detalhes da atividade…"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="resize-none"
+                rows={3}
               />
-              {mapsUrl && (
-                <a
-                  href={mapsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="h-11 w-11 shrink-0 flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent transition-colors"
-                  aria-label="Abrir link do Google Maps"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                </a>
-              )}
             </div>
-            <p className="text-[11px] text-muted-foreground leading-relaxed">
-              {parseGoogleMapsUrl(mapsUrl)
-                ? "Coordenadas do link detectadas — o pin vai aparecer no mapa do roteiro."
-                : "Toque em 🔍 para buscar, copie o link no Maps e cole aqui."}
-            </p>
           </div>
 
-          {/* Descrição */}
-          <div className="space-y-2">
-            <Label htmlFor="itinerary-description">Descrição</Label>
-            <Textarea
-              id="itinerary-description"
-              placeholder="Detalhes da atividade…"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="resize-none"
-              rows={3}
-            />
-          </div>
-
-          {/* Botões */}
-          <div className="flex flex-wrap gap-3 pt-2 pb-2">
+          <div className="grid gap-2 border-t border-border/70 bg-background/95 px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:grid-cols-3 sm:px-6">
             <Button
               type="button"
               variant="outline"
-              className="h-11 flex-1"
+              className="min-h-11"
               onClick={() => onOpenChange(false)}
             >
               Cancelar
@@ -1416,22 +1630,22 @@ function ItineraryDialog({
               <Button
                 type="button"
                 variant="secondary"
-                className="h-11 flex-1"
+                className="min-h-11"
                 onClick={onSaveOnly}
                 disabled={isLoading || !title}
               >
-                Salvar lugar
+                Guardar como ideia
               </Button>
             )}
             <Button
-              className="h-11 flex-1 font-bold"
-              onClick={onSubmit}
+              type="submit"
+              className={`min-h-11 font-semibold ${isEditing ? "sm:col-span-2" : ""}`}
               disabled={isLoading || !date || !title}
             >
-              {isLoading ? "Salvando…" : isEditing ? "Salvar" : "Adicionar"}
+              {isLoading ? "Salvando…" : isEditing ? "Salvar alterações" : "Adicionar ao roteiro"}
             </Button>
           </div>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );

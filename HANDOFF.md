@@ -2,6 +2,32 @@
 
 > Última atualização: 2026-07-26
 
+## Handoff da sessão - 26/07/2026 - Formulários distintos para lugares e paradas
+
+### Entrega
+
+- `Buscar lugares` não reutiliza mais o formulário de atividade. O novo fluxo de descoberta filtra por categoria, pesquisa nome/endereço próximo ao destino, mostra endereço completo e permite guardar como ideia ou encaminhar ao dia.
+- `Adicionar parada` manteve a capacidade da referência, mas ganhou composição própria: cabeçalho contextual, conteúdo rolável, rodapé fixo, ações claras e funcionamento móvel.
+- Selecionar um resultado agora preenche automaticamente título quando vazio, endereço, latitude, longitude e link canônico do Google Maps.
+- Colar uma URL longa válida do Maps prioriza as coordenadas exatas do estabelecimento, extrai o nome e faz geocodificação reversa; títulos personalizados não são sobrescritos.
+- Links clicáveis são restritos a HTTPS e hosts conhecidos do Google Maps.
+- Combobox ganhou resultado ativo, setas, Enter, Escape, `aria-activedescendant`, estado vazio e proteção contra respostas assíncronas antigas.
+- Horário de fim anterior ou igual ao início bloqueia o envio com erro acessível.
+- `Buscar lugares` também passou a ficar disponível no mobile.
+
+### Verificação
+
+- [x] 271 testes aprovados, 19 ignorados.
+- [x] 9 testes focados dos formulários e helpers de mapas.
+- [x] `npx tsc --noEmit`.
+- [x] ESLint sem erros nos arquivos alterados; dois warnings antigos permanecem fora das linhas novas.
+- [x] Build PWA de produção aprovado.
+- [ ] QA visual autenticado: o navegador local disponível abriu apenas a tela de login, sem sessão de teste.
+
+### Próximo passo concreto
+
+Com uma sessão autenticada, abrir uma viagem em 390 px e 1440 px e conferir `Buscar lugares` e `Adicionar parada`. Depois decidir se links curtos `maps.app.goo.gl` serão resolvidos por Edge Function autenticada; eles não podem ser expandidos com segurança e confiabilidade apenas no navegador por causa de redirects/CORS.
+
 ## Handoff da sessão - 26/07/2026 - Identidade visual verde-petróleo
 
 ### Entrega

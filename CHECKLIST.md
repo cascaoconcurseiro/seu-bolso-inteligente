@@ -30,6 +30,9 @@
 - [x] **[TRIP-FORM]** Formulário unificado de criação/edição com título separado do destino, notas, capa HTTPS, moeda, orçamento opcional, participantes, validação e preservação da digitação.
 - [x] **[TRIP-RLS-HARDEN]** Policies de viagens, membros, checklist, lugares e reservas restritas a `authenticated`, permissões por papel/status, vínculos compostos por `trip_id` e campos de identidade protegidos.
 - [x] **[VERCEL-REACT-PEER]** PR Dependabot incompatível React 19/React DOM 18 fechado; majors coordenados de React ignorados no Dependabot; `npm install --dry-run` e build de produção aprovados.
+- [x] **[TRIP-ACTIVITY-FORM]** `Adicionar parada` ganhou formulário próprio, responsivo e acessível, com data, horários, categorias, local, Maps, descrição, rodapé fixo e validação do intervalo.
+- [x] **[TRIP-PLACE-DISCOVERY]** `Buscar lugares` foi separado do agendamento: descoberta por categoria/nome/endereço, resultado com endereço completo, pin confirmado, guardar como ideia ou encaminhar ao dia.
+- [x] **[TRIP-PLACE-AUTOFILL]** Seleção de lugar preenche título quando vazio, endereço, coordenadas e URL canônica; link longo do Maps identifica nome/endereço sem sobrescrever título personalizado.
 
 ---
 

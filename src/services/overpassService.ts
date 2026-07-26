@@ -190,9 +190,9 @@ export function parseGoogleMapsUrl(url: string): { lat: number; lon: number } | 
   if (!trimmed) return null;
 
   const patterns = [
-    /@(-?\d+\.\d+),(-?\d+\.\d+)/, // .../@-23.5505,-46.6333,15z
-    /[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/, // ?q=-23.5505,-46.6333
     /!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/, // .../place/.../!3d-23.5505!4d-46.6333
+    /[?&](?:q|query)=(-?\d+(?:\.\d+)?)(?:,|%2C)(-?\d+(?:\.\d+)?)/i,
+    /@(-?\d+\.\d+),(-?\d+\.\d+)/, // centro da câmera: último fallback
   ];
 
   for (const pattern of patterns) {
@@ -211,6 +211,46 @@ export function parseGoogleMapsUrl(url: string): { lat: number; lon: number } | 
     }
   }
   return null;
+}
+
+/** Extrai o nome legível presente em URLs longas no formato `/place/Nome`. */
+export function parseGoogleMapsPlaceName(url: string): string | null {
+  const match = url.trim().match(/\/place\/([^/?#]+)/i);
+  if (!match) return null;
+
+  try {
+    const decoded = decodeURIComponent(match[1].replace(/\+/g, " ")).trim();
+    return decoded || null;
+  } catch {
+    return null;
+  }
+}
+
+/** Gera um link HTTPS estável para abrir exatamente as coordenadas escolhidas. */
+export function buildGoogleMapsUrl(lat: number, lon: number): string {
+  const url = new URL("https://www.google.com/maps/search/");
+  url.searchParams.set("api", "1");
+  url.searchParams.set("query", `${lat},${lon}`);
+  return url.toString();
+}
+
+/** Impede que o campo de Maps seja usado para renderizar links inseguros. */
+export function isSafeGoogleMapsUrl(value: string): boolean {
+  try {
+    const url = new URL(value.trim());
+    if (url.protocol !== "https:") return false;
+    const hostname = url.hostname.toLowerCase();
+    return (
+      hostname === "google.com" ||
+      hostname.endsWith(".google.com") ||
+      hostname === "google.com.br" ||
+      hostname.endsWith(".google.com.br") ||
+      hostname === "maps.app.goo.gl" ||
+      hostname === "goo.gl"
+    );
+  } catch {
+    return false;
+  }
 }
 
 /**

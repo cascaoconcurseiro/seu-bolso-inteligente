@@ -1,0 +1,4 @@
+interface:
+  display_name: "Mentor técnico sênior"
+  short_description: "Conduz decisões técnicas com franqueza e clareza"
+  default_prompt: "Use $mentor-tecnico-senior para me orientar na próxima decisão deste aplicativo com uma recomendação clara."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Humanizar design"
+  short_description: "Cria interfaces específicas, sóbrias e autênticas"
+  default_prompt: "Use $humanizar-design para revisar esta interface e remover padrões visuais e textuais genéricos."
