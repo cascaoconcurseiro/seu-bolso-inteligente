@@ -53,7 +53,7 @@ function FocusMarker({ position, active }: { position: [number, number]; active:
   return null;
 }
 
-function FitRoute({ positions }: { positions: [number, number][] }) {
+function FitRoute({ positions, fallbackCenter }: { positions: [number, number][]; fallbackCenter?: { lat: number; lon: number } | null }) {
   const map = useMap();
 
   useEffect(() => {
@@ -63,8 +63,10 @@ function FitRoute({ positions }: { positions: [number, number][] }) {
     }
     if (positions.length > 1) {
       map.fitBounds(positions as LatLngBoundsExpression, { padding: [36, 36], maxZoom: 15 });
+    } else if (fallbackCenter) {
+      map.setView([fallbackCenter.lat, fallbackCenter.lon], 13);
     }
-  }, [map, positions]);
+  }, [map, positions, fallbackCenter]);
 
   return null;
 }
@@ -217,7 +219,7 @@ export function TripRouteMap({
             maxZoom={19}
           />
           {onMapPick && <MapClickHandler onPick={onMapPick} />}
-          <FitRoute positions={positions} />
+          <FitRoute positions={positions} fallbackCenter={fallbackCenter} />
           {focusedPosition && <FocusMarker position={focusedPosition} active />}
           {positions.length > 1 && (
             <Polyline

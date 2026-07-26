@@ -156,36 +156,54 @@ export function TripItinerary({ trip }: TripItineraryProps) {
   // Coordenada base da viagem — cacheada em trips.latitude/longitude para não
   // re-geocodificar trip.destination toda vez que a tela abre. Se ainda não
   // existir, geocodifica uma vez e persiste silenciosamente pra próxima carga.
-  const [localDestCoords, setLocalDestCoords] = useState<{ lat: number; lon: number } | null>(null);
+  const [localDestCoords, setLocalDestCoords] = useState<{ lat: number; lon: number } | null>(
+    trip.latitude !== null && trip.longitude !== null
+      ? { lat: trip.latitude, lon: trip.longitude }
+      : null
+  );
+
   const destCoords = useMemo(
-    () =>
-      trip.latitude !== null && trip.longitude !== null
-        ? { lat: trip.latitude, lon: trip.longitude }
-        : localDestCoords,
+    () => localDestCoords || (trip.latitude !== null && trip.longitude !== null ? { lat: trip.latitude, lon: trip.longitude } : null),
     [localDestCoords, trip.latitude, trip.longitude]
   );
 
   useEffect(() => {
-    if (destCoords || !trip.destination) return;
+    const destName = trip.destination || trip.name;
+    if (!destName) return;
     let cancelled = false;
-    geocodeDestination(trip.destination).then((coords) => {
+
+    geocodeDestination(destName).then((coords) => {
       if (!coords || cancelled) return;
-      setLocalDestCoords(coords);
-      supabase
-        .from("trips")
-        .update({ latitude: coords.lat, longitude: coords.lon })
-        .eq("id", trip.id)
-        .then(({ error }) => {
-          if (!error) {
-            queryClient.invalidateQueries({ queryKey: ["trips"] });
-            queryClient.invalidateQueries({ queryKey: ["trip", trip.id] });
-          }
-        });
+
+      const currentLat = trip.latitude;
+      const currentLon = trip.longitude;
+      const isDivergent =
+        currentLat === null ||
+        currentLon === null ||
+        Math.abs(currentLat - coords.lat) > 0.05 ||
+        Math.abs(currentLon - coords.lon) > 0.05;
+
+      if (isDivergent) {
+        setLocalDestCoords(coords);
+        supabase
+          .from("trips")
+          .update({ latitude: coords.lat, longitude: coords.lon })
+          .eq("id", trip.id)
+          .then(({ error }) => {
+            if (!error) {
+              queryClient.invalidateQueries({ queryKey: ["trips"] });
+              queryClient.invalidateQueries({ queryKey: ["trip", trip.id] });
+            }
+          });
+      } else if (!localDestCoords) {
+        setLocalDestCoords(coords);
+      }
     });
+
     return () => {
       cancelled = true;
     };
-  }, [destCoords, trip.destination, trip.id, queryClient]);
+  }, [trip.destination, trip.name, trip.id, trip.latitude, trip.longitude, queryClient]);
 
   // Helper: extrai metadados embedados no description (mapsUrl, rating)
   const parseMeta = (
