@@ -79,6 +79,8 @@ import { PlaceDiscoveryDialog, type DiscoveredPlace } from "./planner/PlaceDisco
 import { fetchWeatherForecast } from "@/services/weatherService";
 import { ImportPlacesDialog } from "./planner/ImportPlacesDialog";
 import { RouteOptimizerDialog } from "./planner/RouteOptimizerDialog";
+import { ItineraryHero } from "./itinerary/ItineraryHero";
+import { ItineraryMapEmbed } from "./itinerary/ItineraryMapEmbed";
 import { exportTripToPdf } from "@/utils/tripPdfExporter";
 import type { ParsedPlace } from "@/utils/gpxKmlParser";
 
@@ -901,68 +903,17 @@ export function TripItinerary({ trip }: TripItineraryProps) {
         Pular mapa e ir para o roteiro
       </a>
 
-      <div className="flex flex-col gap-3 border-b border-border/60 pb-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Planejar</p>
-          <h2 className="mt-1 text-xl font-semibold tracking-tight text-foreground">
-            {trip.destination || trip.name}
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {items.length} {items.length === 1 ? "parada" : "paradas"} em {plannerDays.length}{" "}
-            {plannerDays.length === 1 ? "dia" : "dias"}
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {activeDayNavUrl && (
-            <Button asChild variant="outline" className="min-h-11">
-              <a href={activeDayNavUrl} target="_blank" rel="noopener noreferrer">
-                <Navigation className="mr-2 h-4 w-4" aria-hidden="true" />
-                Navegar dia
-              </a>
-            </Button>
-          )}
-          <Button
-            type="button"
-            variant="outline"
-            className="min-h-11 text-emerald-600 hover:text-emerald-700"
-            onClick={() => setShowOptimizerDialog(true)}
-          >
-            <Route className="mr-2 h-4 w-4" aria-hidden="true" />
-            Otimizar Rota
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            className="min-h-11 text-sky-600 hover:text-sky-700"
-            onClick={() => setShowImportDialog(true)}
-          >
-            <Upload className="mr-2 h-4 w-4" aria-hidden="true" />
-            Importar
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            className="min-h-11 text-amber-600 hover:text-amber-700"
-            onClick={() => exportTripToPdf(trip, items)}
-          >
-            <FileText className="mr-2 h-4 w-4" aria-hidden="true" />
-            PDF
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            className="min-h-11"
-            onClick={() => setShowPlaceDialog(true)}
-          >
-            <Search className="mr-2 h-4 w-4" aria-hidden="true" />
-            Buscar lugares
-          </Button>
-          <Button className="min-h-11" onClick={() => handleOpenDialog()}>
-            <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
-            Adicionar parada
-          </Button>
-        </div>
-      </div>
+      <ItineraryHero
+        trip={trip}
+        totalStops={items.length}
+        dayCount={plannerDays.length}
+        geocoded={destCoords}
+        onAddStop={() => handleOpenDialog()}
+        onSearchPlaces={() => setShowPlaceDialog(true)}
+        onOptimize={() => setShowOptimizerDialog(true)}
+        onImport={() => setShowImportDialog(true)}
+        onExportPdf={() => exportTripToPdf(trip, items)}
+      />
 
       <div
         className="grid gap-4 xl:grid-cols-[minmax(16rem,18rem)_minmax(0,1fr)_minmax(18rem,20rem)]"
@@ -1171,6 +1122,33 @@ export function TripItinerary({ trip }: TripItineraryProps) {
                   : "Visão geral da viagem"}
             </p>
           </div>
+
+          <ItineraryMapEmbed
+            stops={mapItems}
+            destination={trip.destination || trip.name}
+            geocoded={destCoords}
+            mode={mapScope}
+            onModeChange={setMapScope}
+            totalKmEstimate={activeItems.reduce((acc, item, idx) => {
+              const next = activeItems[idx + 1];
+              if (!next || item.latitude === null || item.longitude === null || next.latitude === null || next.longitude === null) return acc;
+              const R = 6371;
+              const dLat = ((next.latitude - item.latitude) * Math.PI) / 180;
+              const dLon = ((next.longitude - item.longitude) * Math.PI) / 180;
+              const a = Math.sin(dLat / 2) ** 2 + Math.cos((item.latitude * Math.PI) / 180) * Math.cos((next.latitude * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+              return acc + R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            }, 0)}
+            totalMinEstimate={activeItems.reduce((acc, item, idx) => {
+              const next = activeItems[idx + 1];
+              if (!next || item.latitude === null || item.longitude === null || next.latitude === null || next.longitude === null) return acc;
+              const R = 6371;
+              const dLat = ((next.latitude - item.latitude) * Math.PI) / 180;
+              const dLon = ((next.longitude - item.longitude) * Math.PI) / 180;
+              const a = Math.sin(dLat / 2) ** 2 + Math.cos((item.latitude * Math.PI) / 180) * Math.cos((next.latitude * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+              const km = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+              return acc + (km <= 1.5 ? Math.max(3, Math.round(km * 12)) : Math.max(5, Math.round(km * 2.5)));
+            }, 0)}
+          />
 
           <TripRouteMap
             items={mapItems}

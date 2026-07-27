@@ -62,10 +62,10 @@ export function ItineraryHero({
             size="sm"
             className="-ml-2 self-start text-muted-foreground hover:text-foreground"
           >
-            <Link to={`/viagens/${trip.id}`}>
+            <a href={`/viagens/${trip.id}`}>
               <ArrowLeft className="mr-1.5 h-4 w-4" aria-hidden="true" />
               Voltar para a viagem
-            </Link>
+            </a>
           </Button>
 
           <div className="space-y-1.5">
@@ -151,7 +151,7 @@ export function ItineraryHero({
           </Button>
           <Button type="button" className="min-h-11 shadow-sm" onClick={onAddStop}>
             <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
-            Nova parada
+            Adicionar parada
           </Button>
         </div>
       </div>

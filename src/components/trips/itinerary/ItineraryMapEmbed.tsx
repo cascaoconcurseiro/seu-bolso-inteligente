@@ -128,7 +128,7 @@ export function ItineraryMapEmbed({
   return (
     <section
       className="relative overflow-hidden rounded-3xl border border-border/60 bg-card shadow-sm"
-      aria-label="Mapa do roteiro"
+      aria-label="Mapa embutido do Google Maps"
     >
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 bg-card/80 px-4 py-3 backdrop-blur sm:px-5">
         <div className="flex items-center gap-2">
