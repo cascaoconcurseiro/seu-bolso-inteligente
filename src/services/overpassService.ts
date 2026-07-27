@@ -136,6 +136,18 @@ export interface PlaceSearchResult {
   lon: number;
   imageUrl?: string;
   category?: PlaceCategory | null;
+  /** Telefone, se disponível no Photon/OSM */
+  phone?: string | null;
+  /** Website oficial, se disponível */
+  website?: string | null;
+  /** Horário de funcionamento em formato OSM (ex: "Mo-Fr 09:00-18:00") */
+  openingHours?: string | null;
+  /** URL do artigo da Wikipedia mais próximo, se conhecido */
+  wikipediaUrl?: string | null;
+  /** Tipo OSM (ex: "restaurant", "museum") para badge informativa */
+  osmType?: string | null;
+  /** Tags OSM brutas para usos avançados */
+  osmTags?: Record<string, string> | null;
 }
 
 const PHOTO_POOLS: Record<string, string[]> = {
@@ -300,7 +312,7 @@ export async function searchPlaces(
       const timeout = setTimeout(() => controller.abort(), 6000);
       const nomUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
         nomQuery
-      )}&viewbox=${viewbox}&bounded=1&format=json&limit=30&addressdetails=1&namedetails=1`;
+      )}&viewbox=${viewbox}&bounded=1&format=json&limit=30&addressdetails=1&namedetails=1&extratags=1`;
 
       const nomRes = await fetch(nomUrl, {
         headers: { "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8", "User-Agent": "SeuBolsoInteligente/1.0" },
@@ -322,6 +334,11 @@ export async function searchPlaces(
           const key = `${name.toLowerCase()}|${lat.toFixed(3)},${lon.toFixed(3)}`;
           if (!seen.has(key)) {
             seen.add(key);
+            // Nominatim retorna extras via `extratags` quando ligado, mas a API pública
+            // não envia por padrão — usamos o que veio no item.
+            const extra = (item as unknown as {
+              extratags?: Record<string, string>;
+            }).extratags;
             results.push({
               name,
               address: item.display_name || name,
@@ -329,6 +346,11 @@ export async function searchPlaces(
               lon,
               category,
               imageUrl: getPlaceCategoryFallbackImage(name, category),
+              phone: extra?.phone || extra?.["contact:phone"] || null,
+              website: extra?.website || extra?.["contact:website"] || null,
+              openingHours: extra?.opening_hours || null,
+              osmType: extra?.["osm_value"] || item.type || null,
+              osmTags: extra || null,
             });
           }
         }
@@ -379,6 +401,23 @@ export async function searchPlaces(
           const key = `${name.toLowerCase()}|${lat.toFixed(3)},${lon.toFixed(3)}`;
           if (seen.has(key)) continue;
           seen.add(key);
+
+          // Mapeia OSM type para badge informativa (ex: "restaurant", "museum")
+          const osmType = p.osm_value || p.type || null;
+          // Wikipedia vem como "pt:Museu_do_Acre" ou URL completa
+          let wikipediaUrl: string | null = null;
+          if (p.wikipedia) {
+            const [lang, ...titleParts] = p.wikipedia.split(":");
+            const articleTitle = titleParts.join(":");
+            if (lang && articleTitle) {
+              wikipediaUrl = `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(articleTitle.replace(/ /g, "_"))}`;
+            }
+          } else if (p["wikipedia:pt"]) {
+            wikipediaUrl = `https://pt.wikipedia.org/wiki/${encodeURIComponent(p["wikipedia:pt"].replace(/ /g, "_"))}`;
+          } else if (p["wikipedia:en"]) {
+            wikipediaUrl = `https://en.wikipedia.org/wiki/${encodeURIComponent(p["wikipedia:en"].replace(/ /g, "_"))}`;
+          }
+
           results.push({
             name,
             address: address || name,
@@ -386,6 +425,12 @@ export async function searchPlaces(
             lon,
             category,
             imageUrl: getPlaceCategoryFallbackImage(name, category),
+            phone: p.phone || p["contact:phone"] || null,
+            website: p.website || p["contact:website"] || p.url || null,
+            openingHours: p.opening_hours || null,
+            wikipediaUrl,
+            osmType,
+            osmTags: p,
           });
         }
       }
