@@ -530,23 +530,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     moveItem.mutate({ id, latitude: lat, longitude: lon });
   };
 
-  // Rota do dia no Google Maps (multi-paradas) — é isso que "leva você"
-  const buildDayNavUrl = (dayItems: ItineraryItem[]): string | null => {
-    const points = dayItems
-      .filter((i) => i.latitude !== null && i.longitude !== null)
-      .map((i) => `${i.latitude},${i.longitude}`);
-    if (points.length < 2) return null;
-    const origin = points[0];
-    const destination = points[points.length - 1];
-    // Google aceita no máx. 9 waypoints intermediários
-    const waypoints = points.slice(1, -1).slice(0, 9).join("|");
-    const url = new URL("https://www.google.com/maps/dir/");
-    url.searchParams.set("api", "1");
-    url.searchParams.set("origin", origin);
-    url.searchParams.set("destination", destination);
-    if (waypoints) url.searchParams.set("waypoints", waypoints);
-    return url.toString();
-  };
+
 
   const resetForm = () => {
     setDate("");
