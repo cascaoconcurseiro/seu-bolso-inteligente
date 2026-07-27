@@ -81,11 +81,13 @@ export function TripExpensesTab({
     (sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)).toNumber(),
     0
   );
-  const totalPersonalOnly = personalExpenses.reduce(
-    (sum, t) => sum + (t.type === "INCOME" ? -Number(t.amount) : Number(t.amount)),
-    0
-  );
-  const totalPersonal = totalPersonalOnly + myShareOfShared;
+  const totalPersonalOnly = personalExpenses.reduce((sum, t) => {
+    const val = Number(t.amount);
+    return t.type === "INCOME"
+      ? SafeFinancialCalculator.subtract(sum, val).toNumber()
+      : SafeFinancialCalculator.add(sum, val).toNumber();
+  }, 0);
+  const totalPersonal = SafeFinancialCalculator.add(totalPersonalOnly, myShareOfShared).toNumber();
   const spentToDisplay = myTotalSpent !== undefined ? myTotalSpent : totalPersonal;
   const mySharedPaid = sharedExpenses
     .filter((t) => t.creator_user_id === user?.id || t.user_id === user?.id)

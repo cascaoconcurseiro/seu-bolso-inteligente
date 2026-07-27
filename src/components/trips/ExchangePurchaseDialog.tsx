@@ -60,7 +60,7 @@ export function ExchangePurchaseDialog({
 
   let exchangeRateNum = 0;
   if (foreignAmountNum > 0 && localAmountNum > 0) {
-    exchangeRateNum = localAmountNum / foreignAmountNum;
+    exchangeRateNum = Number((localAmountNum / foreignAmountNum).toFixed(6));
   }
 
   const handleSubmit = () => {

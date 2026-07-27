@@ -91,7 +91,6 @@ export function isValidImageUrl(url: string | null | undefined): boolean {
   if (!url || typeof url !== "string") return false;
   const trimmed = url.trim();
   return (
-    trimmed.startsWith("http://") ||
     trimmed.startsWith("https://") ||
     trimmed.startsWith("data:image/") ||
     trimmed.startsWith("/")

@@ -202,9 +202,9 @@ export function ItineraryStopEditDialog({
     if (
       initialValues.startTime &&
       initialValues.endTime &&
-      initialValues.endTime <= initialValues.startTime
+      initialValues.endTime === initialValues.startTime
     ) {
-      setTimeError("O horário de fim deve ser posterior ao horário de início");
+      setTimeError("O horário de término deve ser diferente do horário de início");
       return;
     }
     setTimeError("");

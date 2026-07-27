@@ -87,10 +87,10 @@ export function TripSummaryTab({
     .reduce((sum, t) => {
       if (!t.transaction_splits) return sum;
       const mySplit = t.transaction_splits.find((split) => split.user_id === user?.id);
-      return sum + (mySplit ? Number(mySplit.amount) : 0);
+      return SafeFinancialCalculator.add(sum, mySplit ? Number(mySplit.amount) : 0).toNumber();
     }, 0);
 
-  const myTotalPersonal = myPersonalExpenses + myShareOfSharedExpenses;
+  const myTotalPersonal = SafeFinancialCalculator.add(myPersonalExpenses, myShareOfSharedExpenses).toNumber();
 
   // (b) Gastos compartilhados pagos por mim (eu paguei a conta toda)
   const mySharedExpensesPaid = tripTransactions
