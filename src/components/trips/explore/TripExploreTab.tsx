@@ -1,6 +1,16 @@
 import { addDays, format, isAfter, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Compass, Heart, List, Loader2, Map as MapIcon, MapPin, Plus, Search } from "lucide-react";
+import {
+  Compass,
+  Heart,
+  List,
+  Loader2,
+  LocateFixed,
+  Map as MapIcon,
+  MapPin,
+  Plus,
+  Search,
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -8,7 +18,11 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { searchPlaces, type PlaceCategory, type PlaceSearchResult } from "@/services/overpassService";
 import type { Trip } from "@/hooks/useTrips";
-import { MORE_PLACE_PRESETS, QUICK_PLACE_PRESETS, type PlaceDiscoveryPreset } from "../planner/placeDiscoveryCatalog";
+import {
+  MORE_PLACE_PRESETS,
+  QUICK_PLACE_PRESETS,
+  type PlaceDiscoveryPreset,
+} from "../planner/placeDiscoveryCatalog";
 import { TripExploreMap } from "./TripExploreMap";
 
 interface TripExploreTabProps {
@@ -16,6 +30,7 @@ interface TripExploreTabProps {
 }
 
 type SearchStatus = "idle" | "loading" | "empty" | "error";
+type CenterSource = "destination" | "current";
 
 function distanceKm(a: { lat: number; lon: number }, b: { lat: number; lon: number }) {
   const radius = 6371;
@@ -53,6 +68,8 @@ export function TripExploreTab({ trip }: TripExploreTabProps) {
     [trip.latitude, trip.longitude]
   );
   const [center, setCenter] = useState(fallbackCenter);
+  const [centerSource, setCenterSource] = useState<CenterSource>("destination");
+  const [locating, setLocating] = useState(false);
   const [query, setQuery] = useState("");
   const [preset, setPreset] = useState<PlaceDiscoveryPreset | null>(null);
   const [showMore, setShowMore] = useState(false);
@@ -64,9 +81,14 @@ export function TripExploreTab({ trip }: TripExploreTabProps) {
   const [savingKey, setSavingKey] = useState<string | null>(null);
   const requestId = useRef(0);
 
-  useEffect(() => setCenter(fallbackCenter), [fallbackCenter]);
+  useEffect(() => {
+    if (centerSource === "destination") setCenter(fallbackCenter);
+  }, [centerSource, fallbackCenter]);
 
-  const days = useMemo(() => getTripDays(trip.start_date, trip.end_date), [trip.start_date, trip.end_date]);
+  const days = useMemo(
+    () => getTripDays(trip.start_date, trip.end_date),
+    [trip.start_date, trip.end_date]
+  );
   const selected = selectedIndex === null ? null : places[selectedIndex];
 
   const effectiveQuery = query.trim().length >= 2 ? query.trim() : preset?.query ?? "";
@@ -84,7 +106,12 @@ export function TripExploreTab({ trip }: TripExploreTabProps) {
     setStatus("loading");
     const timer = window.setTimeout(async () => {
       try {
-        const results = await searchPlaces(effectiveQuery, center, category, trip.destination || trip.name);
+        const results = await searchPlaces(
+          effectiveQuery,
+          center,
+          category,
+          trip.destination || trip.name
+        );
         if (current !== requestId.current) return;
         const sorted = [...results].sort(
           (left, right) =>
@@ -109,6 +136,41 @@ export function TripExploreTab({ trip }: TripExploreTabProps) {
     setPreset((current) => (current?.id === item.id ? null : item));
     setQuery("");
     setSelectedIndex(null);
+  };
+
+  const toggleSearchCenter = () => {
+    if (centerSource === "current") {
+      setCenterSource("destination");
+      setCenter(fallbackCenter);
+      toast.success("Busca ajustada para o destino da viagem");
+      return;
+    }
+
+    if (!("geolocation" in navigator)) {
+      toast.error("Localização não disponível neste dispositivo");
+      return;
+    }
+
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setCenter({ lat: coords.latitude, lon: coords.longitude });
+        setCenterSource("current");
+        setSelectedIndex(null);
+        setMobileMode("map");
+        setLocating(false);
+        toast.success("Buscando perto da sua localização");
+      },
+      (error) => {
+        setLocating(false);
+        const description =
+          error.code === error.PERMISSION_DENIED
+            ? "Autorize o acesso à localização no navegador."
+            : "Não foi possível obter sua localização agora.";
+        toast.error("Localização indisponível", { description });
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
+    );
   };
 
   const savePlace = async (place: PlaceSearchResult) => {
@@ -214,16 +276,34 @@ export function TripExploreTab({ trip }: TripExploreTabProps) {
   return (
     <section className="space-y-4" aria-label="Explorar lugares">
       <div className="rounded-3xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
-        <div className="flex items-start gap-3">
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary">
-            <Compass className="h-5 w-5" aria-hidden="true" />
-          </span>
-          <div>
-            <h2 className="text-lg font-semibold">Explorar {trip.destination || trip.name}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Encontre serviços e lugares usando dados gratuitos do OpenStreetMap.
-            </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary">
+              <Compass className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <div>
+              <h2 className="text-lg font-semibold">Explorar {trip.destination || trip.name}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Encontre serviços e lugares usando dados gratuitos do OpenStreetMap.
+              </p>
+            </div>
           </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="rounded-full"
+            onClick={toggleSearchCenter}
+            disabled={locating}
+          >
+            {locating ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <LocateFixed className="mr-2 h-4 w-4" />
+            )}
+            {centerSource === "current" ? "Usar destino" : "Perto de mim"}
+          </Button>
         </div>
 
         <div className="sticky top-0 z-20 -mx-1 mt-4 bg-card/95 px-1 pb-3 pt-1 backdrop-blur">
@@ -243,6 +323,9 @@ export function TripExploreTab({ trip }: TripExploreTabProps) {
               <Loader2 className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin" />
             )}
           </div>
+          <p className="mt-2 px-1 text-xs text-muted-foreground">
+            Pesquisando {centerSource === "current" ? "perto da sua localização" : "perto do destino da viagem"}.
+          </p>
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
@@ -287,10 +370,18 @@ export function TripExploreTab({ trip }: TripExploreTabProps) {
 
       <div className="flex items-center justify-between gap-3 md:hidden">
         <div className="inline-flex rounded-xl border border-border bg-card p-1">
-          <Button size="sm" variant={mobileMode === "map" ? "secondary" : "ghost"} onClick={() => setMobileMode("map")}>
+          <Button
+            size="sm"
+            variant={mobileMode === "map" ? "secondary" : "ghost"}
+            onClick={() => setMobileMode("map")}
+          >
             <MapIcon className="mr-2 h-4 w-4" /> Mapa
           </Button>
-          <Button size="sm" variant={mobileMode === "list" ? "secondary" : "ghost"} onClick={() => setMobileMode("list")}>
+          <Button
+            size="sm"
+            variant={mobileMode === "list" ? "secondary" : "ghost"}
+            onClick={() => setMobileMode("list")}
+          >
             <List className="mr-2 h-4 w-4" /> Lista
           </Button>
         </div>
@@ -302,21 +393,38 @@ export function TripExploreTab({ trip }: TripExploreTabProps) {
         >
           {days.map((day) => {
             const value = format(day, "yyyy-MM-dd");
-            return <option key={value} value={value}>{format(day, "dd MMM, EEE", { locale: ptBR })}</option>;
+            return (
+              <option key={value} value={value}>
+                {format(day, "dd MMM, EEE", { locale: ptBR })}
+              </option>
+            );
           })}
         </select>
       </div>
 
       <div className="grid gap-4 md:grid-cols-[minmax(0,1.35fr)_minmax(320px,.65fr)]">
         <div className={mobileMode === "list" ? "hidden md:block" : "block"}>
-          <TripExploreMap center={center} places={places} selectedIndex={selectedIndex} onSelect={setSelectedIndex} />
+          <TripExploreMap
+            center={center}
+            places={places}
+            selectedIndex={selectedIndex}
+            onSelect={setSelectedIndex}
+          />
         </div>
 
-        <div className={mobileMode === "map" ? "hidden md:flex" : "flex min-h-[390px] flex-col rounded-2xl border border-border bg-card"}>
+        <div
+          className={
+            mobileMode === "map"
+              ? "hidden md:flex"
+              : "flex min-h-[390px] flex-col rounded-2xl border border-border bg-card"
+          }
+        >
           <div className="hidden items-center justify-between border-b border-border px-4 py-3 md:flex">
             <div>
               <p className="font-semibold">Resultados</p>
-              <p className="text-xs text-muted-foreground">{places.length ? `${places.length} encontrados` : "Faça uma busca"}</p>
+              <p className="text-xs text-muted-foreground">
+                {places.length ? `${places.length} encontrados` : "Faça uma busca"}
+              </p>
             </div>
             <select
               value={activeDate}
@@ -326,7 +434,11 @@ export function TripExploreTab({ trip }: TripExploreTabProps) {
             >
               {days.map((day) => {
                 const value = format(day, "yyyy-MM-dd");
-                return <option key={value} value={value}>{format(day, "dd MMM", { locale: ptBR })}</option>;
+                return (
+                  <option key={value} value={value}>
+                    {format(day, "dd MMM", { locale: ptBR })}
+                  </option>
+                );
               })}
             </select>
           </div>
@@ -337,17 +449,30 @@ export function TripExploreTab({ trip }: TripExploreTabProps) {
                 <div>
                   <MapPin className="mx-auto h-8 w-8 text-primary" />
                   <p className="mt-3 font-semibold">O que você precisa por perto?</p>
-                  <p className="mt-1 text-sm text-muted-foreground">Pesquise livremente ou escolha uma categoria.</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Pesquise livremente ou escolha uma categoria.
+                  </p>
                 </div>
               </div>
             )}
             {status === "loading" && (
               <div className="grid min-h-[300px] place-items-center text-sm text-muted-foreground">
-                <Loader2 className="mb-3 h-6 w-6 animate-spin" /> Buscando lugares…
+                <div className="text-center">
+                  <Loader2 className="mx-auto mb-3 h-6 w-6 animate-spin" />
+                  Buscando lugares…
+                </div>
               </div>
             )}
-            {status === "empty" && <div className="p-8 text-center text-sm text-muted-foreground">Nenhum lugar encontrado nesta região.</div>}
-            {status === "error" && <div className="p-8 text-center text-sm text-destructive">A busca gratuita está indisponível agora. Tente novamente.</div>}
+            {status === "empty" && (
+              <div className="p-8 text-center text-sm text-muted-foreground">
+                Nenhum lugar encontrado nesta região.
+              </div>
+            )}
+            {status === "error" && (
+              <div className="p-8 text-center text-sm text-destructive">
+                A busca gratuita está indisponível agora. Tente novamente.
+              </div>
+            )}
 
             {places.map((place, index) => {
               const active = selectedIndex === index;
@@ -357,7 +482,11 @@ export function TripExploreTab({ trip }: TripExploreTabProps) {
               return (
                 <article
                   key={`${place.name}-${place.lat}-${place.lon}`}
-                  className={`rounded-2xl border p-3 transition-colors ${active ? "border-primary bg-primary/5" : "border-border hover:bg-muted/35"}`}
+                  className={`rounded-2xl border p-3 transition-colors ${
+                    active
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:bg-muted/35"
+                  }`}
                   onClick={() => setSelectedIndex(index)}
                 >
                   <div className="flex gap-3">
@@ -368,8 +497,12 @@ export function TripExploreTab({ trip }: TripExploreTabProps) {
                     />
                     <div className="min-w-0 flex-1">
                       <h3 className="truncate font-semibold">{place.name}</h3>
-                      <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{place.address || "Endereço não informado"}</p>
-                      <p className="mt-2 text-xs font-medium text-primary">{km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`} do centro</p>
+                      <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                        {place.address || "Endereço não informado"}
+                      </p>
+                      <p className="mt-2 text-xs font-medium text-primary">
+                        {km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`} {centerSource === "current" ? "de você" : "do centro"}
+                      </p>
                     </div>
                   </div>
                   <div className="mt-3 grid grid-cols-2 gap-2">
@@ -383,7 +516,11 @@ export function TripExploreTab({ trip }: TripExploreTabProps) {
                         void savePlace(place);
                       }}
                     >
-                      {savingKey === saveKey ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Heart className="mr-2 h-4 w-4" />}
+                      {savingKey === saveKey ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Heart className="mr-2 h-4 w-4" />
+                      )}
                       Salvar
                     </Button>
                     <Button
@@ -395,7 +532,11 @@ export function TripExploreTab({ trip }: TripExploreTabProps) {
                         void addToItinerary(place);
                       }}
                     >
-                      {savingKey === addKey ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
+                      {savingKey === addKey ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Plus className="mr-2 h-4 w-4" />
+                      )}
                       Roteiro
                     </Button>
                   </div>
@@ -413,7 +554,11 @@ export function TripExploreTab({ trip }: TripExploreTabProps) {
               <p className="truncate font-semibold">{selected.name}</p>
               <p className="mt-1 truncate text-xs text-muted-foreground">{selected.address}</p>
             </div>
-            <Button size="sm" onClick={() => void addToItinerary(selected)} disabled={savingKey !== null}>
+            <Button
+              size="sm"
+              onClick={() => void addToItinerary(selected)}
+              disabled={savingKey !== null}
+            >
               <Plus className="mr-2 h-4 w-4" /> Roteiro
             </Button>
           </div>
