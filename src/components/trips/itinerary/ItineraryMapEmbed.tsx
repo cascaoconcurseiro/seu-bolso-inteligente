@@ -50,7 +50,6 @@ export function ItineraryMapEmbed({
 
   const iframeSrc = useMemo(() => {
     if (mapped.length === 0) {
-      // Sem paradas: centraliza no destino
       const q = geocoded
         ? `${geocoded.lat},${geocoded.lon}`
         : encodeURIComponent(destination || "Brasil");
@@ -60,27 +59,11 @@ export function ItineraryMapEmbed({
       const s = mapped[0].stop;
       return `https://maps.google.com/maps?q=${s.latitude},${s.longitude}&z=15&output=embed`;
     }
-
-    // Múltiplas paradas: usa o endpoint /dir para traçar rota com waypoints
-    const origin = `${mapped[0].stop.latitude},${mapped[0].stop.longitude}`;
-    const destinationPoint = `${mapped[mapped.length - 1].stop.latitude},${mapped[mapped.length - 1].stop.longitude}`;
-    const waypoints = mapped
-      .slice(1, -1)
-      .slice(0, 9)
+    const routeQuery = mapped
       .map(({ stop }) => `${stop.latitude},${stop.longitude}`)
-      .join("|");
-
-    const params = new URLSearchParams({
-      api: "1",
-      origin,
-      destination: destinationPoint,
-      travelmode: "driving",
-    });
-    if (waypoints) params.set("waypoints", waypoints);
-    return `https://www.google.com/maps/embed?pb=!1m${mode === "all" ? "2" : "4"}!3m2!1s${
-      mapped[0].stop.latitude
-    }!2s${mapped[0].stop.longitude}!4m${Math.min(mapped.length * 2, 20)}!1e0!3e0`;
-  }, [mapped, geocoded, destination, mode]);
+      .join("+to+");
+    return `https://maps.google.com/maps?q=${routeQuery}&z=13&output=embed`;
+  }, [mapped, geocoded, destination]);
 
   // Link externo para abrir no app do Google Maps
   const externalLink = useMemo(() => {
@@ -141,7 +124,7 @@ export function ItineraryMapEmbed({
             </p>
             <p className="text-sm font-semibold text-foreground">
               {mapped.length === 0
-                ? "Nenhuma parada georreferenciada"
+                ? destination || "Destino da viagem"
                 : `${mapped.length} ${mapped.length === 1 ? "pin ativo" : "pins ativos"}`}
             </p>
           </div>
@@ -174,31 +157,16 @@ export function ItineraryMapEmbed({
         </div>
       </div>
 
-      <div className="relative aspect-[16/10] w-full bg-muted/30 sm:aspect-[21/9]">
-        {mapped.length === 0 ? (
-          <div className="grid h-full place-items-center p-6 text-center">
-            <div>
-              <MapPin className="mx-auto h-9 w-9 text-primary" aria-hidden="true" />
-              <p className="mt-3 text-base font-semibold text-foreground">
-                Sem paradas com localização ainda
-              </p>
-              <p className="mt-1 max-w-md text-sm text-muted-foreground">
-                Adicione uma parada com endereço ou escolha um ponto no mapa usando a busca para
-                visualizar o roteiro aqui.
-              </p>
-            </div>
-          </div>
-        ) : (
-          <iframe
-            key={iframeSrc}
-            src={iframeSrc}
-            title="Mapa do roteiro no Google Maps"
-            className="absolute inset-0 h-full w-full"
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            allowFullScreen
-          />
-        )}
+      <div className="relative min-h-[380px] w-full bg-muted/30 sm:min-h-[460px]">
+        <iframe
+          key={iframeSrc}
+          src={iframeSrc}
+          title="Mapa do roteiro no Google Maps"
+          className="absolute inset-0 h-full w-full border-0"
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          allowFullScreen
+        />
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/60 bg-card/80 px-4 py-3 backdrop-blur sm:px-5">

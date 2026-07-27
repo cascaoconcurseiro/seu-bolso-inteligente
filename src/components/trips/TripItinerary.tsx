@@ -1123,31 +1123,17 @@ export function TripItinerary({ trip }: TripItineraryProps) {
             </p>
           </div>
 
-          <ItineraryMapEmbed
-            stops={mapItems}
-            destination={trip.destination || trip.name}
-            geocoded={destCoords}
-            mode={mapScope}
-            onModeChange={setMapScope}
-            totalKmEstimate={activeItems.reduce((acc, item, idx) => {
-              const next = activeItems[idx + 1];
-              if (!next || item.latitude === null || item.longitude === null || next.latitude === null || next.longitude === null) return acc;
-              const R = 6371;
-              const dLat = ((next.latitude - item.latitude) * Math.PI) / 180;
-              const dLon = ((next.longitude - item.longitude) * Math.PI) / 180;
-              const a = Math.sin(dLat / 2) ** 2 + Math.cos((item.latitude * Math.PI) / 180) * Math.cos((next.latitude * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
-              return acc + R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            }, 0)}
-            totalMinEstimate={activeItems.reduce((acc, item, idx) => {
-              const next = activeItems[idx + 1];
-              if (!next || item.latitude === null || item.longitude === null || next.latitude === null || next.longitude === null) return acc;
-              const R = 6371;
-              const dLat = ((next.latitude - item.latitude) * Math.PI) / 180;
-              const dLon = ((next.longitude - item.longitude) * Math.PI) / 180;
-              const a = Math.sin(dLat / 2) ** 2 + Math.cos((item.latitude * Math.PI) / 180) * Math.cos((next.latitude * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
-              const km = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-              return acc + (km <= 1.5 ? Math.max(3, Math.round(km * 12)) : Math.max(5, Math.round(km * 2.5)));
-            }, 0)}
+          <TripRouteMap
+            items={mapItems}
+            fallbackCenter={destCoords ?? null}
+            onMapPick={handleMapPick}
+            onMarkerMove={adjustLocations ? handleMarkerMove : undefined}
+            focusedId={focusedItemId}
+            activeDateLabel={
+              activeDate
+                ? dateFns.format(dateFns.parseISO(activeDate), "dd 'de' MMMM", { locale: ptBR })
+                : undefined
+            }
           />
         </main>
 
