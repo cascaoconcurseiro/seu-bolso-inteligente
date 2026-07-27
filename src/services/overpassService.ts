@@ -90,24 +90,34 @@ interface NominatimSearchResult {
   class?: string;
   display_name?: string;
   name?: string;
+  importance?: number;
+  addresstype?: string;
   namedetails?: { name?: string };
 }
 
 /**
- * Get lat/lon for a destination string using Nominatim (OpenStreetMap geocoder).
+ * Obtém latitude e longitude do destino da viagem usando o Nominatim (OSM).
+ * Prioriza cidades principais, capitais e municípios de alta importância,
+ * evitando que buscas como "Madri" retornem vilas secundárias na Índia ou lojas.
  */
 export async function geocodeDestination(
   destination: string
 ): Promise<{ lat: number; lon: number } | null> {
+  if (!destination || !destination.trim()) return null;
+  const cleanDest = destination.trim();
+
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 6000);
-    // Solicitar múltiplos resultados com detalhes de endereço para filtrar cidades/países sobre lojas comerciais
     const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-      destination
-    )}&format=json&limit=5&addressdetails=1`;
+      cleanDest
+    )}&format=json&limit=10&addressdetails=1`;
+
     const res = await fetch(url, {
-      headers: { "Accept-Language": "pt-BR,pt;q=0.9", "User-Agent": "SeuBolsoInteligente/1.0" },
+      headers: {
+        "Accept-Language": "pt-BR,pt;q=0.9,es;q=0.8,en;q=0.7",
+        "User-Agent": "SeuBolsoInteligente/1.0",
+      },
       signal: controller.signal,
     });
     clearTimeout(timeout);
@@ -115,14 +125,21 @@ export async function geocodeDestination(
     const data: NominatimSearchResult[] = await res.json();
     if (!data || !data.length) return null;
 
-    // Priorizar entidades geográficas reais (cidade, município, país, distrito) sobre lojas de departamento/marcas comerciais (ex: lojas Liverpool no México)
-    const cityResult = data.find(
-      (item) =>
-        (item.type && ["city", "town", "administrative", "village", "municipality", "country", "state"].includes(item.type)) ||
-        (item.class && ["place", "boundary"].includes(item.class))
-    );
+    // Ordenar resultados por relevância geográfica (cidade/capital vs vila/loja) + importância
+    const sorted = [...data].sort((a, b) => {
+      const impA = a.importance ?? 0;
+      const impB = b.importance ?? 0;
 
-    const chosen = cityResult || data[0];
+      const majorTypes = ["city", "town", "administrative", "municipality", "capital", "country", "state"];
+      const isMajorA = majorTypes.includes(a.type || a.addresstype || "") && a.type !== "village";
+      const isMajorB = majorTypes.includes(b.type || b.addresstype || "") && b.type !== "village";
+
+      if (isMajorA && !isMajorB) return -1;
+      if (!isMajorA && isMajorB) return 1;
+      return impB - impA;
+    });
+
+    const chosen = sorted[0];
     return { lat: parseFloat(chosen.lat), lon: parseFloat(chosen.lon) };
   } catch {
     return null;

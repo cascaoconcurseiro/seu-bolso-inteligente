@@ -45,9 +45,11 @@ import {
   Map as MapIcon,
   MapPin,
   Navigation,
+  Pencil,
   Plus,
   Route,
   Search,
+  Trash2,
 } from "lucide-react";
 import { Fragment, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import {
@@ -141,6 +143,16 @@ export function TripItinerary({ trip }: TripItineraryProps) {
   const [liveMessage, setLiveMessage] = useState("");
   const [itineraryOrderVersion, setItineraryOrderVersion] = useState(trip.itinerary_order_version);
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
+  const [editingSavedPlace, setEditingSavedPlace] = useState<{
+    id: string;
+    name: string;
+    address: string;
+    notes: string;
+  } | null>(null);
+  const [deletingSavedPlace, setDeletingSavedPlace] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   const queryClient = useQueryClient();
   const sensors = useSensors(
@@ -460,6 +472,51 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     },
     onError: (error) => {
       toast.error("Erro ao remover", { description: error.message });
+    },
+  });
+
+  // Delete saved place mutation
+  const deleteSavedPlace = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("trip_places").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["trip-places", tripId] });
+      toast.success("Lugar removido dos salvos");
+      setDeletingSavedPlace(null);
+    },
+    onError: (error) => {
+      toast.error("Erro ao remover lugar", { description: error.message });
+    },
+  });
+
+  // Update saved place mutation
+  const updateSavedPlace = useMutation({
+    mutationFn: async ({
+      id,
+      name,
+      address,
+      notes,
+    }: {
+      id: string;
+      name: string;
+      address: string | null;
+      notes: string | null;
+    }) => {
+      const { error } = await supabase
+        .from("trip_places")
+        .update({ name, address, notes })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["trip-places", tripId] });
+      toast.success("Lugar salvo atualizado");
+      setEditingSavedPlace(null);
+    },
+    onError: (error) => {
+      toast.error("Erro ao atualizar lugar", { description: error.message });
     },
   });
 
@@ -1017,6 +1074,122 @@ export function TripItinerary({ trip }: TripItineraryProps) {
               </SortableContext>
             </DndContext>
           )}
+
+          {/* Banco de Ideias / Lugares Salvos */}
+          <div className="mt-8 rounded-2xl border border-border/70 bg-card p-5 shadow-2xs">
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-border/60">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Search className="h-4 w-4" aria-hidden="true" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-foreground">Lugares Salvos (Banco de Ideias)</h3>
+                  <p className="text-xs text-muted-foreground">
+                    {savedPlaces.length} {savedPlaces.length === 1 ? "lugar salvo" : "lugares salvos"} para organizar no seu roteiro
+                  </p>
+                </div>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="min-h-9 text-xs"
+                onClick={() => setShowPlaceDialog(true)}
+              >
+                <Plus className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
+                Buscar novos lugares
+              </Button>
+            </div>
+
+            {savedPlaces.length === 0 ? (
+              <div className="py-8 text-center text-xs text-muted-foreground">
+                Nenhum lugar salvo ainda. Use o botão acima para pesquisar atrações e restaurantes!
+              </div>
+            ) : (
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {savedPlaces.map((place) => {
+                  const scheduled = items.some((item) => item.place_id === place.id);
+                  return (
+                    <div
+                      key={place.id}
+                      className="group relative flex flex-col justify-between rounded-xl border border-border/70 bg-background/60 p-3.5 transition-all hover:border-primary/40 hover:shadow-2xs"
+                    >
+                      <div>
+                        <div className="flex items-start justify-between gap-2">
+                          <h4 className="font-semibold text-foreground text-sm truncate">{place.name}</h4>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                              title="Editar lugar salvo"
+                              onClick={() =>
+                                setEditingSavedPlace({
+                                  id: place.id,
+                                  name: place.name,
+                                  address: place.address || "",
+                                  notes: place.notes || "",
+                                })
+                              }
+                            >
+                              <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-destructive hover:bg-destructive/10"
+                              title="Excluir lugar salvo"
+                              onClick={() =>
+                                setDeletingSavedPlace({
+                                  id: place.id,
+                                  name: place.name,
+                                })
+                              }
+                            >
+                              <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                            </Button>
+                          </div>
+                        </div>
+
+                        {place.address && (
+                          <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground truncate">
+                            <MapPin className="h-3 w-3 shrink-0" aria-hidden="true" />
+                            <span className="truncate">{place.address}</span>
+                          </p>
+                        )}
+                        {place.notes && (
+                          <p className="mt-1.5 text-xs text-muted-foreground/80 line-clamp-2">
+                            {place.notes}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="mt-3 pt-2 border-t border-border/40 flex items-center justify-between">
+                        {scheduled ? (
+                          <span className="inline-flex rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                            ✓ No roteiro
+                          </span>
+                        ) : (
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            className="min-h-8 w-full text-xs font-semibold"
+                            onClick={() => handleOpenSavedPlace(place)}
+                          >
+                            <Plus className="mr-1 h-3 w-3" aria-hidden="true" />
+                            Adicionar ao dia
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </section>
 
         <aside className="min-w-0 space-y-4 lg:sticky lg:top-4 lg:self-start">
@@ -1075,51 +1248,6 @@ export function TripItinerary({ trip }: TripItineraryProps) {
                   : undefined
               }
             />
-          </div>
-
-          <div className="rounded-2xl border border-border/70 bg-card p-4">
-            <div className="flex items-center gap-2">
-              <Search className="h-4 w-4 text-primary" aria-hidden="true" />
-              <h3 className="font-semibold text-foreground">Lugares Salvos</h3>
-            </div>
-            <p className="mt-1.5 text-xs text-muted-foreground">
-              {savedPlaces.length} {savedPlaces.length === 1 ? "lugar salvo" : "lugares salvos"}.
-              Adicione ideias aqui para organizar depois nos dias.
-            </p>
-            <Button className="mt-3 min-h-10 w-full text-xs" onClick={() => setShowPlaceDialog(true)}>
-              <Search className="mr-2 h-3.5 w-3.5" aria-hidden="true" />
-              Buscar lugares
-            </Button>
-            {savedPlaces.length > 0 && (
-              <ul className="mt-3 max-h-56 space-y-2 overflow-y-auto pr-1" aria-label="Lugares salvos">
-                {savedPlaces.map((place) => {
-                  const scheduled = items.some((item) => item.place_id === place.id);
-                  return (
-                    <li key={place.id} className="rounded-xl border border-border/70 p-2.5 text-xs">
-                      <p className="truncate font-semibold text-foreground">{place.name}</p>
-                      {place.address && (
-                        <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{place.address}</p>
-                      )}
-                      {scheduled ? (
-                        <span className="mt-1.5 inline-flex rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
-                          No roteiro
-                        </span>
-                      ) : (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="mt-2 min-h-8 w-full text-xs"
-                          onClick={() => handleOpenSavedPlace(place)}
-                        >
-                          Adicionar ao dia
-                        </Button>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
           </div>
 
           <TripReservationsPanel tripId={tripId} />
@@ -1253,6 +1381,115 @@ export function TripItinerary({ trip }: TripItineraryProps) {
         stops={activeItems}
         onApplyOptimization={handleApplyRouteOptimization}
       />
+
+      {/* Dialog para Editar Lugar Salvo */}
+      <Dialog
+        open={!!editingSavedPlace}
+        onOpenChange={(open) => {
+          if (!open) setEditingSavedPlace(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Editar lugar salvo</DialogTitle>
+            <DialogDescription>
+              Atualize as informações sobre esta atração ou restaurante.
+            </DialogDescription>
+          </DialogHeader>
+          {editingSavedPlace && (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                updateSavedPlace.mutate({
+                  id: editingSavedPlace.id,
+                  name: editingSavedPlace.name,
+                  address: editingSavedPlace.address,
+                  notes: editingSavedPlace.notes,
+                });
+              }}
+              className="space-y-4 pt-2"
+            >
+              <div className="space-y-1.5">
+                <Label htmlFor="saved-place-name">Nome do lugar</Label>
+                <Input
+                  id="saved-place-name"
+                  value={editingSavedPlace.name}
+                  onChange={(e) =>
+                    setEditingSavedPlace({ ...editingSavedPlace, name: e.target.value })
+                  }
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="saved-place-address">Endereço / Localização</Label>
+                <Input
+                  id="saved-place-address"
+                  value={editingSavedPlace.address}
+                  onChange={(e) =>
+                    setEditingSavedPlace({ ...editingSavedPlace, address: e.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="saved-place-notes">Notas / Observações</Label>
+                <Textarea
+                  id="saved-place-notes"
+                  value={editingSavedPlace.notes}
+                  onChange={(e) =>
+                    setEditingSavedPlace({ ...editingSavedPlace, notes: e.target.value })
+                  }
+                  rows={3}
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setEditingSavedPlace(null)}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={updateSavedPlace.isPending}>
+                  {updateSavedPlace.isPending ? "Salvando..." : "Salvar alterações"}
+                </Button>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Alert Dialog para Excluir Lugar Salvo */}
+      <AlertDialog
+        open={!!deletingSavedPlace}
+        onOpenChange={(open) => {
+          if (!open) setDeletingSavedPlace(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir lugar salvo?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja remover &quot;{deletingSavedPlace?.name}&quot; dos seus lugares salvos?
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <AlertDialogCancel onClick={() => setDeletingSavedPlace(null)}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (deletingSavedPlace) {
+                  deleteSavedPlace.mutate(deletingSavedPlace.id);
+                }
+              }}
+            >
+              Excluir
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
