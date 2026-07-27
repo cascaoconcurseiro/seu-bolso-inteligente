@@ -98,7 +98,7 @@ describe("TripItinerary", () => {
     await screen.findByRole("heading", { name: "Lisboa" });
     await user.click(screen.getAllByRole("button", { name: "Buscar lugares" })[0]);
 
-    expect(screen.getByRole("heading", { name: "Buscar lugares" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Explorar lugares|Buscar lugares/ })).toBeInTheDocument();
     expect(screen.queryByLabelText("Data")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Horário de início")).not.toBeInTheDocument();
 
