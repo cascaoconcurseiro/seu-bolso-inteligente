@@ -118,8 +118,8 @@ export async function geocodeDestination(
     // Priorizar entidades geográficas reais (cidade, município, país, distrito) sobre lojas de departamento/marcas comerciais (ex: lojas Liverpool no México)
     const cityResult = data.find(
       (item) =>
-        ["city", "town", "administrative", "village", "municipality", "country", "state"].includes(item.type) ||
-        ["place", "boundary"].includes(item.class)
+        (item.type && ["city", "town", "administrative", "village", "municipality", "country", "state"].includes(item.type)) ||
+        (item.class && ["place", "boundary"].includes(item.class))
     );
 
     const chosen = cityResult || data[0];
@@ -324,7 +324,7 @@ export async function searchPlaces(
             seen.add(key);
             results.push({
               name,
-              address: item.display_name,
+              address: item.display_name || name,
               lat,
               lon,
               category,
@@ -544,6 +544,7 @@ async function fetchOverpassPOIs(
   }
   clearTimeout(timeout);
   if (!res || !res.ok) throw new Error(`Overpass error: all mirrors failed`);
+  const data = await res.json();
   interface OverpassElement {
     lat?: number;
     lon?: number;
