@@ -105,6 +105,7 @@ interface ItineraryItem {
 type TripPlace = Database["public"]["Tables"]["trip_places"]["Row"];
 
 import { AITripSuggestions } from "./AITripSuggestions";
+import { LodgingDialog, type LodgingSaveData } from "./itinerary/LodgingDialog";
 
 interface TripItineraryProps {
   trip: Trip;
@@ -113,6 +114,7 @@ interface TripItineraryProps {
 export function TripItinerary({ trip }: TripItineraryProps) {
   const tripId = trip.id;
   const [showDialog, setShowDialog] = useState(false);
+  const [showLodgingDialog, setShowLodgingDialog] = useState(false);
   const [showPlaceDialog, setShowPlaceDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showOptimizerDialog, setShowOptimizerDialog] = useState(false);
@@ -725,6 +727,43 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     setShowDialog(false);
   };
 
+  const handleSaveLodging = async (data: LodgingSaveData) => {
+    const rangeDays = plannerDays.filter(
+      (day) => day.date >= data.checkInDate && day.date <= data.checkOutDate
+    );
+    const targetDates = rangeDays.length > 0 ? rangeDays.map((d) => d.date) : [data.checkInDate];
+
+    let createdCount = 0;
+    for (const d of targetDates) {
+      const existingInDay = items.filter((item) => item.date === d);
+      await createItem.mutateAsync({
+        trip_id: tripId,
+        date: d,
+        order_index: existingInDay.length,
+        title: data.title,
+        location: data.location || data.title,
+        latitude: data.latitude,
+        longitude: data.longitude,
+        category: "hotel",
+        description: data.notes
+          ? `Hospedagem (${data.type.toUpperCase()}) • ${data.notes}`
+          : `Hospedagem (${data.type.toUpperCase()})`,
+        maps_url: data.mapsUrl || null,
+        place_id: null,
+        reservation_id: null,
+        duration_minutes: null,
+        transport_mode: null,
+        start_time: null,
+        end_time: null,
+      });
+      createdCount++;
+    }
+
+    toast.success(`Hospedagem "${data.title}" cadastrada!`, {
+      description: `Ativa para ${createdCount} ${createdCount === 1 ? "dia" : "dias"} da viagem. Busca por locais próximos ativada!`,
+    });
+  };
+
   const { data: weatherData = {} } = useQuery({
     queryKey: ["weather-forecast", destCoords?.lat, destCoords?.lon],
     queryFn: async () => {
@@ -962,17 +1001,11 @@ export function TripItinerary({ trip }: TripItineraryProps) {
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="min-h-9 px-3 text-xs border-amber-500/40 text-amber-800 dark:text-amber-300 hover:bg-amber-500/10"
-                  onClick={() => {
-                    setEditingItem(null);
-                    resetForm();
-                    setCategory("hotel");
-                    setTitle("Hotel / Hospedagem");
-                    setShowDialog(true);
-                  }}
+                  className="min-h-9 px-3 text-xs border-amber-500/40 text-amber-800 dark:text-amber-300 hover:bg-amber-500/10 font-semibold"
+                  onClick={() => setShowLodgingDialog(true)}
                 >
                   <Hotel className="mr-1.5 h-3.5 w-3.5 text-amber-600 dark:text-amber-400" aria-hidden="true" />
-                  + Adicionar Hotel
+                  + Adicionar Hospedagem / Hotel
                 </Button>
               )}
               <span className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-muted/40 px-3 py-1 text-xs font-semibold text-foreground">
@@ -1258,6 +1291,18 @@ export function TripItinerary({ trip }: TripItineraryProps) {
         isSaving={isSavingPlace}
         onSave={handleSaveDiscoveredPlace}
         onAddToDay={handleAddDiscoveredPlaceToDay}
+      />
+
+      {/* Dedicated Lodging Modal */}
+      <LodgingDialog
+        open={showLodgingDialog}
+        onOpenChange={setShowLodgingDialog}
+        dayOptions={dayOptions}
+        defaultDate={activeDate}
+        destinationName={trip.destination || trip.name}
+        searchNear={destCoords}
+        isLoading={createItem.isPending}
+        onSave={handleSaveLodging}
       />
 
       {/* Delete confirmation */}
