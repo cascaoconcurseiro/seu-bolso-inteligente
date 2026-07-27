@@ -486,7 +486,7 @@ export async function searchPlaces(
       const timeout = setTimeout(() => controller.abort(), 6000);
       const url = new URL("https://photon.komoot.io/api/");
       const fullQuery =
-        destinationName && !cleanQuery.toLowerCase().includes(destinationName.toLowerCase())
+        destinationName && !near && !cleanQuery.toLowerCase().includes(destinationName.toLowerCase())
           ? `${cleanQuery} ${destinationName}`
           : cleanQuery;
 
@@ -557,6 +557,14 @@ export async function searchPlaces(
           });
         }
       }
+    }
+
+    if (near && results.length > 0) {
+      results.sort((a, b) => {
+        const distA = calculateHaversineDistance(near.lat, near.lon, a.lat, a.lon);
+        const distB = calculateHaversineDistance(near.lat, near.lon, b.lat, b.lon);
+        return distA - distB;
+      });
     }
 
     return results;
