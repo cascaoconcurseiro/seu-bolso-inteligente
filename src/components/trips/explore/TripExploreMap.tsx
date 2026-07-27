@@ -4,12 +4,22 @@ import L from "leaflet";
 import { useEffect } from "react";
 import { MapContainer, Marker, TileLayer, Tooltip, useMap } from "react-leaflet";
 import { getCategoryColor, getPlaceCategoryFallbackImage, type PlaceSearchResult } from "@/services/overpassService";
+import { TripPlaceKnowledgeCard } from "./TripPlaceKnowledgeCard";
 
 interface TripExploreMapProps {
   center: { lat: number; lon: number };
   places: PlaceSearchResult[];
   selectedIndex: number | null;
   onSelect: (index: number) => void;
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 function RecenterMap({ center }: { center: { lat: number; lon: number } }) {
@@ -23,7 +33,7 @@ function RecenterMap({ center }: { center: { lat: number; lon: number } }) {
 }
 
 export function TripExploreMap({ center, places, selectedIndex, onSelect }: TripExploreMapProps) {
-  const selected = selectedIndex === null ? null : places[selectedIndex];
+  const selected = selectedIndex === null ? null : places[selectedIndex] ?? null;
   const focusCenter = selected ? { lat: selected.lat, lon: selected.lon } : center;
 
   return (
@@ -47,6 +57,8 @@ export function TripExploreMap({ center, places, selectedIndex, onSelect }: Trip
           const size = active ? 46 : 38;
           const image = place.imageUrl || getPlaceCategoryFallbackImage(place.name, place.category);
           const color = getCategoryColor(place.category);
+          const safeName = escapeHtml(place.name);
+          const safeImage = escapeHtml(image);
 
           return (
             <Marker
@@ -55,7 +67,7 @@ export function TripExploreMap({ center, places, selectedIndex, onSelect }: Trip
               eventHandlers={{ click: () => onSelect(index) }}
               icon={L.divIcon({
                 className: "",
-                html: `<button type="button" aria-label="${place.name.replace(/"/g, "&quot;")}" style="width:${size}px;height:${size}px;border-radius:999px;border:3px solid white;background:${color};box-shadow:0 5px 18px rgba(15,23,42,.32);overflow:hidden;padding:0;display:block;transform:${active ? "scale(1.06)" : "scale(1)"};transition:transform .18s ease"><img src="${image}" alt="" style="width:100%;height:100%;object-fit:cover" /></button>`,
+                html: `<button type="button" aria-label="${safeName}" style="width:${size}px;height:${size}px;border-radius:999px;border:3px solid white;background:${color};box-shadow:0 5px 18px rgba(15,23,42,.32);overflow:hidden;padding:0;display:block;transform:${active ? "scale(1.06)" : "scale(1)"};transition:transform .18s ease"><img src="${safeImage}" alt="" style="width:100%;height:100%;object-fit:cover" /></button>`,
                 iconSize: [size, size],
                 iconAnchor: [size / 2, size / 2],
               })}
@@ -67,6 +79,10 @@ export function TripExploreMap({ center, places, selectedIndex, onSelect }: Trip
           );
         })}
       </MapContainer>
+
+      <div className="absolute bottom-3 left-3 z-[1000] hidden md:block">
+        <TripPlaceKnowledgeCard place={selected} />
+      </div>
     </div>
   );
 }
