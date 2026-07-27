@@ -64,7 +64,7 @@ export function PlaceDiscoveryResults({
                     aria-label={`Ver avaliações de ${place.name} no Google`}
                   >
                     <ExternalLink className="h-3 w-3" aria-hidden="true" />
-                    ⭐ Google
+                    ⭐ Avaliações no Google
                   </a>
                 </div>
               );

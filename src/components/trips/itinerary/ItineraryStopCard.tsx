@@ -241,7 +241,7 @@ export function ItineraryStopCard({
               aria-label={`Ver ${stop.title} no Google Maps`}
             >
               <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-              Google Maps
+              ⭐ Avaliações no Google
             </a>
             {meta.rating !== null && (
               <span className="inline-flex min-h-10 items-center gap-1 rounded-lg px-2 text-xs font-semibold text-foreground">
