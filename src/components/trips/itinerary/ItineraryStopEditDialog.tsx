@@ -4,6 +4,7 @@ import {
   Clock,
   ExternalLink,
   Globe,
+  Hotel,
   Loader2,
   MapPin,
   Save,
@@ -352,17 +353,58 @@ export function ItineraryStopEditDialog({
                 {/* Título */}
                 <div className="space-y-1.5">
                   <Label htmlFor="itinerary-title" className="text-xs font-semibold">
-                    Título da atividade *
+                    Título da atividade ou Hospedagem *
                   </Label>
                   <Input
                     id="itinerary-title"
-                    placeholder="Ex: Visita ao Museu do Amanhã, Jantar no centro…"
+                    placeholder="Ex: Airbnb Centro, Hotel Ibis, Jantar no restaurante X…"
                     value={initialValues.title}
                     onChange={(e) => onChange({ title: e.target.value })}
                     aria-required="true"
                     required
                     className="h-10 text-sm"
                   />
+                </div>
+
+                {/* Endereço / Local (Airbnb, Pousada, Rua e Número) */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="itinerary-location-basic" className="text-xs font-semibold">
+                      Endereço Completo / Local
+                    </Label>
+                    {initialValues.latitude !== null && initialValues.longitude !== null && (
+                      <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                        ✓ Coordenadas localizadas
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      id="itinerary-location-basic"
+                      placeholder="Ex: Rua das Flores 123, Caxias do Sul (ou cole o link do Google Maps)"
+                      value={initialValues.location}
+                      onChange={(e) => {
+                        onChange({ location: e.target.value });
+                        setPlaceQuery(e.target.value);
+                      }}
+                      onKeyDown={handlePlaceKeyDown}
+                      className="h-10 text-sm flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={openMapsSearch}
+                      className="h-10 px-3 text-xs shrink-0"
+                      title="Abrir no Google Maps para obter o endereço exato"
+                    >
+                      <Search className="mr-1 h-3.5 w-3.5" />
+                      Buscar
+                    </Button>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    💡 Para Airbnb ou casa de aluguel: digite o endereço completo (rua, número e cidade) para localizar com precisão e priorizar atrações e restaurantes próximos.
+                  </p>
                 </div>
 
                 {/* Categoria — chips */}
