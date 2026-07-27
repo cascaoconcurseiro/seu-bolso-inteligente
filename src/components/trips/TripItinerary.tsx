@@ -911,7 +911,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
           .update({
             latitude: top.lat,
             longitude: top.lon,
-            maps_url: top.mapsUrl || buildGoogleMapsUrl(top.name, top.address || trip.destination || trip.name),
+            maps_url: buildGoogleMapsUrl(top.name, top.address || trip.destination || trip.name),
           })
           .eq("id", lodgingStop.id)
           .then(({ error }) => {
