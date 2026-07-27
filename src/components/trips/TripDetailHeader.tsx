@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import type { Trip, TripParticipant } from "@/hooks/useTrips";
 import type { TripPermissions } from "./types";
+import { getFastDestinationCoverImage } from "@/services/destinationImageService";
 
 interface TripDetailHeaderProps {
   trip: Trip;
@@ -65,14 +66,16 @@ export function TripDetailHeader({
     "BRL"
   );
 
+  const coverImage = trip.cover_image || getFastDestinationCoverImage(trip.destination || trip.name);
+
   return (
     <div className="relative overflow-hidden rounded-4xl p-5 md:p-8 transition-all duration-700 ease-out bg-background/60 backdrop-blur-xl border border-border/40 shadow-sm mb-8">
-      {trip.cover_image && (
+      {coverImage && (
         <>
           <img
-            src={trip.cover_image}
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover"
+            src={coverImage}
+            alt={trip.destination || trip.name}
+            className="absolute inset-0 h-full w-full object-cover opacity-35 dark:opacity-25 transition-opacity duration-700"
           />
           <div className="absolute inset-0 bg-background/90 md:bg-gradient-to-r md:from-background md:via-background/90 md:to-background/45" />
         </>
