@@ -350,33 +350,6 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     },
   });
 
-  // Move mutation (arrastar marcador no mapa — só atualiza coordenadas)
-  const moveItem = useMutation({
-    mutationFn: async ({
-      id,
-      latitude,
-      longitude,
-    }: {
-      id: string;
-      latitude: number;
-      longitude: number;
-    }) => {
-      const { error } = await supabase
-        .from("trip_itinerary")
-        .update({ latitude, longitude })
-        .eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["trip-itinerary", tripId] });
-      toast.success("Localização atualizada");
-    },
-    onError: (error) => {
-      queryClient.invalidateQueries({ queryKey: ["trip-itinerary", tripId] });
-      toast.error("Erro ao mover", { description: error.message });
-    },
-  });
-
   const reorderItems = useMutation({
     mutationFn: async ({ nextItems }: { nextItems: ItineraryItem[]; announcement: string }) => {
       const { data, error } = await supabase.rpc("reorder_trip_itinerary_v1", {
@@ -1001,7 +974,6 @@ export function TripItinerary({ trip }: TripItineraryProps) {
                           disabled={reorderItems.isPending}
                           onFocus={() => {
                             setFocusedItemId(focusedItemId === item.id ? null : item.id);
-                            setMobileView("map");
                           }}
                           onEdit={() => handleOpenDialog(item)}
                           onDelete={() => setDeletingItem(item)}
