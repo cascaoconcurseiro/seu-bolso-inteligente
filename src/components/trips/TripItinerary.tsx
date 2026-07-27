@@ -1481,7 +1481,6 @@ function ItineraryDialog({
     setResolvedPlaceName(place.name);
     setPlaceQuery("");
     setPlaceResults([]);
-    setPlaceSearchFinished(false);
     setActivePlaceIndex(-1);
   };
 
