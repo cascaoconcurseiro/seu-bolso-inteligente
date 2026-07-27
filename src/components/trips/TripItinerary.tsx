@@ -40,9 +40,6 @@ import { ptBR } from "date-fns/locale";
 import {
   ExternalLink,
   Layers3,
-  List,
-  LocateFixed,
-  Map as MapIcon,
   MapPin,
   Navigation,
   Pencil,
@@ -53,6 +50,7 @@ import {
 } from "lucide-react";
 import { Fragment, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import {
+  buildGoogleMapsDirectionsUrl,
   buildGoogleMapsUrl,
   geocodeDestination,
   isSafeGoogleMapsUrl,
@@ -983,7 +981,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
               {activeItems.length > 0 && (
                 <Button asChild variant="outline" size="sm" className="min-h-9 px-3 text-xs text-primary hover:text-primary">
                   <a
-                    href={getGoogleMapsDayRouteUrl(activeItems, trip.destination || trip.name)}
+                    href={buildGoogleMapsDirectionsUrl(activeItems, trip.destination || trip.name)}
                     target="_blank"
                     rel="noopener noreferrer"
                   >

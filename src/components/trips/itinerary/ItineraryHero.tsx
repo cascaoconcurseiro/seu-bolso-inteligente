@@ -1,7 +1,6 @@
 import {
   ArrowLeft,
   Calendar,
-  Download,
   FileText,
   MapPin,
   Plus,
@@ -13,7 +12,6 @@ import {
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import type { Trip } from "@/hooks/useTrips";
 import {

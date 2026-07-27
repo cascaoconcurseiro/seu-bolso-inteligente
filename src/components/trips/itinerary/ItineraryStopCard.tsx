@@ -72,13 +72,15 @@ export function ItineraryStopCard({
     retry: 1,
   });
 
-  // Aplica o pin de coordenadas: prioriza maps_url salvo, senão gera via search
+  // Prioriza busca pelo Nome do Estabelecimento + Cidade/Endereço para abrir a Ficha com Avaliações do Google
+  const placeSearchText = [stop.title, stop.location || destination].filter(Boolean).join(", ");
+  const isNumericCoordsUrl = stop.maps_url && /query=-?\d+\.\d+/.test(stop.maps_url);
   const mapsUrl =
-    stop.maps_url ||
+    (stop.maps_url && !isNumericCoordsUrl ? stop.maps_url : null) ||
     meta.mapsUrl ||
-    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-      `${stop.location || stop.title}${destination ? `, ${destination}` : ""}`
-    )}`;
+    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(placeSearchText)}`;
+
+  const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(placeSearchText)}&travelmode=driving`;
 
   const catColor = getCategoryColor(stop.category);
   const hasRichInfo = Boolean(meta.phone || meta.website || meta.openingHours || wiki);
@@ -232,16 +234,26 @@ export function ItineraryStopCard({
           )}
 
           {/* Ações inline */}
-          <div className="mt-3 flex flex-wrap items-center gap-1">
+          <div className="mt-3 flex flex-wrap items-center gap-1.5">
             <a
               href={mapsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-10 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold text-primary hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              aria-label={`Ver ${stop.title} no Google Maps`}
+              className="inline-flex min-h-9 items-center gap-1.5 rounded-xl border border-primary/25 bg-primary/5 px-3 text-xs font-bold text-primary hover:bg-primary/15 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              aria-label={`Ver avaliações de ${stop.title} no Google Maps`}
             >
               <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
               ⭐ Avaliações no Google
+            </a>
+            <a
+              href={directionsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-9 items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/5 px-3 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/15 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              aria-label={`Como chegar em ${stop.title} no Google Maps`}
+            >
+              <Navigation className="h-3.5 w-3.5" aria-hidden="true" />
+              🚗 Como Chegar
             </a>
             {meta.rating !== null && (
               <span className="inline-flex min-h-10 items-center gap-1 rounded-lg px-2 text-xs font-semibold text-foreground">

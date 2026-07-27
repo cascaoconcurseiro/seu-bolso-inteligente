@@ -611,11 +611,76 @@ export function parseGoogleMapsPlaceName(url: string): string | null {
   }
 }
 
-/** Gera um link HTTPS estável para abrir exatamente as coordenadas escolhidas. */
-export function buildGoogleMapsUrl(lat: number, lon: number): string {
+/**
+ * Gera um link do Google Maps priorizando o nome do estabelecimento e endereço/cidade
+ * para que o Google abra a Ficha do Estabelecimento com Avaliações, Fotos e Estrelas.
+ */
+export function buildGoogleMapsUrl(
+  latOrName?: number | string | null,
+  lonOrAddress?: number | string | null,
+  cityName?: string | null
+): string {
+  let searchQuery = "";
+
+  if (typeof latOrName === "string" && latOrName.trim()) {
+    const parts = [latOrName.trim()];
+    if (typeof lonOrAddress === "string" && lonOrAddress.trim()) {
+      parts.push(lonOrAddress.trim());
+    } else if (cityName && cityName.trim()) {
+      parts.push(cityName.trim());
+    }
+    searchQuery = parts.join(", ");
+  } else if (typeof latOrName === "number" && typeof lonOrAddress === "number") {
+    searchQuery = `${latOrName},${lonOrAddress}`;
+  }
+
   const url = new URL("https://www.google.com/maps/search/");
   url.searchParams.set("api", "1");
-  url.searchParams.set("query", `${lat},${lon}`);
+  url.searchParams.set("query", searchQuery || "Google Maps");
+  return url.toString();
+}
+
+/**
+ * Gera um link de Rota / Navegação no Google Maps com pontos de origem, intermediários e destino
+ * usando nomes amigáveis de locais e cidades para uma navegação perfeita.
+ */
+export function buildGoogleMapsDirectionsUrl(
+  stops: Array<{ title: string; location?: string | null; address?: string | null; latitude?: number | null; longitude?: number | null }>,
+  destinationCity?: string | null
+): string {
+  if (!stops || stops.length === 0) return "https://www.google.com/maps";
+
+  const formatPoint = (s: { title: string; location?: string | null; address?: string | null; latitude?: number | null; longitude?: number | null }) => {
+    const mainText = s.title.trim();
+    const locText = (s.location || s.address || destinationCity || "").trim();
+    const combined = [mainText, locText].filter(Boolean).join(", ");
+    if (combined) return combined;
+    if (s.latitude != null && s.longitude != null) return `${s.latitude},${s.longitude}`;
+    return "";
+  };
+
+  const validPoints = stops.map(formatPoint).filter(Boolean);
+
+  if (validPoints.length === 0) return "https://www.google.com/maps";
+  if (validPoints.length === 1) {
+    const url = new URL("https://www.google.com/maps/search/");
+    url.searchParams.set("api", "1");
+    url.searchParams.set("query", validPoints[0]);
+    return url.toString();
+  }
+
+  const origin = validPoints[0];
+  const destination = validPoints[validPoints.length - 1];
+  const waypoints = validPoints.slice(1, -1).join("|");
+
+  const url = new URL("https://www.google.com/maps/dir/");
+  url.searchParams.set("api", "1");
+  url.searchParams.set("origin", origin);
+  url.searchParams.set("destination", destination);
+  if (waypoints) {
+    url.searchParams.set("waypoints", waypoints);
+  }
+  url.searchParams.set("travelmode", "driving");
   return url.toString();
 }
 

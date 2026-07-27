@@ -142,7 +142,7 @@ export function ItineraryStopEditDialog({
     onChange({
       title: initialValues.title.trim() ? initialValues.title : place.name,
       location: place.address || place.name,
-      mapsUrl: buildGoogleMapsUrl(place.lat, place.lon),
+      mapsUrl: buildGoogleMapsUrl(place.name, place.address || destinationName),
       latitude: place.lat,
       longitude: place.lon,
       phone: place.phone ?? initialValues.phone,
