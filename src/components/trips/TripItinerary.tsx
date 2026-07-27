@@ -869,25 +869,69 @@ export function TripItinerary({ trip }: TripItineraryProps) {
       );
     };
 
-    // Tenta primeiro encontrar uma hospedagem no dia ativo com coordenadas
+    // Tenta primeiro encontrar uma hospedagem no dia ativo (mesmo que ainda sem coords)
     const activeLodging = activeItems.find(
-      (item) => isLodgingText(item.category, item.title, item.location) && item.latitude !== null && item.longitude !== null
+      (item) => isLodgingText(item.category, item.title, item.location)
     );
     if (activeLodging) return activeLodging;
 
     // Senão busca em toda a viagem
     const anyLodging = items.find(
-      (item) => isLodgingText(item.category, item.title, item.location) && item.latitude !== null && item.longitude !== null
+      (item) => isLodgingText(item.category, item.title, item.location)
     );
     return anyLodging || null;
   }, [activeItems, items]);
+
+  const [geocodedLodgingCoords, setGeocodedLodgingCoords] = useState<{ lat: number; lon: number } | null>(null);
+
+  useEffect(() => {
+    if (!lodgingStop) {
+      setGeocodedLodgingCoords(null);
+      return;
+    }
+
+    if (lodgingStop.latitude !== null && lodgingStop.longitude !== null) {
+      setGeocodedLodgingCoords({ lat: lodgingStop.latitude, lon: lodgingStop.longitude });
+      return;
+    }
+
+    // Se o usuário adicionou um hotel/Airbnb mas ainda sem coordenadas, geocodifica silenciosamente no mapa
+    const query = lodgingStop.location || lodgingStop.title;
+    if (!query) return;
+
+    let active = true;
+    searchPlaces(query, destCoords ?? undefined, "hotel", trip.destination || trip.name)
+      .then((results) => {
+        if (!active || !results || results.length === 0) return;
+        const top = results[0];
+        setGeocodedLodgingCoords({ lat: top.lat, lon: top.lon });
+        // Salva as coordenadas no banco para requisições futuras
+        supabase
+          .from("trip_itinerary")
+          .update({
+            latitude: top.lat,
+            longitude: top.lon,
+            maps_url: top.mapsUrl || buildGoogleMapsUrl(top.name, top.address || trip.destination || trip.name),
+          })
+          .eq("id", lodgingStop.id)
+          .then(({ error }) => {
+            if (!error) {
+              queryClient.invalidateQueries({ queryKey: ["trip-itinerary", tripId] });
+            }
+          });
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [lodgingStop, destCoords, trip.destination, trip.name, tripId, queryClient]);
 
   const lodgingCoords = useMemo(() => {
     if (lodgingStop && lodgingStop.latitude !== null && lodgingStop.longitude !== null) {
       return { lat: lodgingStop.latitude, lon: lodgingStop.longitude };
     }
-    return null;
-  }, [lodgingStop]);
+    return geocodedLodgingCoords;
+  }, [lodgingStop, geocodedLodgingCoords]);
 
   const searchNearCoords = useMemo(() => {
     return lodgingCoords || destCoords;

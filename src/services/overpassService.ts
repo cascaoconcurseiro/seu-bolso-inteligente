@@ -385,6 +385,66 @@ async function fetchCategoryPOIsFromOverpass(
 }
 
 /**
+  * Busca POIs por termo/nome/marca em um raio curto (5km) da localização de referência (ex: Hotel).
+  */
+async function fetchNearbyOverpassPOIsByQuery(
+  lat: number,
+  lon: number,
+  queryTerm: string,
+  signal?: AbortSignal
+): Promise<PlaceSearchResult[]> {
+  if (!queryTerm || queryTerm.length < 2) return [];
+  const safeName = queryTerm.replace(/["\\]/g, "");
+  const overpassQuery = `[out:json][timeout:6];(
+    node["name"~"${safeName}",i](around:5000,${lat},${lon});
+    way["name"~"${safeName}",i](around:5000,${lat},${lon});
+    node["brand"~"${safeName}",i](around:5000,${lat},${lon});
+  );out center 30;`;
+
+  const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(overpassQuery)}`;
+
+  try {
+    const res = await fetch(url, { signal });
+    if (!res.ok) return [];
+    const data = await res.json();
+    const elements = data?.elements || [];
+    const results: PlaceSearchResult[] = [];
+
+    for (const elem of elements) {
+      const name = elem.tags?.name || elem.tags?.["name:pt"] || elem.tags?.["name:en"] || elem.tags?.brand;
+      if (!name) continue;
+      const elemLat = elem.lat || elem.center?.lat;
+      const elemLon = elem.lon || elem.center?.lon;
+      if (!elemLat || !elemLon) continue;
+
+      const street = elem.tags?.["addr:street"] || "";
+      const housenumber = elem.tags?.["addr:housenumber"] || "";
+      const suburb = elem.tags?.["addr:suburb"] || elem.tags?.["addr:district"] || "";
+      const city = elem.tags?.["addr:city"] || "";
+      const address = [street && housenumber ? `${street}, ${housenumber}` : street, suburb, city].filter(Boolean).join(", ") || name;
+
+      results.push({
+        name: name.trim(),
+        address,
+        lat: elemLat,
+        lon: elemLon,
+        category: null,
+        imageUrl: getPlaceCategoryFallbackImage(name, null),
+        phone: elem.tags?.phone || elem.tags?.["contact:phone"] || null,
+        website: elem.tags?.website || elem.tags?.["contact:website"] || null,
+        openingHours: elem.tags?.opening_hours || null,
+        osmType: elem.tags?.amenity || elem.tags?.shop || "poi",
+        osmTags: elem.tags || null,
+      });
+    }
+
+    return results;
+  } catch {
+    return [];
+  }
+}
+
+/**
  * Search places strictly bounded around the trip destination.
  * `near` sets the geographic center of the destination city.
  * Results > 50km from the destination are strictly discarded.
@@ -400,7 +460,19 @@ export async function searchPlaces(
     const results: PlaceSearchResult[] = [];
     const seen = new Set<string>();
 
-    // 0. Se detectarmos uma categoria (ex: "restaurante") e tivermos coordenadas `near`, busca POIs no Overpass
+    // 0a. Se tivermos coordenadas de referência (Hotel), faz busca direta por nome/marca no Overpass em um raio de 5km
+    if (near && cleanQuery) {
+      const namedPOIs = await fetchNearbyOverpassPOIsByQuery(near.lat, near.lon, cleanQuery);
+      for (const item of namedPOIs) {
+        const key = `${item.name.toLowerCase()}|${item.lat.toFixed(3)},${item.lon.toFixed(3)}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          results.push(item);
+        }
+      }
+    }
+
+    // 0b. Se detectarmos uma categoria (ex: "restaurante") e tivermos coordenadas `near`, busca POIs no Overpass
     const detectedTag = detectCategoryTag(cleanQuery, category);
     if (near && detectedTag) {
       const poiResults = await fetchCategoryPOIsFromOverpass(near.lat, near.lon, detectedTag);
