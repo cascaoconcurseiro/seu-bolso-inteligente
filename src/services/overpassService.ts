@@ -311,6 +311,79 @@ function extractCleanPlaceName(item: { name?: string; namedetails?: { name?: str
   return parts[0] || "Lugar";
 }
 
+function detectCategoryTag(query: string, category?: PlaceCategory): string | null {
+  if (category === "restaurant") return "amenity=restaurant";
+  if (category === "hotel") return "tourism=hotel";
+  if (category === "attraction") return "tourism=museum";
+  if (category === "beach") return "natural=beach";
+
+  const q = query.toLowerCase();
+  if (/restaurante|restaurantes|pizzaria|churrascaria|hamburgueria|comida|gastronomia|bar|café|cafe|padaria/.test(q)) {
+    return "amenity=restaurant";
+  }
+  if (/hotel|pousada|resort|hospedagem|hostel/.test(q)) {
+    return "tourism=hotel";
+  }
+  if (/museu|museus|galeria|teatro|monumento|castelo|atração|atrações|ponto turistico|turismo/.test(q)) {
+    return "tourism=museum";
+  }
+  if (/parque|praça|jardim|natureza/.test(q)) {
+    return "leisure=park";
+  }
+  return null;
+}
+
+async function fetchCategoryPOIsFromOverpass(
+  lat: number,
+  lon: number,
+  tagFilter: string,
+  signal?: AbortSignal
+): Promise<PlaceSearchResult[]> {
+  const [key, val] = tagFilter.split("=");
+  const query = `[out:json][timeout:8];(node["${key}"="${val}"](around:15000,${lat},${lon});way["${key}"="${val}"](around:15000,${lat},${lon}););out center 25;`;
+  const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+
+  try {
+    const res = await fetch(url, { signal });
+    if (!res.ok) return [];
+    const data = await res.json();
+    const elements = data?.elements || [];
+    const results: PlaceSearchResult[] = [];
+
+    for (const elem of elements) {
+      const name = elem.tags?.name || elem.tags?.["name:pt"] || elem.tags?.["name:en"];
+      if (!name) continue;
+      const elemLat = elem.lat || elem.center?.lat;
+      const elemLon = elem.lon || elem.center?.lon;
+      if (!elemLat || !elemLon) continue;
+
+      const street = elem.tags?.["addr:street"] || "";
+      const housenumber = elem.tags?.["addr:housenumber"] || "";
+      const suburb = elem.tags?.["addr:suburb"] || elem.tags?.["addr:district"] || "";
+      const city = elem.tags?.["addr:city"] || "";
+      const address = [street && housenumber ? `${street}, ${housenumber}` : street, suburb, city].filter(Boolean).join(", ") || name;
+
+      results.push({
+        name: name.trim(),
+        address,
+        lat: elemLat,
+        lon: elemLon,
+        category: val === "restaurant" ? "restaurant" : val === "hotel" ? "hotel" : "attraction",
+        imageUrl: getPlaceCategoryFallbackImage(name, val),
+        phone: elem.tags?.phone || elem.tags?.["contact:phone"] || null,
+        website: elem.tags?.website || elem.tags?.["contact:website"] || null,
+        openingHours: elem.tags?.opening_hours || null,
+        osmType: val,
+        osmTags: elem.tags || null,
+      });
+    }
+
+    return results;
+  } catch {
+    return [];
+  }
+}
+
 /**
  * Search places strictly bounded around the trip destination.
  * `near` sets the geographic center of the destination city.
@@ -327,6 +400,19 @@ export async function searchPlaces(
     const results: PlaceSearchResult[] = [];
     const seen = new Set<string>();
 
+    // 0. Se detectarmos uma categoria (ex: "restaurante") e tivermos coordenadas `near`, busca POIs no Overpass
+    const detectedTag = detectCategoryTag(cleanQuery, category);
+    if (near && detectedTag) {
+      const poiResults = await fetchCategoryPOIsFromOverpass(near.lat, near.lon, detectedTag);
+      for (const item of poiResults) {
+        const key = `${item.name.toLowerCase()}|${item.lat.toFixed(3)},${item.lon.toFixed(3)}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          results.push(item);
+        }
+      }
+    }
+
     // 1. Se possuímos a coordenada `near` do destino, fazer busca direcionada com bounded=1 e viewbox
     if (near) {
       const delta = 0.35; // ~35km em torno da cidade de destino
@@ -337,11 +423,13 @@ export async function searchPlaces(
       const viewbox = `${minLon},${maxLat},${maxLon},${minLat}`;
 
       let nomQuery = cleanQuery;
-      if (category === "restaurant") nomQuery = cleanQuery.length >= 2 ? cleanQuery : "restaurant";
-      else if (category === "hotel") nomQuery = cleanQuery.length >= 2 ? cleanQuery : "hotel";
-      else if (category === "attraction") nomQuery = cleanQuery.length >= 2 ? cleanQuery : "attraction tourism";
-      else if (category === "beach") nomQuery = cleanQuery.length >= 2 ? cleanQuery : "beach";
-      else if (category === "transport") nomQuery = cleanQuery.length >= 2 ? cleanQuery : "station airport";
+      if (category === "restaurant" || /restaurante|pizzaria|comida/.test(cleanQuery.toLowerCase())) {
+        nomQuery = cleanQuery.length >= 3 ? cleanQuery : "restaurant";
+      } else if (category === "hotel" || /hotel|pousada/.test(cleanQuery.toLowerCase())) {
+        nomQuery = cleanQuery.length >= 3 ? cleanQuery : "hotel";
+      } else if (category === "attraction" || /museu|parque|atração/.test(cleanQuery.toLowerCase())) {
+        nomQuery = cleanQuery.length >= 3 ? cleanQuery : "attraction tourism";
+      }
 
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 6000);
