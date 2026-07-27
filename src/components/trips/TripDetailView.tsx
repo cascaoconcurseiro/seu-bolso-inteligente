@@ -9,6 +9,7 @@ import { TripExchange } from "@/components/trips/TripExchange";
 import { TripChecklist } from "@/components/trips/TripChecklist";
 import { TripBagTracker } from "@/components/trips/TripBagTracker";
 import { TripJournalTab } from "@/components/trips/TripJournalTab";
+import { TripWeatherBrief } from "@/components/trips/TripWeatherBrief";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import type { TripParticipant, TripUpdateInput } from "@/hooks/useTrips";
 import type { SentTripInvitation, TripBalance, TripDetailData } from "./types";
@@ -208,6 +209,7 @@ export function TripDetailView({
               currency={trip.currency}
               formatCurrency={formatCurrency}
             />
+            <TripWeatherBrief trip={trip} />
             <TripSummaryTab
               selectedTrip={trip}
               myTotalSpent={myTotalSpent}
