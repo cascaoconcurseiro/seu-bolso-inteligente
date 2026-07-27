@@ -44,7 +44,7 @@ import {
   Layers3,
   List,
   LocateFixed,
-  Map,
+  Map as MapIcon,
   MapPin,
   Navigation,
   Plus,
@@ -172,7 +172,10 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     if (!destName) return;
     let cancelled = false;
 
-    geocodeDestination(destName).then((coords) => {
+    const res = geocodeDestination(destName);
+    if (!res || typeof res.then !== "function") return;
+
+    res.then((coords) => {
       if (!coords || cancelled) return;
 
       const currentLat = trip.latitude;
@@ -203,7 +206,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     return () => {
       cancelled = true;
     };
-  }, [trip.destination, trip.name, trip.id, trip.latitude, trip.longitude, queryClient]);
+  }, [trip.destination, trip.name, trip.id, trip.latitude, trip.longitude, queryClient, localDestCoords]);
 
   // Helper: calcula distância entre duas coordenadas (Haversine)
   const calculateDistanceKm = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
@@ -1258,7 +1261,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
             mobileView === "map" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
           }`}
         >
-          <Map className="h-4 w-4" aria-hidden="true" />
+          <MapIcon className="h-4 w-4" aria-hidden="true" />
           Mapa
         </button>
         <button
@@ -1472,12 +1475,13 @@ function ItineraryDialog({
       setActivePlaceIndex(results.length ? 0 : -1);
     }, 300);
     return () => clearTimeout(timer);
-  }, [placeQuery, open, searchNear, category]);
+  }, [placeQuery, open, searchNear, category, destinationName]);
 
   const handlePickPlace = (place: PlaceSearchResult) => {
     if (!title.trim()) setTitle(place.name);
     setLocation(place.address || place.name);
     setMapsUrl(buildGoogleMapsUrl(place.lat, place.lon));
+    setShowMoreFields(true);
     onCoordsChange({ lat: place.lat, lon: place.lon });
     setResolvedPlaceName(place.name);
     setPlaceQuery("");
@@ -1640,7 +1644,7 @@ function ItineraryDialog({
 
             {/* Local + Categoria com sugestões automáticas do destino */}
             <div className="space-y-2 rounded-xl border border-border/60 bg-muted/20 p-3">
-              <Label className="text-xs font-semibold text-foreground">Buscar local no destino (sugestões)</Label>
+              <Label htmlFor="itinerary-location" className="text-xs font-semibold text-foreground">Buscar local</Label>
 
               {/* Categoria — ativa busca direta das melhores atrações/restaurantes do destino */}
               <div className="flex flex-wrap gap-1.5" role="group" aria-label="Sugestões por categoria">
@@ -1676,6 +1680,8 @@ function ItineraryDialog({
                 <div className="flex gap-2">
                   <Input
                     id="itinerary-location"
+                    role="combobox"
+                    aria-label="Buscar local"
                     placeholder={category ? `Buscando sugestões de ${PLACE_CATEGORIES.find(c=>c.id===category)?.label}...` : "Digite o nome do lugar ou selecione uma categoria acima..."}
                     value={location}
                     onChange={(e) => {
