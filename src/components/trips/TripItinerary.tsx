@@ -39,8 +39,6 @@ import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   ExternalLink,
-  ChevronLeft,
-  ChevronRight,
   Layers3,
   List,
   LocateFixed,
@@ -50,8 +48,6 @@ import {
   Plus,
   Route,
   Search,
-  Upload,
-  FileText,
 } from "lucide-react";
 import { Fragment, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import {
@@ -71,8 +67,10 @@ import type { Trip } from "@/hooks/useTrips";
 import type { TripSuggestion } from "@/services/aiAdvisorService";
 import { getErrorMessage } from "./types";
 import type { Database } from "@/integrations/supabase/types";
-import { PlannerDayRail, type PlannerDay } from "./planner/PlannerDayRail";
-import { ItineraryStopCard } from "./planner/ItineraryStopCard";
+import type { PlannerDay } from "./planner/PlannerDayRail";
+import { ItineraryDaysRail } from "./itinerary/ItineraryDaysRail";
+import { ItineraryStopCard } from "./itinerary/ItineraryStopCard";
+import { parseStopMeta } from "./itinerary/types";
 import { groupItineraryByDay, moveItineraryItem } from "./planner/itineraryOrder";
 import { TripReservationsPanel } from "./planner/TripReservationsPanel";
 import { PlaceDiscoveryDialog, type DiscoveredPlace } from "./planner/PlaceDiscoveryDialog";
@@ -80,7 +78,6 @@ import { fetchWeatherForecast } from "@/services/weatherService";
 import { ImportPlacesDialog } from "./planner/ImportPlacesDialog";
 import { RouteOptimizerDialog } from "./planner/RouteOptimizerDialog";
 import { ItineraryHero } from "./itinerary/ItineraryHero";
-import { ItineraryMapEmbed } from "./itinerary/ItineraryMapEmbed";
 import { exportTripToPdf } from "@/utils/tripPdfExporter";
 import type { ParsedPlace } from "@/utils/gpxKmlParser";
 
@@ -804,9 +801,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
   }, [activeDate, plannerDays]);
 
   const activeItems = groupedItems[activeDate] ?? [];
-  const activeDayIndex = plannerDays.findIndex((day) => day.date === activeDate);
   const mapItems = mapScope === "all" ? items : activeItems;
-  const activeDayNavUrl = buildDayNavUrl(activeItems);
   const dayOptions = plannerDays.map(({ date: dayDate, label }) => ({
     date: dayDate,
     label,
@@ -915,174 +910,143 @@ export function TripItinerary({ trip }: TripItineraryProps) {
         onExportPdf={() => exportTripToPdf(trip, items)}
       />
 
+      <ItineraryDaysRail days={plannerDays} activeDate={activeDate} onSelect={setActiveDate} />
+
       <div
-        className="grid gap-4 xl:grid-cols-[minmax(16rem,18rem)_minmax(0,1fr)_minmax(18rem,20rem)]"
+        className="grid gap-6 lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_440px]"
         aria-busy={isLoading || arePlacesLoading || reorderItems.isPending}
       >
-        <aside
+        <section
           id="itinerary-stops"
-          className={`${mobileView === "map" ? "hidden xl:block" : "block"} min-w-0 space-y-4 xl:max-h-[calc(100vh-12rem)] xl:overflow-y-auto xl:pr-1`}
-          aria-label="Roteiro do dia"
+          aria-labelledby="active-day-title"
+          className="min-w-0 space-y-4"
         >
-          <PlannerDayRail days={plannerDays} activeDate={activeDate} onSelect={setActiveDate} />
-
-          <section aria-labelledby="active-day-title">
-            <div className="mb-3 flex items-end justify-between gap-2">
-              <div>
-                <p className="text-xs text-muted-foreground">
-                  Dia {Math.max(1, plannerDays.findIndex((day) => day.date === activeDate) + 1)}
-                </p>
-                <h3
-                  id="active-day-title"
-                  className="text-sm font-semibold capitalize text-foreground"
-                >
-                  {activeDate
-                    ? dateFns.format(dateFns.parseISO(activeDate), "EEEE, dd 'de' MMMM", {
-                        locale: ptBR,
-                      })
-                    : "Escolha um dia"}
-                </h3>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">
-                  {activeItems.length} {activeItems.length === 1 ? "parada" : "paradas"}
-                </span>
-                {activeItems.length > 0 && (
-                  <Button asChild variant="outline" size="sm" className="min-h-9 px-2 text-xs">
-                    <a
-                      href={getGoogleMapsDayRouteUrl(activeItems, trip.destination || trip.name)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Navigation className="mr-1.5 h-3.5 w-3.5 text-primary" aria-hidden="true" />
-                      Abrir Rota no Google Maps
-                    </a>
-                  </Button>
-                )}
-              </div>
+          <div className="flex flex-wrap items-end justify-between gap-3 rounded-2xl border border-border/60 bg-card p-4 sm:p-5 shadow-xs">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                Dia {Math.max(1, plannerDays.findIndex((day) => day.date === activeDate) + 1)} de {plannerDays.length}
+              </p>
+              <h3
+                id="active-day-title"
+                className="mt-1 text-xl font-bold capitalize tracking-tight text-foreground sm:text-2xl"
+              >
+                {activeDate
+                  ? dateFns.format(dateFns.parseISO(activeDate), "EEEE, dd 'de' MMMM", { locale: ptBR })
+                  : "Escolha um dia"}
+              </h3>
             </div>
 
-            {activeItems.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border bg-muted/30 px-4 py-8 text-center">
-                <Route className="mx-auto h-7 w-7 text-primary" aria-hidden="true" />
-                <p className="mt-3 font-semibold text-foreground">Nenhuma parada neste dia</p>
-                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                  Adicione um lugar ou mova uma parada de outro dia.
-                </p>
-                <Button
-                  variant="outline"
-                  className="mt-4 min-h-11"
-                  onClick={() => handleOpenDialog()}
-                >
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-muted/40 px-3 py-1 text-xs font-semibold text-foreground">
+                {activeItems.length} {activeItems.length === 1 ? "parada" : "paradas"}
+              </span>
+              {activeItems.length > 0 && (
+                <Button asChild variant="outline" size="sm" className="min-h-9 px-3 text-xs text-primary hover:text-primary">
+                  <a
+                    href={getGoogleMapsDayRouteUrl(activeItems, trip.destination || trip.name)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Navigation className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
+                    Abrir Rota no Google Maps
+                  </a>
+                </Button>
+              )}
+              <Button
+                type="button"
+                size="sm"
+                className="min-h-9"
+                onClick={() => handleOpenDialog()}
+              >
+                <Plus className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
+                Adicionar parada
+              </Button>
+            </div>
+          </div>
+
+          {activeItems.length === 0 ? (
+            <div className="rounded-3xl border border-dashed border-border bg-muted/20 px-6 py-12 text-center">
+              <Route className="mx-auto h-9 w-9 text-primary" aria-hidden="true" />
+              <p className="mt-3 text-base font-semibold text-foreground">Nenhuma parada neste dia</p>
+              <p className="mt-1 max-w-md mx-auto text-sm text-muted-foreground">
+                Escolha outra data no trilho acima, ou adicione atrações e restaurantes para montar seu roteiro.
+              </p>
+              <div className="mt-5 flex flex-wrap justify-center gap-3">
+                <Button onClick={() => handleOpenDialog()} className="min-h-11 shadow-xs">
                   <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
                   Adicionar parada
                 </Button>
+                <Button variant="outline" onClick={() => setShowPlaceDialog(true)} className="min-h-11">
+                  <Search className="mr-2 h-4 w-4" aria-hidden="true" />
+                  Buscar lugares
+                </Button>
               </div>
-            ) : (
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
-              >
-                <SortableContext
-                  items={activeItems.map((item) => item.id)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  <ol className="space-y-2">
-                    {activeItems.map((item, index) => {
-                      const meta = parseMeta(item.description);
-                      const nextItem = activeItems[index + 1];
-                      const travelEstimate = nextItem ? getTravelEstimate(item, nextItem) : null;
-
-                      return (
-                        <Fragment key={item.id}>
-                          <ItineraryStopCard
-                            item={item}
-                            position={index}
-                            itemCount={activeItems.length}
-                            destination={trip.destination}
-                            description={meta.text}
-                            rating={meta.rating}
-                            isFocused={focusedItemId === item.id}
-                            dayOptions={dayOptions}
-                            disabled={reorderItems.isPending}
-                            onFocus={() => {
-                              setFocusedItemId(focusedItemId === item.id ? null : item.id);
-                              setMobileView("map");
-                            }}
-                            onEdit={() => handleOpenDialog(item)}
-                            onDelete={() => setDeletingItem(item)}
-                            onMove={(targetDate, targetIndex) =>
-                              persistMove(item.id, targetDate, targetIndex)
-                            }
-                          />
-                          {travelEstimate && (
-                            <div className="my-1 flex items-center justify-center">
-                              <span className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-muted/50 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground shadow-xs">
-                                {travelEstimate}
-                              </span>
-                            </div>
-                          )}
-                        </Fragment>
-                      );
-                    })}
-                  </ol>
-                </SortableContext>
-              </DndContext>
-            )}
-          </section>
-        </aside>
-
-        <main
-          className={`${mobileView === "list" ? "hidden xl:block" : "block"} min-w-0 space-y-3`}
-          aria-label="Mapa e rota do dia"
-        >
-          <div className="flex items-center justify-between rounded-xl border border-border bg-card px-1 py-1 xl:hidden">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-11 w-11"
-              disabled={activeDayIndex <= 0}
-              onClick={() => setActiveDate(plannerDays[activeDayIndex - 1]?.date ?? activeDate)}
-              aria-label="Ver dia anterior"
-            >
-              <ChevronLeft className="h-5 w-5" aria-hidden="true" />
-            </Button>
-            <div className="min-w-0 px-2 text-center">
-              <p className="text-xs text-muted-foreground">
-                Dia {Math.max(1, activeDayIndex + 1)} de {plannerDays.length}
-              </p>
-              <p className="truncate text-sm font-semibold capitalize text-foreground">
-                {activeDate
-                  ? dateFns.format(dateFns.parseISO(activeDate), "EEE, dd MMM", { locale: ptBR })
-                  : "Escolha um dia"}
-              </p>
             </div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-11 w-11"
-              disabled={activeDayIndex < 0 || activeDayIndex >= plannerDays.length - 1}
-              onClick={() => setActiveDate(plannerDays[activeDayIndex + 1]?.date ?? activeDate)}
-              aria-label="Ver próximo dia"
+          ) : (
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
             >
-              <ChevronRight className="h-5 w-5" aria-hidden="true" />
-            </Button>
-          </div>
+              <SortableContext
+                items={activeItems.map((item) => item.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <ol className="space-y-3">
+                  {activeItems.map((item, index) => {
+                    const meta = parseStopMeta(item.description);
+                    const nextItem = activeItems[index + 1];
+                    const travelEstimate = nextItem ? getTravelEstimate(item, nextItem) : null;
 
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="inline-flex rounded-xl border border-border bg-muted/40 p-1">
+                    return (
+                      <Fragment key={item.id}>
+                        <ItineraryStopCard
+                          stop={item}
+                          position={index}
+                          itemCount={activeItems.length}
+                          destination={trip.destination}
+                          meta={meta}
+                          isFocused={focusedItemId === item.id}
+                          dayOptions={dayOptions}
+                          disabled={reorderItems.isPending}
+                          onFocus={() => {
+                            setFocusedItemId(focusedItemId === item.id ? null : item.id);
+                            setMobileView("map");
+                          }}
+                          onEdit={() => handleOpenDialog(item)}
+                          onDelete={() => setDeletingItem(item)}
+                          onMove={(targetDate, targetIndex) =>
+                            persistMove(item.id, targetDate, targetIndex)
+                          }
+                        />
+                        {travelEstimate && (
+                          <div className="my-1.5 flex items-center justify-center">
+                            <span className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-border/80 bg-card px-3 py-1 text-xs font-medium text-muted-foreground shadow-2xs">
+                              {travelEstimate}
+                            </span>
+                          </div>
+                        )}
+                      </Fragment>
+                    );
+                  })}
+                </ol>
+              </SortableContext>
+            </DndContext>
+          )}
+        </section>
+
+        <aside className="min-w-0 space-y-4 lg:sticky lg:top-4 lg:self-start">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-2 px-1">
+              <div className="flex items-center gap-1 rounded-lg border border-border/70 bg-muted/40 p-0.5">
                 <button
                   type="button"
                   onClick={() => setMapScope("day")}
                   aria-pressed={mapScope === "day"}
-                  className={`min-h-11 rounded-lg px-3 text-xs font-semibold ${
+                  className={`rounded-md px-2 py-0.5 text-[11px] font-semibold transition-colors ${
                     mapScope === "day"
-                      ? "bg-background text-foreground shadow-sm"
-                      : "text-muted-foreground"
+                      ? "bg-background text-foreground shadow-2xs"
+                      : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   Dia atual
@@ -1091,10 +1055,10 @@ export function TripItinerary({ trip }: TripItineraryProps) {
                   type="button"
                   onClick={() => setMapScope("all")}
                   aria-pressed={mapScope === "all"}
-                  className={`min-h-11 rounded-lg px-3 text-xs font-semibold ${
+                  className={`rounded-md px-2 py-0.5 text-[11px] font-semibold transition-colors ${
                     mapScope === "all"
-                      ? "bg-background text-foreground shadow-sm"
-                      : "text-muted-foreground"
+                      ? "bg-background text-foreground shadow-2xs"
+                      : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   Todos os dias
@@ -1104,81 +1068,74 @@ export function TripItinerary({ trip }: TripItineraryProps) {
                 type="button"
                 onClick={() => setAdjustLocations((current) => !current)}
                 aria-pressed={adjustLocations}
-                className={`min-h-11 rounded-lg px-3 text-xs font-semibold ${
+                className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors ${
                   adjustLocations
                     ? "bg-primary text-primary-foreground"
-                    : "border border-border text-muted-foreground hover:bg-accent"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <LocateFixed className="mr-1.5 inline h-4 w-4" aria-hidden="true" />
-                {adjustLocations ? "Concluir ajustes" : "Ajustar pins"}
+                <LocateFixed className="mr-1 inline h-3.5 w-3.5" aria-hidden="true" />
+                {adjustLocations ? "Concluir" : "Ajustar pins"}
               </button>
             </div>
-            <p className="text-xs text-muted-foreground">
-              {adjustLocations
-                ? "Arraste um pin; também é possível corrigir o local editando a parada."
-                : mapScope === "day"
-                  ? "Pins numerados na ordem do dia"
-                  : "Visão geral da viagem"}
-            </p>
+
+            <TripRouteMap
+              items={mapItems}
+              fallbackCenter={destCoords ?? null}
+              onMapPick={handleMapPick}
+              onMarkerMove={adjustLocations ? handleMarkerMove : undefined}
+              focusedId={focusedItemId}
+              activeDateLabel={
+                activeDate
+                  ? dateFns.format(dateFns.parseISO(activeDate), "dd 'de' MMMM", { locale: ptBR })
+                  : undefined
+              }
+            />
           </div>
 
-          <TripRouteMap
-            items={mapItems}
-            fallbackCenter={destCoords ?? null}
-            onMapPick={handleMapPick}
-            onMarkerMove={adjustLocations ? handleMarkerMove : undefined}
-            focusedId={focusedItemId}
-            activeDateLabel={
-              activeDate
-                ? dateFns.format(dateFns.parseISO(activeDate), "dd 'de' MMMM", { locale: ptBR })
-                : undefined
-            }
-          />
-        </main>
-
-        <aside className="hidden min-w-0 space-y-4 xl:block" aria-label="Adicionar lugares">
           <div className="rounded-2xl border border-border/70 bg-card p-4">
             <div className="flex items-center gap-2">
               <Search className="h-4 w-4 text-primary" aria-hidden="true" />
-              <h3 className="font-semibold text-foreground">Lugares</h3>
+              <h3 className="font-semibold text-foreground">Lugares Salvos</h3>
             </div>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            <p className="mt-1.5 text-xs text-muted-foreground">
               {savedPlaces.length} {savedPlaces.length === 1 ? "lugar salvo" : "lugares salvos"}.
-              Guarde ideias primeiro e monte os dias quando decidir.
+              Adicione ideias aqui para organizar depois nos dias.
             </p>
-            <Button className="mt-4 min-h-11 w-full" onClick={() => setShowPlaceDialog(true)}>
-              <Search className="mr-2 h-4 w-4" aria-hidden="true" />
+            <Button className="mt-3 min-h-10 w-full text-xs" onClick={() => setShowPlaceDialog(true)}>
+              <Search className="mr-2 h-3.5 w-3.5" aria-hidden="true" />
               Buscar lugares
             </Button>
-            <ul className="mt-4 max-h-72 space-y-2 overflow-y-auto" aria-label="Lugares salvos">
-              {savedPlaces.map((place) => {
-                const scheduled = items.some((item) => item.place_id === place.id);
-                return (
-                  <li key={place.id} className="rounded-xl border border-border/70 p-3">
-                    <p className="truncate text-sm font-semibold text-foreground">{place.name}</p>
-                    {place.address && (
-                      <p className="mt-1 truncate text-xs text-muted-foreground">{place.address}</p>
-                    )}
-                    {scheduled ? (
-                      <span className="mt-2 inline-flex rounded-full bg-success/10 px-2 py-1 text-xs font-medium text-success">
-                        No roteiro
-                      </span>
-                    ) : (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="relative z-20 mt-2 min-h-10 w-full"
-                        onClick={() => handleOpenSavedPlace(place)}
-                      >
-                        Adicionar ao dia
-                      </Button>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
+            {savedPlaces.length > 0 && (
+              <ul className="mt-3 max-h-56 space-y-2 overflow-y-auto pr-1" aria-label="Lugares salvos">
+                {savedPlaces.map((place) => {
+                  const scheduled = items.some((item) => item.place_id === place.id);
+                  return (
+                    <li key={place.id} className="rounded-xl border border-border/70 p-2.5 text-xs">
+                      <p className="truncate font-semibold text-foreground">{place.name}</p>
+                      {place.address && (
+                        <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{place.address}</p>
+                      )}
+                      {scheduled ? (
+                        <span className="mt-1.5 inline-flex rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                          No roteiro
+                        </span>
+                      ) : (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="mt-2 min-h-8 w-full text-xs"
+                          onClick={() => handleOpenSavedPlace(place)}
+                        >
+                          Adicionar ao dia
+                        </Button>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
 
           <TripReservationsPanel tripId={tripId} />
@@ -1186,13 +1143,12 @@ export function TripItinerary({ trip }: TripItineraryProps) {
           <div className="rounded-2xl border border-border/70 bg-muted/25 p-4">
             <div className="flex items-center gap-2">
               <Layers3 className="h-4 w-4 text-primary" aria-hidden="true" />
-              <h3 className="font-semibold text-foreground">Sugestões para o roteiro</h3>
+              <h3 className="font-semibold text-foreground">Sugestões IA</h3>
             </div>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              Gere uma primeira versão e ajuste a ordem arrastando ou usando os controles dos
-              cartões.
+            <p className="mt-1 text-xs text-muted-foreground">
+              Gere ideias automáticas para o seu roteiro em {trip.destination || trip.name}.
             </p>
-            <div className="mt-4">
+            <div className="mt-3">
               <AITripSuggestions
                 type="itinerary"
                 destination={trip.destination || trip.name}
