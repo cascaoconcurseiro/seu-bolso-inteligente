@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { logger } from "@/utils/logger";
 import { callRPCWithRetry } from "@/utils/supabaseHelpers";
 import type { Database } from "@/integrations/supabase/types";
+import { fetchDestinationCoverImage } from "@/services/destinationImageService";
 
 export type TripStatus = "PLANNING" | "ACTIVE" | "COMPLETED" | "CANCELLED";
 
@@ -193,12 +194,22 @@ export function useCreateTrip() {
 
       const { memberIds, ...tripData } = input;
 
+      let coverImage = tripData.cover_image;
+      if (!coverImage) {
+        try {
+          coverImage = await fetchDestinationCoverImage(tripData.destination || tripData.name);
+        } catch {
+          coverImage = null;
+        }
+      }
+
       const { data, error } = await supabase
         .from("trips")
         .insert({
           owner_id: user.id,
           creator_user_id: user.id,
           ...tripData,
+          cover_image: coverImage,
         })
         .select()
         .single();

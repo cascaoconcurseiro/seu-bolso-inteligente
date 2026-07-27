@@ -12,9 +12,14 @@ import {
 } from "lucide-react";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import type { Trip } from "@/hooks/useTrips";
+import {
+  getFastDestinationCoverImage,
+  fetchDestinationCoverImage,
+} from "@/services/destinationImageService";
 
 interface ItineraryHeroProps {
   trip: Trip;
@@ -43,16 +48,36 @@ export function ItineraryHero({
   const endLabel = dateFns.format(dateFns.parseISO(trip.end_date), "dd MMM yyyy", { locale: ptBR });
   const destination = trip.destination || trip.name;
 
+  const [coverUrl, setCoverUrl] = useState<string>(
+    () => trip.cover_image || getFastDestinationCoverImage(destination)
+  );
+
+  useEffect(() => {
+    if (trip.cover_image) {
+      setCoverUrl(trip.cover_image);
+      return;
+    }
+    let isCancelled = false;
+    fetchDestinationCoverImage(destination).then((url) => {
+      if (!isCancelled && url) setCoverUrl(url);
+    });
+    return () => {
+      isCancelled = true;
+    };
+  }, [trip.cover_image, destination]);
+
   return (
-    <header className="relative overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-br from-primary/[0.08] via-background to-background px-5 py-6 sm:px-7 sm:py-7">
-      <div
-        className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-primary/15 blur-3xl"
-        aria-hidden="true"
-      />
-      <div
-        className="pointer-events-none absolute -left-12 bottom-0 h-40 w-40 rounded-full bg-emerald-500/10 blur-3xl"
-        aria-hidden="true"
-      />
+    <header className="relative overflow-hidden rounded-3xl border border-border/60 bg-card px-5 py-6 sm:px-7 sm:py-7">
+      {coverUrl && (
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          <img
+            src={coverUrl}
+            alt={destination}
+            className="h-full w-full object-cover opacity-25 dark:opacity-30 transition-opacity duration-700"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-card via-card/85 to-card/40" />
+        </div>
+      )}
 
       <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div className="space-y-3">
