@@ -64,7 +64,6 @@ import {
   type PlaceCategory,
   type PlaceSearchResult,
 } from "@/services/overpassService";
-import { TripRouteMap } from "./TripRouteMap";
 import type { Trip } from "@/hooks/useTrips";
 import type { TripSuggestion } from "@/services/aiAdvisorService";
 import { getErrorMessage } from "./types";
@@ -1193,63 +1192,6 @@ export function TripItinerary({ trip }: TripItineraryProps) {
         </section>
 
         <aside className="min-w-0 space-y-4 lg:sticky lg:top-4 lg:self-start">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between gap-2 px-1">
-              <div className="flex items-center gap-1 rounded-lg border border-border/70 bg-muted/40 p-0.5">
-                <button
-                  type="button"
-                  onClick={() => setMapScope("day")}
-                  aria-pressed={mapScope === "day"}
-                  className={`rounded-md px-2 py-0.5 text-[11px] font-semibold transition-colors ${
-                    mapScope === "day"
-                      ? "bg-background text-foreground shadow-2xs"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Dia atual
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMapScope("all")}
-                  aria-pressed={mapScope === "all"}
-                  className={`rounded-md px-2 py-0.5 text-[11px] font-semibold transition-colors ${
-                    mapScope === "all"
-                      ? "bg-background text-foreground shadow-2xs"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Todos os dias
-                </button>
-              </div>
-              <button
-                type="button"
-                onClick={() => setAdjustLocations((current) => !current)}
-                aria-pressed={adjustLocations}
-                className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors ${
-                  adjustLocations
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <LocateFixed className="mr-1 inline h-3.5 w-3.5" aria-hidden="true" />
-                {adjustLocations ? "Concluir" : "Ajustar pins"}
-              </button>
-            </div>
-
-            <TripRouteMap
-              items={mapItems}
-              fallbackCenter={destCoords ?? null}
-              onMapPick={handleMapPick}
-              onMarkerMove={adjustLocations ? handleMarkerMove : undefined}
-              focusedId={focusedItemId}
-              activeDateLabel={
-                activeDate
-                  ? dateFns.format(dateFns.parseISO(activeDate), "dd 'de' MMMM", { locale: ptBR })
-                  : undefined
-              }
-            />
-          </div>
-
           <TripReservationsPanel tripId={tripId} />
 
           <div className="rounded-2xl border border-border/70 bg-muted/25 p-4">
@@ -1269,31 +1211,6 @@ export function TripItinerary({ trip }: TripItineraryProps) {
             </div>
           </div>
         </aside>
-      </div>
-
-      <div className="fixed inset-x-3 bottom-20 z-[1100] flex rounded-2xl border border-border bg-background/95 p-1 shadow-xl backdrop-blur xl:hidden">
-        <button
-          type="button"
-          onClick={() => setMobileView("map")}
-          aria-pressed={mobileView === "map"}
-          className={`flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl text-sm font-semibold ${
-            mobileView === "map" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
-          }`}
-        >
-          <MapIcon className="h-4 w-4" aria-hidden="true" />
-          Mapa
-        </button>
-        <button
-          type="button"
-          onClick={() => setMobileView("list")}
-          aria-pressed={mobileView === "list"}
-          className={`flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl text-sm font-semibold ${
-            mobileView === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
-          }`}
-        >
-          <List className="h-4 w-4" aria-hidden="true" />
-          Roteiro ({activeItems.length})
-        </button>
       </div>
 
       <p className="sr-only" aria-live="polite" aria-atomic="true">

@@ -77,16 +77,11 @@ function TestProviders({ children }: { children: ReactNode }) {
 }
 
 describe("TripItinerary", () => {
-  it("renderiza o planejador por dias e alterna entre mapa e roteiro no mobile", async () => {
-    const user = userEvent.setup();
+  it("renderiza o planejador por dias e exibe navegação dos dias", async () => {
     render(<TripItinerary trip={trip} />, { wrapper: TestProviders });
 
     expect(await screen.findByRole("heading", { name: "Lisboa" })).toBeInTheDocument();
     expect(screen.getByText("Dia 1 de 2")).toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "Mapa do roteiro" })).toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: /roteiro \(0\)/i }));
-
     expect(screen.getByRole("navigation", { name: "Dias da viagem" })).toBeInTheDocument();
     expect(screen.getByText("Nenhuma parada neste dia")).toBeInTheDocument();
   });
