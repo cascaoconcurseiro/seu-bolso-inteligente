@@ -9,8 +9,14 @@ interface TripPlaceKnowledgeCardProps {
 
 export function TripPlaceKnowledgeCard({ place }: TripPlaceKnowledgeCardProps) {
   const { data, isLoading } = useQuery({
-    queryKey: ["wikipedia-place", place?.lat, place?.lon],
-    queryFn: ({ signal }) => fetchNearbyWikipediaPlace(Number(place?.lat), Number(place?.lon), signal),
+    queryKey: ["wikipedia-place", place?.name, place?.lat, place?.lon],
+    queryFn: ({ signal }) =>
+      fetchNearbyWikipediaPlace(
+        String(place?.name ?? ""),
+        Number(place?.lat),
+        Number(place?.lon),
+        signal
+      ),
     enabled: Boolean(place),
     staleTime: 1000 * 60 * 60 * 24 * 7,
     gcTime: 1000 * 60 * 60 * 24 * 30,
@@ -55,7 +61,9 @@ export function TripPlaceKnowledgeCard({ place }: TripPlaceKnowledgeCardProps) {
             <p className="mt-0.5 truncate text-xs text-muted-foreground">{data.description}</p>
           )}
           {data.extract && (
-            <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">{data.extract}</p>
+            <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+              {data.extract}
+            </p>
           )}
         </div>
       </div>
