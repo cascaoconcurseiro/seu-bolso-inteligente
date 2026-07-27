@@ -83,6 +83,16 @@ function buildDescription(tags: Record<string, string>, category: string): strin
   return parts.length > 0 ? parts.join(" | ") : category;
 }
 
+interface NominatimSearchResult {
+  lat: string;
+  lon: string;
+  type?: string;
+  class?: string;
+  display_name?: string;
+  name?: string;
+  namedetails?: { name?: string };
+}
+
 /**
  * Get lat/lon for a destination string using Nominatim (OpenStreetMap geocoder).
  */
@@ -102,7 +112,7 @@ export async function geocodeDestination(
     });
     clearTimeout(timeout);
     if (!res.ok) return null;
-    const data: any[] = await res.json();
+    const data: NominatimSearchResult[] = await res.json();
     if (!data || !data.length) return null;
 
     // Priorizar entidades geográficas reais (cidade, município, país, distrito) sobre lojas de departamento/marcas comerciais (ex: lojas Liverpool no México)
@@ -128,32 +138,85 @@ export interface PlaceSearchResult {
   category?: PlaceCategory | null;
 }
 
+const PHOTO_POOLS: Record<string, string[]> = {
+  museum: [
+    "https://images.unsplash.com/photo-1566127444979-b3d2b654e3d7?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1544967082-d9d25d867d66?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1518998053901-5348d3961a04?auto=format&fit=crop&w=400&q=80",
+  ],
+  park: [
+    "https://images.unsplash.com/photo-1519331379826-f10be5486c6f?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1511497584788-876761c119ef?auto=format&fit=crop&w=400&q=80",
+  ],
+  beach: [
+    "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1506929562872-bb421503ef21?auto=format&fit=crop&w=400&q=80",
+  ],
+  hotel: [
+    "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=400&q=80",
+  ],
+  restaurant: [
+    "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=400&q=80",
+  ],
+  cafe: [
+    "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1442512595331-e89e73853f31?auto=format&fit=crop&w=400&q=80",
+  ],
+  transport: [
+    "https://images.unsplash.com/photo-1543716627-839b54c40519?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=400&q=80",
+  ],
+  general: [
+    "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1503220317375-aaad61436b1b?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=400&q=80",
+  ],
+};
+
+function getStringHash(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
 export function getPlaceCategoryFallbackImage(name: string, category?: string | null): string {
   const lowerName = name.toLowerCase();
+  let poolKey = "general";
 
-  if (lowerName.includes("museum") || lowerName.includes("museu") || lowerName.includes("art") || lowerName.includes("gallery")) {
-    return "https://images.unsplash.com/photo-1566127444979-b3d2b654e3d7?auto=format&fit=crop&w=400&q=80";
-  }
-  if (lowerName.includes("park") || lowerName.includes("parque") || lowerName.includes("garden") || lowerName.includes("jardim")) {
-    return "https://images.unsplash.com/photo-1519331379826-f10be5486c6f?auto=format&fit=crop&w=400&q=80";
-  }
-  if (lowerName.includes("beach") || lowerName.includes("praia") || lowerName.includes("coast")) {
-    return "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=400&q=80";
-  }
-  if (lowerName.includes("hotel") || lowerName.includes("resort") || lowerName.includes("inn")) {
-    return "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=400&q=80";
-  }
-  if (lowerName.includes("cafe") || lowerName.includes("café") || lowerName.includes("coffee")) {
-    return "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=400&q=80";
-  }
-  if (category === "restaurant" || lowerName.includes("resto") || lowerName.includes("burger") || lowerName.includes("bar") || lowerName.includes("pizza") || lowerName.includes("food")) {
-    return "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=400&q=80";
-  }
-  if (category === "transport" || lowerName.includes("station") || lowerName.includes("airport") || lowerName.includes("estação")) {
-    return "https://images.unsplash.com/photo-1543716627-839b54c40519?auto=format&fit=crop&w=400&q=80";
+  if (lowerName.includes("museum") || lowerName.includes("museu") || lowerName.includes("art") || lowerName.includes("galeria") || lowerName.includes("gallery")) {
+    poolKey = "museum";
+  } else if (lowerName.includes("park") || lowerName.includes("parque") || lowerName.includes("garden") || lowerName.includes("jardim") || lowerName.includes("praça")) {
+    poolKey = "park";
+  } else if (category === "beach" || lowerName.includes("beach") || lowerName.includes("praia") || lowerName.includes("coast")) {
+    poolKey = "beach";
+  } else if (category === "hotel" || lowerName.includes("hotel") || lowerName.includes("resort") || lowerName.includes("pousada") || lowerName.includes("inn")) {
+    poolKey = "hotel";
+  } else if (lowerName.includes("cafe") || lowerName.includes("café") || lowerName.includes("coffee") || lowerName.includes("padaria")) {
+    poolKey = "cafe";
+  } else if (category === "restaurant" || lowerName.includes("resto") || lowerName.includes("restaurante") || lowerName.includes("burger") || lowerName.includes("bar") || lowerName.includes("pizza") || lowerName.includes("food")) {
+    poolKey = "restaurant";
+  } else if (category === "transport" || lowerName.includes("station") || lowerName.includes("airport") || lowerName.includes("estação") || lowerName.includes("aeroporto")) {
+    poolKey = "transport";
   }
 
-  return "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=400&q=80";
+  const pool = PHOTO_POOLS[poolKey] || PHOTO_POOLS.general;
+  const hashIndex = getStringHash(name) % pool.length;
+  return pool[hashIndex];
 }
 
 /** Categorias de lugar do roteiro — usadas no filtro de busca e no ícone do pin no mapa. */
@@ -185,6 +248,22 @@ function calculateHaversineDistance(lat1: number, lon1: number, lat2: number, lo
   return R * c;
 }
 
+function extractCleanPlaceName(item: { name?: string; namedetails?: { name?: string }; display_name?: string }): string {
+  if (item.name && typeof item.name === "string" && item.name.trim() && !/^\d+[a-zA-Z]?$/.test(item.name.trim())) {
+    return item.name.trim();
+  }
+  if (item.namedetails?.name && typeof item.namedetails.name === "string" && !/^\d+[a-zA-Z]?$/.test(item.namedetails.name.trim())) {
+    return item.namedetails.name.trim();
+  }
+  const parts = (item.display_name || "").split(",").map((s: string) => s.trim());
+  for (const part of parts) {
+    if (part && !/^\d+[a-zA-Z]?$/.test(part)) {
+      return part;
+    }
+  }
+  return parts[0] || "Lugar";
+}
+
 /**
  * Search places strictly bounded around the trip destination.
  * `near` sets the geographic center of the destination city.
@@ -203,7 +282,7 @@ export async function searchPlaces(
 
     // 1. Se possuímos a coordenada `near` do destino, fazer busca direcionada com bounded=1 e viewbox
     if (near) {
-      const delta = 0.25; // ~25km em torno da cidade de destino
+      const delta = 0.35; // ~35km em torno da cidade de destino
       const minLon = near.lon - delta;
       const maxLon = near.lon + delta;
       const minLat = near.lat - delta;
@@ -211,17 +290,17 @@ export async function searchPlaces(
       const viewbox = `${minLon},${maxLat},${maxLon},${minLat}`;
 
       let nomQuery = cleanQuery;
-      if (category === "restaurant") nomQuery = "restaurant";
-      else if (category === "hotel") nomQuery = "hotel";
-      else if (category === "attraction") nomQuery = "attraction tourism";
-      else if (category === "beach") nomQuery = "beach";
-      else if (category === "transport") nomQuery = "station airport";
+      if (category === "restaurant") nomQuery = cleanQuery.length >= 2 ? cleanQuery : "restaurant";
+      else if (category === "hotel") nomQuery = cleanQuery.length >= 2 ? cleanQuery : "hotel";
+      else if (category === "attraction") nomQuery = cleanQuery.length >= 2 ? cleanQuery : "attraction tourism";
+      else if (category === "beach") nomQuery = cleanQuery.length >= 2 ? cleanQuery : "beach";
+      else if (category === "transport") nomQuery = cleanQuery.length >= 2 ? cleanQuery : "station airport";
 
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 6000);
       const nomUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
         nomQuery
-      )}&viewbox=${viewbox}&bounded=1&format=json&limit=15&addressdetails=1`;
+      )}&viewbox=${viewbox}&bounded=1&format=json&limit=30&addressdetails=1&namedetails=1`;
 
       const nomRes = await fetch(nomUrl, {
         headers: { "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8", "User-Agent": "SeuBolsoInteligente/1.0" },
@@ -230,17 +309,17 @@ export async function searchPlaces(
       clearTimeout(timeout);
 
       if (nomRes.ok) {
-        const nomData: any[] = await nomRes.json();
+        const nomData: NominatimSearchResult[] = await nomRes.json();
         for (const item of nomData) {
           const lat = parseFloat(item.lat);
           const lon = parseFloat(item.lon);
 
-          // Filtro rigoroso: descartar qualquer lugar fora do raio de 45km da cidade de destino
+          // Filtro de distância em relação ao destino
           const distKm = calculateHaversineDistance(near.lat, near.lon, lat, lon);
-          if (distKm > 45) continue;
+          if (distKm > 50) continue;
 
-          const name = item.display_name.split(",")[0].trim();
-          const key = `${name}|${item.display_name}`.toLowerCase();
+          const name = extractCleanPlaceName(item);
+          const key = `${name.toLowerCase()}|${lat.toFixed(3)},${lon.toFixed(3)}`;
           if (!seen.has(key)) {
             seen.add(key);
             results.push({
@@ -256,8 +335,8 @@ export async function searchPlaces(
       }
     }
 
-    // 2. Se a busca por viewbox não for suficiente ou se near não foi passado, usar Photon com validação de distância
-    if (results.length < 5) {
+    // 2. Complementar resultados usando Photon da Komoot
+    {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 6000);
       const url = new URL("https://photon.komoot.io/api/");
@@ -267,7 +346,7 @@ export async function searchPlaces(
           : cleanQuery;
 
       url.searchParams.set("q", fullQuery);
-      url.searchParams.set("limit", "12");
+      url.searchParams.set("limit", "25");
       if (near) {
         url.searchParams.set("lat", String(near.lat));
         url.searchParams.set("lon", String(near.lon));
@@ -287,26 +366,26 @@ export async function searchPlaces(
         for (const f of features) {
           const p = f.properties || {};
           const coords = f.geometry?.coordinates;
-          if (!p.name || !coords) continue;
+          if (!p.name || !coords || /^\d+[a-zA-Z]?$/.test(p.name.trim())) continue;
           const [lon, lat] = coords;
 
-          // SE near FOR INFORMADO, DISCARTAR LUGARES EM OUTROS PAÍSES OU CIDADES DISTANTES (>50km)
           if (near) {
             const distKm = calculateHaversineDistance(near.lat, near.lon, lat, lon);
             if (distKm > 50) continue;
           }
 
           const address = [p.street, p.district, p.city, p.state, p.country].filter(Boolean).join(", ");
-          const key = `${p.name}|${address}`.toLowerCase();
+          const name = p.name.trim();
+          const key = `${name.toLowerCase()}|${lat.toFixed(3)},${lon.toFixed(3)}`;
           if (seen.has(key)) continue;
           seen.add(key);
           results.push({
-            name: p.name,
-            address,
+            name,
+            address: address || name,
             lat,
             lon,
             category,
-            imageUrl: getPlaceCategoryFallbackImage(p.name, category),
+            imageUrl: getPlaceCategoryFallbackImage(name, category),
           });
         }
       }
@@ -465,9 +544,14 @@ async function fetchOverpassPOIs(
   }
   clearTimeout(timeout);
   if (!res || !res.ok) throw new Error(`Overpass error: all mirrors failed`);
-  const data = await res.json();
+  interface OverpassElement {
+    lat?: number;
+    lon?: number;
+    center?: { lat?: number; lon?: number };
+    tags?: Record<string, string>;
+  }
 
-  const elements: any[] = data.elements || [];
+  const elements: OverpassElement[] = data.elements || [];
 
   // Deduplicate by name and map to POI
   const seen = new Set<string>();

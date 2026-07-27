@@ -682,7 +682,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     };
 
     if (editingItem) {
-      updateItem.mutate({ id: editingItem.id, ...contentData });
+      updateItem.mutate({ id: editingItem.id, date, ...contentData });
     } else {
       const dayItemCount = items.filter((item) => item.date === date).length;
       let placeId = selectedPlaceId;
@@ -1286,7 +1286,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
         open={showDialog}
         onOpenChange={setShowDialog}
         isEditing={!!editingItem}
-        dateLocked={!!editingItem}
+        dateLocked={false}
         isLoading={createItem.isPending || updateItem.isPending || isGeocoding}
         date={date}
         setDate={setDate}
@@ -1326,7 +1326,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
       />
 
       {/* Delete confirmation */}
-      <AlertDialog open={!!deletingItem} onOpenChange={() => setDeletingItem(null)}>
+      <AlertDialog open={!!deletingItem} onOpenChange={(open) => !open && setDeletingItem(null)}>
         <AlertDialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-2xl !rounded-b-none sm:!rounded-b-2xl p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
           <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
             <div className="w-12 h-2 bg-muted rounded-full" />
@@ -1338,7 +1338,10 @@ export function TripItinerary({ trip }: TripItineraryProps) {
           <div className="px-6 py-4 flex gap-3 justify-end border-t border-border/50">
             <AlertDialogCancel className="rounded-xl h-11">Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => deletingItem && deleteItem.mutate(deletingItem.id)}
+              onClick={() => {
+                const targetId = deletingItem?.id;
+                if (targetId) deleteItem.mutate(targetId);
+              }}
               className="rounded-xl h-11 bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Excluir
