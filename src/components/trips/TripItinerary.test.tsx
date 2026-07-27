@@ -5,8 +5,8 @@ import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { TripItinerary } from "./TripItinerary";
-import type { Trip } from "@/hooks/useTrips";
-import { reverseGeocode, searchPlaces } from "@/services/overpassService";
+import type { Trip } from "../../hooks/useTrips";
+import { reverseGeocode, searchPlaces } from "../../services/overpassService";
 
 const queryResult = { data: [], error: null };
 const builder = {
@@ -35,8 +35,8 @@ vi.mock("./AITripSuggestions", () => ({
   AITripSuggestions: () => <button type="button">Gerar sugestões</button>,
 }));
 
-vi.mock("@/services/overpassService", async (importOriginal) => {
-  const original = await importOriginal<typeof import("@/services/overpassService")>();
+vi.mock("../../services/overpassService", async (importOriginal) => {
+  const original = await importOriginal<typeof import("../../services/overpassService")>();
   return {
     ...original,
     geocodeDestination: vi.fn(),

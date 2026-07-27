@@ -1427,7 +1427,6 @@ function ItineraryDialog({
   const [placeQuery, setPlaceQuery] = useState("");
   const [placeResults, setPlaceResults] = useState<PlaceSearchResult[]>([]);
   const [isSearchingPlaces, setIsSearchingPlaces] = useState(false);
-  const [placeSearchFinished, setPlaceSearchFinished] = useState(false);
   const [activePlaceIndex, setActivePlaceIndex] = useState(-1);
   const [resolvedPlaceName, setResolvedPlaceName] = useState("");
   const [timeError, setTimeError] = useState("");
@@ -1441,7 +1440,6 @@ function ItineraryDialog({
       mapsResolveRequestId.current += 1;
       setPlaceQuery("");
       setPlaceResults([]);
-      setPlaceSearchFinished(false);
       setActivePlaceIndex(-1);
       setResolvedPlaceName("");
       setTimeError("");
@@ -1454,13 +1452,11 @@ function ItineraryDialog({
 
     if (!effectiveQuery) {
       setPlaceResults([]);
-      setPlaceSearchFinished(false);
       return;
     }
 
     const requestId = ++searchRequestId.current;
     setIsSearchingPlaces(true);
-    setPlaceSearchFinished(false);
     const timer = setTimeout(async () => {
       const results = await searchPlaces(
         effectiveQuery,
@@ -1471,7 +1467,6 @@ function ItineraryDialog({
       if (searchRequestId.current !== requestId) return;
       setPlaceResults(results);
       setIsSearchingPlaces(false);
-      setPlaceSearchFinished(true);
       setActivePlaceIndex(results.length ? 0 : -1);
     }, 300);
     return () => clearTimeout(timer);
