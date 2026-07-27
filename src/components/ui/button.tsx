@@ -47,10 +47,28 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     { className, variant, size, asChild = false, loading = false, children, disabled, ...props },
     ref
   ) => {
-    const Comp = asChild ? Slot : "button";
+    const classes = cn(buttonVariants({ variant, size, className }));
+
+    // Radix Slot exige exatamente um elemento React como filho. Manter o loader
+    // como irmão do conteúdo fazia qualquer Button asChild lançar Children.only.
+    if (asChild) {
+      return (
+        <Slot
+          className={classes}
+          ref={ref}
+          aria-busy={loading || undefined}
+          aria-disabled={disabled || loading || undefined}
+          data-disabled={disabled || loading || undefined}
+          {...props}
+        >
+          {children}
+        </Slot>
+      );
+    }
+
     return (
-      <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+      <button
+        className={classes}
         ref={ref}
         disabled={disabled || loading}
         aria-busy={loading || undefined}
@@ -58,7 +76,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       >
         {loading && <Loader2 className="animate-spin" aria-hidden="true" />}
         {children}
-      </Comp>
+      </button>
     );
   }
 );
