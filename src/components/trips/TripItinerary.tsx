@@ -47,6 +47,7 @@ import {
   Plus,
   Route,
   Search,
+  Share2,
   Trash2,
 } from "lucide-react";
 import { Fragment, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
@@ -806,6 +807,36 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     }));
   }, [groupedItems, items, trip.end_date, trip.start_date, weatherData]);
 
+  const activeWeather = useMemo(() => weatherData[activeDate], [weatherData, activeDate]);
+
+  const handleShareItineraryWhatsApp = () => {
+    const formattedDate = activeDate
+      ? dateFns.format(dateFns.parseISO(activeDate), "EEEE, dd 'de' MMMM", { locale: ptBR })
+      : "";
+    let text = `✈️ *Roteiro de Viagem — ${trip.destination || trip.name}*\n`;
+    text += `📅 *${formattedDate}*\n\n`;
+
+    if (lodgingStop) {
+      text += `🏨 *Hospedagem:* ${lodgingStop.title}\n📍 ${lodgingStop.location || ""}\n\n`;
+    }
+
+    if (activeItems.length === 0) {
+      text += `_Nenhuma atividade cadastrada para este dia._\n`;
+    } else {
+      text += `📌 *Programação do Dia (${activeItems.length} paradas):*\n`;
+      activeItems.forEach((item, idx) => {
+        const timeStr = item.start_time ? `[${item.start_time}${item.end_time ? ` - ${item.end_time}` : ""}] ` : "";
+        text += `\n${idx + 1}. *${item.title}*\n   ${timeStr}${item.location || ""}\n`;
+        if (item.maps_url) {
+          text += `   🗺️ ${item.maps_url}\n`;
+        }
+      });
+    }
+
+    const shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+    window.open(shareUrl, "_blank");
+  };
+
   useEffect(() => {
     if (plannerDays.length === 0) return;
     if (!plannerDays.some((day) => day.date === activeDate)) {
@@ -997,6 +1028,18 @@ export function TripItinerary({ trip }: TripItineraryProps) {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
+              {activeWeather && (
+                <span
+                  className="inline-flex items-center gap-1.5 rounded-full border border-sky-500/30 bg-sky-500/10 px-3 py-1 text-xs font-semibold text-sky-900 dark:text-sky-200"
+                  title={`Previsão para ${activeDate}: ${activeWeather.description}`}
+                >
+                  <span className="text-sm">{activeWeather.icon}</span>
+                  <span>
+                    {activeWeather.description} ({Math.round(activeWeather.minTemp)}°C a {Math.round(activeWeather.maxTemp)}°C)
+                    {activeWeather.precipitationProb ? ` • 🌧️ ${activeWeather.precipitationProb}%` : ""}
+                  </span>
+                </span>
+              )}
               {lodgingStop ? (
                 <span
                   className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/35 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-900 dark:text-amber-200"
@@ -1020,6 +1063,17 @@ export function TripItinerary({ trip }: TripItineraryProps) {
               <span className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-muted/40 px-3 py-1 text-xs font-semibold text-foreground">
                 {activeItems.length} {activeItems.length === 1 ? "parada" : "paradas"}
               </span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="min-h-9 px-3 text-xs border-emerald-500/40 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-500/10 font-semibold"
+                onClick={handleShareItineraryWhatsApp}
+                title="Enviar resumo do roteiro formatado para o WhatsApp"
+              >
+                <Share2 className="mr-1.5 h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+                Compartilhar Roteiro
+              </Button>
               {activeItems.length > 0 && (
                 <Button asChild variant="outline" size="sm" className="min-h-9 px-3 text-xs text-primary hover:text-primary">
                   <a
