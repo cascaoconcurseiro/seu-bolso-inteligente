@@ -5,7 +5,10 @@ import { moneyUtils } from "@/utils/money";
 import { parseLocalDate } from "@/utils/dateUtils";
 import { useTripFinancialSummary } from "@/hooks/useTrips";
 import { Progress } from "@/components/ui/progress";
-import { getFastDestinationCoverImage } from "@/services/destinationImageService";
+import {
+  getFastDestinationCoverImage,
+  getTripCoverImage,
+} from "@/services/destinationImageService";
 
 interface Trip {
   id: string;
@@ -62,7 +65,7 @@ export function TripCard({ trip, onClick }: TripCardProps) {
   const detailsId = `trip-${trip.id}-details`;
   const actionId = `trip-${trip.id}-action`;
 
-  const coverImage = trip.cover_image || getFastDestinationCoverImage(trip.destination || trip.name);
+  const coverImage = getTripCoverImage(trip.cover_image, trip.destination || trip.name);
 
   return (
     <article className="group relative w-full overflow-hidden rounded-2xl text-left hover:shadow-lg hover:shadow-primary/10 motion-safe:transition-all motion-safe:duration-500 motion-safe:hover:scale-[1.02] border border-border/60 bg-white dark:bg-card shadow-sm focus-within:ring-2 focus-within:ring-ring">
@@ -83,12 +86,16 @@ export function TripCard({ trip, onClick }: TripCardProps) {
             src={coverImage}
             alt={trip.destination || trip.name}
             loading="lazy"
+            onError={(e) => {
+              const target = e.currentTarget;
+              target.src = getFastDestinationCoverImage(trip.destination || trip.name);
+            }}
             className="h-full w-full object-cover transition-transform duration-500 motion-safe:group-hover:scale-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
           {trip.destination && (
-            <span className="absolute bottom-3 left-5 inline-flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
-              <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
+            <span className="absolute bottom-3 left-5 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/60 px-3 py-1 text-xs font-semibold text-white backdrop-blur-md">
+              <MapPin className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
               {trip.destination}
             </span>
           )}

@@ -95,6 +95,25 @@ interface NominatimSearchResult {
   namedetails?: { name?: string };
 }
 
+const CITY_ALIASES: Record<string, string> = {
+  madri: "Madrid, Espanha",
+  madrid: "Madrid, Espanha",
+  londres: "London, UK",
+  liverpool: "Liverpool, UK",
+  "nova york": "New York, USA",
+  "nova iorque": "New York, USA",
+  toquio: "Tokyo, Japan",
+  roma: "Rome, Italy",
+  paris: "Paris, France",
+  lisboa: "Lisbon, Portugal",
+  porto: "Porto, Portugal",
+  berlim: "Berlin, Germany",
+  gramado: "Gramado, RS, Brasil",
+  rio: "Rio de Janeiro, Brasil",
+  "rio de janeiro": "Rio de Janeiro, Brasil",
+  "sao paulo": "Sao Paulo, SP, Brasil",
+};
+
 /**
  * Obtém latitude e longitude do destino da viagem usando o Nominatim (OSM).
  * Prioriza cidades principais, capitais e municípios de alta importância,
@@ -105,12 +124,18 @@ export async function geocodeDestination(
 ): Promise<{ lat: number; lon: number } | null> {
   if (!destination || !destination.trim()) return null;
   const cleanDest = destination.trim();
+  const normalizedKey = cleanDest
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+  const searchQuery = CITY_ALIASES[normalizedKey] || cleanDest;
 
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 6000);
     const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-      cleanDest
+      searchQuery
     )}&format=json&limit=10&addressdetails=1`;
 
     const res = await fetch(url, {
@@ -125,17 +150,10 @@ export async function geocodeDestination(
     const data: NominatimSearchResult[] = await res.json();
     if (!data || !data.length) return null;
 
-    // Ordenar resultados por relevância geográfica (cidade/capital vs vila/loja) + importância
+    // Ordenar resultados por relevância geográfica e importância (maior importância = cidade principal)
     const sorted = [...data].sort((a, b) => {
       const impA = a.importance ?? 0;
       const impB = b.importance ?? 0;
-
-      const majorTypes = ["city", "town", "administrative", "municipality", "capital", "country", "state"];
-      const isMajorA = majorTypes.includes(a.type || a.addresstype || "") && a.type !== "village";
-      const isMajorB = majorTypes.includes(b.type || b.addresstype || "") && b.type !== "village";
-
-      if (isMajorA && !isMajorB) return -1;
-      if (!isMajorA && isMajorB) return 1;
       return impB - impA;
     });
 

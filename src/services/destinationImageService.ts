@@ -84,6 +84,35 @@ export async function fetchDestinationCoverImage(destinationName: string): Promi
 }
 
 /**
+ * Valida se uma string e uma URL de imagem legitima (comeca com http, https, etc).
+ * Ignora textos simples salvos por engano no banco (ex: "Liverpool, UK").
+ */
+export function isValidImageUrl(url: string | null | undefined): boolean {
+  if (!url || typeof url !== "string") return false;
+  const trimmed = url.trim();
+  return (
+    trimmed.startsWith("http://") ||
+    trimmed.startsWith("https://") ||
+    trimmed.startsWith("data:image/") ||
+    trimmed.startsWith("/")
+  );
+}
+
+/**
+ * Retorna a URL final da capa. Se `coverImage` for invalida ou nula,
+ * calcula automaticamente a foto estatica/dinamica do destino.
+ */
+export function getTripCoverImage(
+  coverImage: string | null | undefined,
+  destinationName: string | null | undefined
+): string {
+  if (isValidImageUrl(coverImage)) {
+    return coverImage!.trim();
+  }
+  return getFastDestinationCoverImage(destinationName);
+}
+
+/**
  * Retorna uma URL de imagem de capa imediata para o destino.
  */
 export function getFastDestinationCoverImage(destinationName: string | null | undefined): string {
