@@ -9,12 +9,8 @@ import {
   Save,
   Search,
   Sparkles,
-  Star,
   Tag,
-  X,
 } from "lucide-react";
-import * as dateFns from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -33,7 +29,7 @@ import {
   type PlaceSearchResult,
 } from "@/services/overpassService";
 import { fetchNearbyWikipediaPlace } from "@/services/wikipediaPlaceService";
-import { motion } from "@/utils/motion-stub";
+import { motion } from "framer-motion";
 
 interface ItineraryStopEditDialogProps {
   open: boolean;

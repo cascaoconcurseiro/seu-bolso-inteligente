@@ -8,6 +8,7 @@ import {
   Globe,
   GripVertical,
   MapPin,
+  Navigation as NavigationIcon,
   Pencil,
   Phone,
   Star,
@@ -252,7 +253,7 @@ export function ItineraryStopCard({
               className="inline-flex min-h-9 items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/5 px-3 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/15 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-label={`Como chegar em ${stop.title} no Google Maps`}
             >
-              <Navigation className="h-3.5 w-3.5" aria-hidden="true" />
+              <NavigationIcon className="h-3.5 w-3.5" aria-hidden="true" />
               🚗 Como Chegar
             </a>
             {meta.rating !== null && (

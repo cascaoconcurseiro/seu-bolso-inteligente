@@ -1,4 +1,4 @@
-import { ExternalLink, MapPin, Maximize2, Navigation } from "lucide-react";
+import { ExternalLink, MapPin, Maximize2, Navigation as NavigationIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { ItineraryStop } from "./types";
@@ -174,7 +174,7 @@ export function ItineraryMapEmbed({
           {mapped.length >= 2 ? (
             <>
               <span className="inline-flex items-center gap-1.5 text-foreground">
-                <Navigation className="h-3.5 w-3.5" aria-hidden="true" />
+                <NavigationIcon className="h-3.5 w-3.5" aria-hidden="true" />
                 <strong>~{totalKmEstimate.toFixed(1)} km</strong>
               </span>
               <span>≈ {totalMinEstimate} min de carro</span>

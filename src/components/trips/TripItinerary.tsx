@@ -41,7 +41,7 @@ import {
   ExternalLink,
   Layers3,
   MapPin,
-  Navigation,
+  Navigation as NavigationIcon,
   Pencil,
   Plus,
   Route,
@@ -134,9 +134,6 @@ export function TripItinerary({ trip }: TripItineraryProps) {
   const [focusedItemId, setFocusedItemId] = useState<string | null>(null);
   const [category, setCategory] = useState<PlaceCategory | null>(null);
   const [activeDate, setActiveDate] = useState(trip.start_date);
-  const [mapScope, setMapScope] = useState<"day" | "all">("day");
-  const [mobileView, setMobileView] = useState<"map" | "list">("map");
-  const [adjustLocations, setAdjustLocations] = useState(false);
   const [liveMessage, setLiveMessage] = useState("");
   const [itineraryOrderVersion, setItineraryOrderVersion] = useState(trip.itinerary_order_version);
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
@@ -257,28 +254,6 @@ export function TripItinerary({ trip }: TripItineraryProps) {
       const driveMin = Math.max(5, Math.round(dist * 2.5));
       return `🚗 ${driveMin} min de carro (${dist.toFixed(1)} km)`;
     }
-  };
-
-  // Helper: gera rota com múltiplos pontos para abrir no Google Maps
-  const getGoogleMapsDayRouteUrl = (dayItems: ItineraryItem[], destinationName?: string): string => {
-    const mapped = dayItems.filter((i) => i.latitude !== null && i.longitude !== null);
-    if (mapped.length === 0) {
-      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destinationName || "Liverpool, UK")}`;
-    }
-    if (mapped.length === 1) {
-      const item = mapped[0];
-      return `https://www.google.com/maps/search/?api=1&query=${item.latitude},${item.longitude}`;
-    }
-    const origin = `${mapped[0].latitude},${mapped[0].longitude}`;
-    const dest = `${mapped[mapped.length - 1].latitude},${mapped[mapped.length - 1].longitude}`;
-    const waypoints = mapped
-      .slice(1, -1)
-      .map((i) => `${i.latitude},${i.longitude}`)
-      .join("|");
-
-    return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}${
-      waypoints ? `&waypoints=${waypoints}` : ""
-    }&travelmode=driving`;
   };
 
   // Helper: extrai metadados embedados no description (mapsUrl, rating)
@@ -564,28 +539,6 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     }
   };
 
-  // Toque no mapa → abre dialog de nova atividade com pin já posicionado
-  const handleMapPick = async (pick: { lat: number; lon: number }) => {
-    setEditingItem(null);
-    resetForm();
-    setDate(activeDate || trip.start_date || dateFns.format(new Date(), "yyyy-MM-dd"));
-    setLatitude(pick.lat);
-    setLongitude(pick.lon);
-    setShowDialog(true);
-    // Descobre o nome do lugar em segundo plano
-    const place = await reverseGeocode(pick.lat, pick.lon);
-    if (place) {
-      setLocation(place.name);
-      setTitle((current) => current || place.name);
-    }
-  };
-
-  const handleMarkerMove = (id: string, lat: number, lon: number) => {
-    moveItem.mutate({ id, latitude: lat, longitude: lon });
-  };
-
-
-
   const resetForm = () => {
     setDate("");
     setTitle("");
@@ -839,7 +792,6 @@ export function TripItinerary({ trip }: TripItineraryProps) {
   }, [activeDate, plannerDays]);
 
   const activeItems = groupedItems[activeDate] ?? [];
-  const mapItems = mapScope === "all" ? items : activeItems;
   const dayOptions = plannerDays.map(({ date: dayDate, label }) => ({
     date: dayDate,
     label,
@@ -985,7 +937,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <Navigation className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
+                    <NavigationIcon className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
                     Abrir Rota no Google Maps
                   </a>
                 </Button>
