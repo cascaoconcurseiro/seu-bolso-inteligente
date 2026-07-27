@@ -733,13 +733,13 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     );
     const targetDates = rangeDays.length > 0 ? rangeDays.map((d) => d.date) : [data.checkInDate];
 
-    let createdCount = 0;
-    for (const d of targetDates) {
-      const existingInDay = items.filter((item) => item.date === d);
-      await createItem.mutateAsync({
+    // Inserção em lote (Bulk Insert) única e atômica no banco de dados
+    const newItems = targetDates.map((d) => {
+      const existingInDayCount = items.filter((item) => item.date === d).length;
+      return {
         trip_id: tripId,
         date: d,
-        order_index: existingInDay.length,
+        order_index: existingInDayCount,
         title: data.title,
         location: data.location || data.title,
         latitude: data.latitude,
@@ -755,12 +755,21 @@ export function TripItinerary({ trip }: TripItineraryProps) {
         transport_mode: null,
         start_time: null,
         end_time: null,
-      });
-      createdCount++;
+      };
+    });
+
+    const { error } = await supabase.from("trip_itinerary").insert(newItems);
+
+    if (error) {
+      toast.error("Erro ao salvar hospedagem no banco de dados", { description: error.message });
+      return;
     }
 
+    // Invalidação única sem race condition
+    queryClient.invalidateQueries({ queryKey: ["trip-itinerary", tripId] });
+
     toast.success(`Hospedagem "${data.title}" cadastrada!`, {
-      description: `Ativa para ${createdCount} ${createdCount === 1 ? "dia" : "dias"} da viagem. Busca por locais próximos ativada!`,
+      description: `Ativa para ${targetDates.length} ${targetDates.length === 1 ? "dia" : "dias"} da viagem. Busca por locais próximos ativada!`,
     });
   };
 
