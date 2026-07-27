@@ -1149,19 +1149,6 @@ export function TripItinerary({ trip }: TripItineraryProps) {
               return acc + (km <= 1.5 ? Math.max(3, Math.round(km * 12)) : Math.max(5, Math.round(km * 2.5)));
             }, 0)}
           />
-
-          <TripRouteMap
-            items={mapItems}
-            fallbackCenter={destCoords ?? null}
-            onMapPick={handleMapPick}
-            onMarkerMove={adjustLocations ? handleMarkerMove : undefined}
-            focusedId={focusedItemId}
-            activeDateLabel={
-              activeDate
-                ? dateFns.format(dateFns.parseISO(activeDate), "dd 'de' MMMM", { locale: ptBR })
-                : undefined
-            }
-          />
         </main>
 
         <aside className="hidden min-w-0 space-y-4 xl:block" aria-label="Adicionar lugares">
