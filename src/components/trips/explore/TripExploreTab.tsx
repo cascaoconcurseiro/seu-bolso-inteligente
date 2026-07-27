@@ -16,8 +16,9 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
-import { searchPlaces, type PlaceCategory, type PlaceSearchResult } from "@/services/overpassService";
 import type { Trip } from "@/hooks/useTrips";
+import { searchPlaces, type PlaceCategory, type PlaceSearchResult } from "@/services/overpassService";
+import { appendDiscoveredPlaceToItinerary } from "@/services/tripItineraryAppendService";
 import {
   MORE_PLACE_PRESETS,
   QUICK_PLACE_PRESETS,
@@ -110,7 +111,7 @@ export function TripExploreTab({ trip }: TripExploreTabProps) {
           effectiveQuery,
           center,
           category,
-          trip.destination || trip.name
+          centerSource === "destination" ? trip.destination || trip.name : undefined
         );
         if (current !== requestId.current) return;
         const sorted = [...results].sort(
@@ -130,7 +131,7 @@ export function TripExploreTab({ trip }: TripExploreTabProps) {
     }, 420);
 
     return () => window.clearTimeout(timer);
-  }, [category, center, effectiveQuery, trip.destination, trip.name]);
+  }, [category, center, centerSource, effectiveQuery, trip.destination, trip.name]);
 
   const choosePreset = (item: PlaceDiscoveryPreset) => {
     setPreset((current) => (current?.id === item.id ? null : item));
@@ -210,57 +211,20 @@ export function TripExploreTab({ trip }: TripExploreTabProps) {
     const key = `${place.lat}-${place.lon}-add`;
     setSavingKey(key);
     try {
-      const { data: auth } = await supabase.auth.getUser();
-      if (!auth.user) throw new Error("Sessão expirada");
       const osmUrl = buildOsmUrl(place.lat, place.lon);
       const resolvedCategory = (place.category ?? category ?? null) as PlaceCategory | null;
-      const { data: savedPlace, error: placeError } = await supabase
-        .from("trip_places")
-        .insert({
-          trip_id: trip.id,
-          created_by: auth.user.id,
-          name: place.name,
-          description: null,
-          address: place.address || null,
-          maps_url: osmUrl,
-          latitude: place.lat,
-          longitude: place.lon,
-          category: resolvedCategory,
-          source_type: "osm",
-          source_url: osmUrl,
-          source_attribution: "© OpenStreetMap contributors",
-          status: "want",
-        })
-        .select("id")
-        .single();
-      if (placeError) throw placeError;
 
-      const { count, error: countError } = await supabase
-        .from("trip_itinerary")
-        .select("id", { count: "exact", head: true })
-        .eq("trip_id", trip.id)
-        .eq("date", activeDate);
-      if (countError) throw countError;
-
-      const { error: itineraryError } = await supabase.from("trip_itinerary").insert({
-        trip_id: trip.id,
+      await appendDiscoveredPlaceToItinerary({
+        tripId: trip.id,
         date: activeDate,
-        title: place.name,
-        description: null,
-        location: place.address || null,
-        start_time: null,
-        end_time: null,
-        order_index: count ?? 0,
-        maps_url: osmUrl,
+        name: place.name,
+        address: place.address || null,
+        mapsUrl: osmUrl,
         latitude: place.lat,
         longitude: place.lon,
         category: resolvedCategory,
-        place_id: savedPlace.id,
-        reservation_id: null,
-        duration_minutes: null,
-        transport_mode: null,
       });
-      if (itineraryError) throw itineraryError;
+
       toast.success("Lugar adicionado ao roteiro", {
         description: format(parseISO(activeDate), "dd 'de' MMMM", { locale: ptBR }),
       });
@@ -488,6 +452,16 @@ export function TripExploreTab({ trip }: TripExploreTabProps) {
                       : "border-border hover:bg-muted/35"
                   }`}
                   onClick={() => setSelectedIndex(index)}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={active}
+                  onKeyDown={(event) => {
+                    if (event.currentTarget !== event.target) return;
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      setSelectedIndex(index);
+                    }
+                  }}
                 >
                   <div className="flex gap-3">
                     <img
