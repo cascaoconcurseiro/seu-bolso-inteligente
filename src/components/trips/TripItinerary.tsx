@@ -39,6 +39,7 @@ import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   ExternalLink,
+  Hotel,
   Layers3,
   MapPin,
   Navigation as NavigationIcon,
@@ -764,7 +765,55 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     }
   }, [activeDate, plannerDays]);
 
-  const activeItems = groupedItems[activeDate] ?? [];
+  const activeItems = useMemo(
+    () => groupedItems[activeDate] ?? [],
+    [groupedItems, activeDate]
+  );
+
+  // Identifica a hospedagem (Hotel, Pousada, Airbnb, etc.) da viagem ou do dia
+  const lodgingStop = useMemo(() => {
+    const isLodgingText = (cat?: string | null, title?: string, loc?: string | null) => {
+      const text = `${cat || ""} ${title || ""} ${loc || ""}`.toLowerCase();
+      return (
+        cat === "hotel" ||
+        cat === "accommodation" ||
+        text.includes("hotel") ||
+        text.includes("pousada") ||
+        text.includes("airbnb") ||
+        text.includes("resort") ||
+        text.includes("hostel") ||
+        text.includes("hospedagem") ||
+        text.includes("chale") ||
+        text.includes("chalé") ||
+        text.includes("flat") ||
+        text.includes("apartamento")
+      );
+    };
+
+    // Tenta primeiro encontrar uma hospedagem no dia ativo com coordenadas
+    const activeLodging = activeItems.find(
+      (item) => isLodgingText(item.category, item.title, item.location) && item.latitude !== null && item.longitude !== null
+    );
+    if (activeLodging) return activeLodging;
+
+    // Senão busca em toda a viagem
+    const anyLodging = items.find(
+      (item) => isLodgingText(item.category, item.title, item.location) && item.latitude !== null && item.longitude !== null
+    );
+    return anyLodging || null;
+  }, [activeItems, items]);
+
+  const lodgingCoords = useMemo(() => {
+    if (lodgingStop && lodgingStop.latitude !== null && lodgingStop.longitude !== null) {
+      return { lat: lodgingStop.latitude, lon: lodgingStop.longitude };
+    }
+    return null;
+  }, [lodgingStop]);
+
+  const searchNearCoords = useMemo(() => {
+    return lodgingCoords || destCoords;
+  }, [lodgingCoords, destCoords]);
+
   const dayOptions = plannerDays.map(({ date: dayDate, label }) => ({
     date: dayDate,
     label,
@@ -900,6 +949,32 @@ export function TripItinerary({ trip }: TripItineraryProps) {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
+              {lodgingStop ? (
+                <span
+                  className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/35 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-900 dark:text-amber-200"
+                  title={`Busca de lugares focada ao redor de ${lodgingStop.title}`}
+                >
+                  <Hotel className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+                  Hospedagem: {lodgingStop.title}
+                </span>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="min-h-9 px-3 text-xs border-amber-500/40 text-amber-800 dark:text-amber-300 hover:bg-amber-500/10"
+                  onClick={() => {
+                    setEditingItem(null);
+                    resetForm();
+                    setCategory("hotel");
+                    setTitle("Hotel / Hospedagem");
+                    setShowDialog(true);
+                  }}
+                >
+                  <Hotel className="mr-1.5 h-3.5 w-3.5 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+                  + Adicionar Hotel
+                </Button>
+              )}
               <span className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-muted/40 px-3 py-1 text-xs font-semibold text-foreground">
                 {activeItems.length} {activeItems.length === 1 ? "parada" : "paradas"}
               </span>
@@ -1176,8 +1251,10 @@ export function TripItinerary({ trip }: TripItineraryProps) {
       <PlaceDiscoveryDialog
         open={showPlaceDialog}
         onOpenChange={setShowPlaceDialog}
-        searchNear={destCoords}
+        searchNear={searchNearCoords}
         destinationName={trip.destination || trip.name}
+        lodgingName={lodgingStop?.title}
+        lodgingCoords={lodgingCoords}
         isSaving={isSavingPlace}
         onSave={handleSaveDiscoveredPlace}
         onAddToDay={handleAddDiscoveredPlaceToDay}

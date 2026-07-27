@@ -36,6 +36,8 @@ interface PlaceDiscoveryDialogProps {
   onOpenChange: (open: boolean) => void;
   searchNear: { lat: number; lon: number } | null;
   destinationName?: string;
+  lodgingName?: string | null;
+  lodgingCoords?: { lat: number; lon: number } | null;
   isSaving: boolean;
   onSave: (place: DiscoveredPlace) => void;
   onAddToDay: (place: DiscoveredPlace) => void;
@@ -46,6 +48,8 @@ export function PlaceDiscoveryDialog({
   onOpenChange,
   searchNear,
   destinationName,
+  lodgingName,
+  lodgingCoords,
   isSaving,
   onSave,
   onAddToDay,
@@ -225,6 +229,8 @@ export function PlaceDiscoveryDialog({
               results={results}
               selected={selected}
               onChoose={choosePlace}
+              lodgingName={lodgingName}
+              lodgingCoords={lodgingCoords}
             />
           </div>
 
