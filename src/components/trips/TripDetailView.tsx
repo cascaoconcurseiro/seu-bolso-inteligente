@@ -1,4 +1,4 @@
-import { TrendingUp, DollarSign, Route, ListChecks, BookOpen } from "lucide-react";
+import { TrendingUp, DollarSign, Route, ListChecks, BookOpen, Compass } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TripDetailHeader } from "@/components/trips/TripDetailHeader";
 import { TripDetailSummary } from "@/components/trips/TripDetailSummary";
@@ -9,6 +9,7 @@ import { TripExchange } from "@/components/trips/TripExchange";
 import { TripChecklist } from "@/components/trips/TripChecklist";
 import { TripBagTracker } from "@/components/trips/TripBagTracker";
 import { TripJournalTab } from "@/components/trips/TripJournalTab";
+import { TripWeatherBrief } from "@/components/trips/TripWeatherBrief";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import type { TripParticipant, TripUpdateInput } from "@/hooks/useTrips";
 import type { SentTripInvitation, TripBalance, TripDetailData } from "./types";
@@ -17,6 +18,12 @@ import { lazy, Suspense } from "react";
 const TripItinerary = lazy(() =>
   import("@/components/trips/TripItinerary").then((module) => ({
     default: module.TripItinerary,
+  }))
+);
+
+const TripExploreTab = lazy(() =>
+  import("@/components/trips/explore/TripExploreTab").then((module) => ({
+    default: module.TripExploreTab,
   }))
 );
 
@@ -96,13 +103,15 @@ export function TripDetailView({
   const primaryTab =
     activeTab === "itinerary"
       ? "planner"
-      : activeTab === "expenses" || activeTab === "exchange"
-        ? "expenses"
-        : activeTab === "shopping" || activeTab === "checklist" || activeTab === "preparation" || activeTab === "bags"
-          ? "preparation"
-          : activeTab === "journal"
-            ? "journal"
-            : "summary";
+      : activeTab === "explore"
+        ? "explore"
+        : activeTab === "expenses" || activeTab === "exchange"
+          ? "expenses"
+          : activeTab === "shopping" || activeTab === "checklist" || activeTab === "preparation" || activeTab === "bags"
+            ? "preparation"
+            : activeTab === "journal"
+              ? "journal"
+              : "summary";
 
   return (
     <div className="space-y-6 animate-fade-in pb-20">
@@ -149,6 +158,15 @@ export function TripDetailView({
               </div>
             </TabsTrigger>
             <TabsTrigger
+              value="explore"
+              className="shrink-0 snap-start rounded-xl py-3 px-5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300 hover:bg-muted/50"
+            >
+              <div className="flex items-center gap-2">
+                <Compass className="h-4 w-4" />
+                <span className="font-bold uppercase tracking-widest text-sm">Explorar</span>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger
               value="journal"
               className="shrink-0 snap-start rounded-xl py-3 px-5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300 hover:bg-muted/50"
             >
@@ -191,6 +209,7 @@ export function TripDetailView({
               currency={trip.currency}
               formatCurrency={formatCurrency}
             />
+            <TripWeatherBrief trip={trip} />
             <TripSummaryTab
               selectedTrip={trip}
               myTotalSpent={myTotalSpent}
@@ -220,6 +239,20 @@ export function TripDetailView({
             }
           >
             <TripItinerary trip={trip} />
+          </Suspense>
+        </TabsContent>
+        <TabsContent value="explore">
+          <Suspense
+            fallback={
+              <div
+                className="grid min-h-[420px] place-items-center rounded-2xl border border-border bg-muted/30 text-sm text-muted-foreground"
+                role="status"
+              >
+                Preparando busca de lugares…
+              </div>
+            }
+          >
+            <TripExploreTab trip={trip} />
           </Suspense>
         </TabsContent>
         <TabsContent value="journal">
