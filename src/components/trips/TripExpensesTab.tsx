@@ -25,7 +25,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { moneyUtils } from "@/utils/money";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import type { Trip, TripParticipant } from "@/hooks/useTrips";
-import type { TripBalance, TripTransaction, TripTransactionSplit, TripUser } from "./types";
+import type { TripBalance, TripTransaction, TripUser } from "./types";
 
 interface TripExpensesTabProps {
   tripTransactions: TripTransaction[];

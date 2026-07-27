@@ -132,7 +132,7 @@ export function ExchangePurchaseDialog({
 
             {/* Cálculo em tempo real */}
             {exchangeRateNum > 0 && (
-              <div className="p-4 rounded-xl bg-muted/50 border border-primary/20 bg-primary/5">
+              <div className="p-4 rounded-xl border border-primary/20 bg-primary/5">
                 <div className="flex justify-between text-sm items-center">
                   <span className="text-muted-foreground font-medium">Taxa Efetiva:</span>
                   <span className="font-mono font-bold text-base text-primary">
