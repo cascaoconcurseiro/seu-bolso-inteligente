@@ -96,12 +96,12 @@ export function TripDetailView({
           <TabsList className="w-full h-auto flex overflow-x-auto snap-x hide-scrollbar bg-card/60 backdrop-blur-md rounded-3xl shadow-inner border border-border/40 p-2 gap-2 justify-start relative z-10">
             {[
               ["summary", TrendingUp, "Resumo"],
-              ["planner", Route, "Planejar"],
-              ["explore", Compass, "Explorar"],
-              ["community", UsersRound, "Comunidade"],
-              ["journal", BookOpen, "Diário"],
               ["expenses", DollarSign, "Gastos"],
+              ["planner", Route, "Roteiro"],
+              ["explore", Compass, "Explorar"],
               ["preparation", ListChecks, "Preparar"],
+              ["journal", BookOpen, "Diário"],
+              ["community", UsersRound, "Comunidade"],
             ].map(([value, Icon, label]) => (
               <TabsTrigger key={value as string} value={value as string} className="shrink-0 snap-start rounded-xl py-3 px-5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300 hover:bg-muted/50">
                 <div className="flex items-center gap-2">
