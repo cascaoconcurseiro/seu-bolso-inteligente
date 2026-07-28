@@ -8,7 +8,7 @@ import type { TransactionSplit } from "@/services/settlementValidation";
 export interface SplitInput {
   member_id: string;
   percentage: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -112,7 +112,7 @@ export const calculateSharedDisplayDate = (
   competenceDate: string | null,
   accountId: string | null,
   accounts: DBAccount[],
-  family?: any
+  _family?: unknown
 ): string => {
   if (!competenceDate) {
     return transactionDate;
@@ -161,10 +161,17 @@ export const generateInvoices = (
   transactions: DBTransaction[],
   accounts: DBAccount[],
   paidByOthersTransactions: DBTransaction[],
-  members: Record<string, any>[],
+  members: Array<{
+    id: string;
+    name: string;
+    linked_user_id: string | null;
+    avatar_url?: string | null;
+    avatar_color?: string | null;
+    avatar_icon?: string | null;
+  }>,
   userId: string | undefined,
-  profile?: any,
-  family?: any
+  _profile?: unknown,
+  _family?: unknown
 ): Record<string, InvoiceItem[]> => {
   const invoiceMap: Record<string, InvoiceItem[]> = {};
   const processedTxIds = new Set<string>();
@@ -212,7 +219,7 @@ export const generateInvoices = (
           tx.competence_date,
           tx.account_id,
           accounts,
-          family
+          _family
         );
 
         invoiceMap[memberId].push({
@@ -269,7 +276,7 @@ export const generateInvoices = (
               tx.competence_date,
               tx.account_id,
               accounts,
-              family
+              _family
             );
 
             invoiceMap[creatorMember.id].push({
@@ -329,7 +336,7 @@ export const generateInvoices = (
       tx.competence_date,
       tx.account_id,
       accounts,
-      family
+      _family
     );
 
     invoiceMap[targetMemberId].push({
@@ -386,7 +393,7 @@ export const generateInvoices = (
             tx.competence_date,
             tx.account_id,
             accounts,
-            family
+            _family
           );
           if (!invoiceMap[targetMemberId]) invoiceMap[targetMemberId] = [];
 
@@ -430,7 +437,7 @@ export const generateInvoices = (
               tx.competence_date,
               tx.account_id,
               accounts,
-              family
+              _family
             );
             if (!invoiceMap[creatorMember.id]) invoiceMap[creatorMember.id] = [];
 
@@ -484,7 +491,7 @@ export const generateInvoices = (
             tx.competence_date,
             tx.account_id,
             accounts,
-            family
+            _family
           );
           if (!invoiceMap[targetMemberId]) invoiceMap[targetMemberId] = [];
 

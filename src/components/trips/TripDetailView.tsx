@@ -1,4 +1,4 @@
-import { TrendingUp, DollarSign, Route, ListChecks, BookOpen, Compass, UsersRound } from "lucide-react";
+import { TrendingUp, DollarSign, Route, ListChecks, BookOpen, UsersRound } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TripDetailHeader } from "@/components/trips/TripDetailHeader";
 import { TripDetailSummary } from "@/components/trips/TripDetailSummary";

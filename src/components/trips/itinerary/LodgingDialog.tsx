@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import {
   Hotel,
-  MapPin,
   Search,
   CheckCircle2,
   Calendar,

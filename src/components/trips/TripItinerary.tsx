@@ -1659,55 +1659,58 @@ function ItineraryDialog({
               />
             </div>
 
-            {/* Local + Categoria com sugestões automáticas do destino */}
-            <div className="space-y-2 rounded-xl border border-border/60 bg-muted/20 p-3">
-              <Label htmlFor="itinerary-location" className="text-xs font-semibold text-foreground">Buscar local</Label>
-
-              {/* Categoria — ativa busca direta das melhores atrações/restaurantes do destino */}
-              <div className="flex flex-wrap gap-1.5" role="group" aria-label="Sugestões por categoria">
-                {PLACE_CATEGORIES.map((cat) => {
-                  const isSelected = category === cat.id;
-                  return (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => {
-                        const nextCat = isSelected ? null : cat.id;
-                        setCategory(nextCat);
-                      }}
-                      aria-pressed={isSelected}
-                      className={`rounded-full px-3 py-1 text-xs font-medium border transition-all ${
-                        isSelected
-                          ? "text-white shadow-sm"
-                          : "border-border/80 bg-background text-foreground hover:bg-accent"
-                      }`}
-                      style={
-                        isSelected
-                          ? { backgroundColor: cat.color, borderColor: cat.color }
-                          : undefined
-                      }
-                    >
-                      {cat.label}
-                    </button>
-                  );
-                })}
+            {/* Classificação e Endereço do Local */}
+            <div className="space-y-3 rounded-xl border border-border/60 bg-muted/20 p-3">
+              {/* Categoria / Tipo de Atração */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-foreground">Tipo de atração</Label>
+                <div className="flex flex-wrap gap-1.5" role="group" aria-label="Classificar tipo de atração">
+                  {PLACE_CATEGORIES.map((cat) => {
+                    const isSelected = category === cat.id;
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => {
+                          const nextCat = isSelected ? null : cat.id;
+                          setCategory(nextCat);
+                        }}
+                        aria-pressed={isSelected}
+                        className={`rounded-full px-3 py-1 text-xs font-medium border transition-all ${
+                          isSelected
+                            ? "text-white shadow-sm"
+                            : "border-border/80 bg-background text-foreground hover:bg-accent"
+                        }`}
+                        style={
+                          isSelected
+                            ? { backgroundColor: cat.color, borderColor: cat.color }
+                            : undefined
+                        }
+                      >
+                        {cat.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
-              <div className="relative">
+              {/* Endereço do local com vínculo ao Google Maps */}
+              <div className="space-y-1.5">
+                <Label htmlFor="itinerary-location" className="text-xs font-semibold text-foreground">
+                  Endereço do local
+                </Label>
                 <div className="flex gap-2">
                   <Input
                     id="itinerary-location"
                     role="combobox"
                     aria-label="Buscar local"
-                    placeholder={category ? `Buscando sugestões de ${PLACE_CATEGORIES.find(c=>c.id===category)?.label}...` : "Digite o nome do lugar ou selecione uma categoria acima..."}
+                    placeholder="Ex: Av. Paulista, 1000 - São Paulo..."
                     value={location}
                     onChange={(e) => {
                       setLocation(e.target.value);
-                      setPlaceQuery(e.target.value);
                       onCoordsChange(null);
                       setResolvedPlaceName("");
                     }}
-                    onKeyDown={handlePlaceKeyDown}
                     className="h-10 text-sm"
                   />
                   <Button
@@ -1718,48 +1721,13 @@ function ItineraryDialog({
                     onClick={openMapsSearch}
                     disabled={!location && !title}
                     aria-label="Buscar local no Maps"
+                    title="Abrir no Google Maps"
                   >
                     <Search className="h-4 w-4" />
                   </Button>
                 </div>
-
-                {(placeResults.length > 0 || isSearchingPlaces) && (
-                  <div
-                    id="itinerary-place-results"
-                    role="listbox"
-                    className="absolute left-0 right-0 top-full z-50 mt-1 max-h-56 overflow-y-auto rounded-xl border border-border bg-popover shadow-xl"
-                  >
-                    {isSearchingPlaces && placeResults.length === 0 && (
-                      <p className="px-3 py-2.5 text-xs text-muted-foreground">Buscando sugestões para esta cidade…</p>
-                    )}
-                    {placeResults.map((place, idx) => (
-                      <button
-                        key={`${place.lat}-${place.lon}-${idx}`}
-                        id={`itinerary-place-result-${idx}`}
-                        type="button"
-                        role="option"
-                        aria-selected={idx === activePlaceIndex}
-                        className={`flex min-h-10 w-full items-start gap-2 px-3 py-2 text-left transition-colors ${
-                          idx === activePlaceIndex ? "bg-accent" : "hover:bg-accent/50"
-                        }`}
-                        onClick={() => handlePickPlace(place)}
-                      >
-                        <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
-                        <span className="min-w-0">
-                          <span className="block text-xs font-semibold leading-tight text-foreground">
-                            {place.name}
-                          </span>
-                          {place.address && (
-                            <span className="block truncate text-[11px] text-muted-foreground">
-                              {place.address}
-                            </span>
-                          )}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
               </div>
+
               {hasCoords && (
                 <p className="flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
                   <MapPin className="h-3 w-3" />
