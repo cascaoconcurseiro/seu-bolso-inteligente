@@ -158,7 +158,7 @@ export function UserDetailDialog({
             </div>
 
             <div className="border-t border-border pt-4 space-y-3">
-              <h5 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2 text-warning">
+              <h5 className="text-sm font-semibold uppercase tracking-wider flex items-center gap-2 text-warning">
                 <Shield className="h-3.5 w-3.5" />
                 Controles de Segurança e LGPD
               </h5>

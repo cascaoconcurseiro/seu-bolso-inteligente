@@ -106,7 +106,7 @@ export function CardEditAndDeleteDialogs({
                   <div className="p-2 text-xs font-bold text-muted-foreground uppercase">
                     Nacionais
                   </div>
-                  {banks.map((b) => (
+                  {Object.values(banks).map((b) => (
                     <SelectItem key={b.id} value={b.id}>
                       {b.name}
                     </SelectItem>
@@ -114,7 +114,7 @@ export function CardEditAndDeleteDialogs({
                   <div className="p-2 text-xs font-bold text-muted-foreground uppercase border-t mt-1">
                     Internacionais
                   </div>
-                  {internationalBanks.map((b) => (
+                  {Object.values(internationalBanks).map((b) => (
                     <SelectItem key={b.id} value={b.id}>
                       {b.name}
                     </SelectItem>

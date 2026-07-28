@@ -43,7 +43,7 @@ export const faqs: FAQItem[] = [
           forma integrada.
         </p>
         <div className="p-3 bg-muted rounded-xl border border-border">
-          <span className="font-semibold text-foreground flex items-center gap-2 mb-1 text-sm text-primary">
+          <span className="font-semibold flex items-center gap-2 mb-1 text-sm text-primary">
             <Globe className="h-3.5 w-3.5" /> Conversão Automatizada
           </span>
           Todos os saldos de contas internacionais são convertidos automaticamente para a sua
@@ -112,7 +112,7 @@ export const faqs: FAQItem[] = [
           movimentação patrimonial interna.
         </p>
         <div className="p-3 bg-muted rounded-xl border border-border">
-          <span className="font-semibold text-foreground flex items-center gap-2 mb-1 text-sm">
+          <span className="font-semibold flex items-center gap-2 mb-1 text-sm text-destructive">
             <RefreshCw className="h-3.5 w-3.5 text-primary" /> Como lançar uma transferência:
           </span>
           Ao criar uma nova transação, mude o tipo para <strong>Transferência</strong>. Você

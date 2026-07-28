@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { TripTravelersSection } from "./summary/TripTravelersSection";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
