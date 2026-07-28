@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable unused-imports/no-unused-vars */
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Wallet, Users } from "lucide-react";

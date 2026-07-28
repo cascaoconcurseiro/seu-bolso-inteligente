@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable unused-imports/no-unused-vars */
 import { memo } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";

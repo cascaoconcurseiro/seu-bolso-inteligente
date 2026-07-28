@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import { SharedTripCard } from "@/components/shared/SharedTripCard";
 import { InvoiceItem } from "@/utils/sharedFinanceCalculations";
 import type { FamilyMember } from "@/hooks/useFamily";

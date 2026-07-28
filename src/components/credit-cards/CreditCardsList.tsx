@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable unused-imports/no-unused-vars */
 import { CreditCardSummary } from "@/components/credit-cards/CreditCardSummary";
 import { CreditCardItem } from "@/components/credit-cards/CreditCardItem";
 

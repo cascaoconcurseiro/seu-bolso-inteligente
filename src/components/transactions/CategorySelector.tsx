@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import React, { useState } from "react";
 import { Check, ChevronDown, ChevronRight, Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";

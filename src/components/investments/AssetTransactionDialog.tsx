@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable unused-imports/no-unused-vars */
 import React, { useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {

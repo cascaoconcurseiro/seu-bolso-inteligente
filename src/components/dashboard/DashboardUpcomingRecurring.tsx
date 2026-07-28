@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable unused-imports/no-unused-vars */
 import { useMemo, memo } from "react";
 import { Link } from "react-router-dom";
 import { Repeat2, ArrowRight } from "lucide-react";

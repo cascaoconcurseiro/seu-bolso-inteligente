@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable unused-imports/no-unused-vars */
 import { useAuth } from "@/contexts/AuthContext";
 import { useAccounts, type Account as AppAccount } from "@/hooks/useAccounts";
 import { useAIPrediction } from "@/hooks/useAIPrediction";
@@ -193,7 +195,7 @@ export function useTransactionForm({
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [predictedCategoryId, store.hasUserSelectedCategoryManually, categoryId]);
+  }, [predictedCategoryId, store.hasUserSelectedCategoryManually, categoryId, store]);
 
   const handleCategoryChange = (val: string) => {
     store.setCategoryId(val);

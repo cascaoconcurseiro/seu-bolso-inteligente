@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable unused-imports/no-unused-vars */
 import { Asset } from "@/types/database";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import {

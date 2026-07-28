@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Compass } from "lucide-react";
+import { Compass, Search } from "lucide-react";
 
 export interface ItineraryStopFormData {
   id?: string;
@@ -211,7 +211,9 @@ export function ItineraryStopFormDialog({
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="location">Endereço / Localização</Label>
+            <Label htmlFor="location" className="text-xs font-semibold text-foreground">
+              Endereço do local
+            </Label>
             <div className="flex gap-2">
               <Input
                 id="location"
@@ -219,6 +221,21 @@ export function ItineraryStopFormDialog({
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
               />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => {
+                  const query = encodeURIComponent(location || title);
+                  if (query) {
+                    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, "_blank");
+                  }
+                }}
+                disabled={!location && !title}
+                title="Abrir no Google Maps"
+              >
+                <Search className="h-4 w-4" />
+              </Button>
             </div>
             {latitude && longitude && (
               <span className="text-[10px] text-emerald-600 font-medium">

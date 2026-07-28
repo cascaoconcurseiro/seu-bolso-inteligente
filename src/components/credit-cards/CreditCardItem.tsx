@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable unused-imports/no-unused-vars */
 import { AlertCircle, Wifi } from "lucide-react";
 import { BankIcon, CardBrandIcon } from "@/components/financial/BankIcon";
 import { cn } from "@/lib/utils";

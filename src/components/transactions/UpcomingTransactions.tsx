@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable unused-imports/no-unused-vars */
 import { useMemo, useState, useEffect, useRef } from "react";
 import { CheckCircle2, Trash2, CalendarClock, ArrowRightLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";

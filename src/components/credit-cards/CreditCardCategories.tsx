@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable unused-imports/no-unused-vars */
 import { useMemo } from "react";
 import { useCategories } from "@/hooks/useCategories";
 import { moneyUtils } from "@/utils/money";

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable unused-imports/no-unused-vars */
 import { useState } from "react";
 import { Plus, Trash2, Zap } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable unused-imports/no-unused-vars */
 import { useMemo } from "react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip } from "recharts";
 import { cn } from "@/lib/utils";

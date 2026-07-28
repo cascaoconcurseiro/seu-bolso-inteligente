@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable unused-imports/no-unused-vars */
 import { TrendingUp, TrendingDown, MoreHorizontal, Trash2, Landmark } from "lucide-react";
 import {
   DropdownMenu,

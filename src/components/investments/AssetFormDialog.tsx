@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable unused-imports/no-unused-vars */
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   Dialog,

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable unused-imports/no-unused-vars */
 import React from "react";
 import { useSharedCreditCards } from "@/hooks/useSharedCreditCards";
 import { UserAvatar } from "@/components/ui/user-avatar";

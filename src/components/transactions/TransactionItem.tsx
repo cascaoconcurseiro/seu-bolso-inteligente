@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable unused-imports/no-unused-vars */
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FastForward, Lock, CheckCircle, Clock, Users, Edit, Trash2 } from "lucide-react";

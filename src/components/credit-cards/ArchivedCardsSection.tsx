@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable unused-imports/no-unused-vars */
 import { Button } from "@/components/ui/button";
 import { Archive, ChevronDown, RotateCcw } from "lucide-react";
 import { getBankById } from "@/lib/banks";

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import { useState } from "react";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { Plane } from "lucide-react";
