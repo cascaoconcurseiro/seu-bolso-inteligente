@@ -140,7 +140,7 @@ export const faqs: FAQItem[] = [
           regras:
         </p>
         <div className="p-3 bg-destructive/5 rounded-xl border border-destructive/10 text-sm space-y-2.5">
-          <strong className="text-foreground flex items-center gap-1 text-destructive font-semibold">
+          <strong className="flex items-center gap-1 text-destructive font-semibold">
             <AlertCircle className="h-3.5 w-3.5" /> Atenção Contábil Crítica
           </strong>
           <p>
@@ -236,7 +236,7 @@ export const faqs: FAQItem[] = [
         </p>
 
         <div className="p-4 bg-success/5 rounded-xl border border-success/20 space-y-2.5 text-sm">
-          <strong className="text-foreground flex items-center gap-2 text-success font-semibold">
+          <strong className="flex items-center gap-2 text-success font-semibold">
             📝 Exemplo Matemático Didático:
           </strong>
           <p>Imagine o seguinte cenário de despesas mútuas acumuladas com o seu familiar:</p>
@@ -432,7 +432,7 @@ export const faqs: FAQItem[] = [
           a quantidade de parcelas (ex: `12x`).
         </p>
         <div className="p-3 bg-primary/5 rounded-xl border border-primary/10 text-sm text-muted-foreground space-y-2">
-          <span className="font-semibold text-foreground text-primary flex items-center gap-1">
+          <span className="font-semibold text-primary flex items-center gap-1">
             <Sparkles className="h-3.5 w-3.5 animate-pulse" /> Provisão Futura Inteligente
           </span>
           <p>
@@ -512,7 +512,7 @@ export const faqs: FAQItem[] = [
         </p>
 
         <div className="p-4 bg-primary/5 rounded-xl border border-primary/20 space-y-2 text-sm">
-          <h5 className="font-semibold text-foreground text-primary flex items-center gap-1">
+          <h5 className="font-semibold text-primary flex items-center gap-1">
             ⚡ O Clássico Exemplo da Geladeira:
           </h5>
           <p>
@@ -586,7 +586,7 @@ export const faqs: FAQItem[] = [
         </p>
 
         <div className="p-4 bg-primary/5 rounded-xl border border-primary/20 space-y-3 text-sm">
-          <h5 className="font-semibold text-foreground text-primary flex items-center gap-1">
+          <h5 className="font-semibold text-primary flex items-center gap-1">
             🏆 Badges de Progresso de Meta:
           </h5>
           <ul className="space-y-2">
