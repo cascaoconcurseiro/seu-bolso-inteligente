@@ -17,6 +17,7 @@ import { PendingSharedCardInvitationsAlert } from "@/components/credit-cards/Pen
 import { useMonth } from "@/contexts/MonthContext";
 import { useAuth } from "@/contexts/AuthContext";
 import * as dateFns from "date-fns";
+import { parseLocalDate } from "@/utils/dateUtils";
 import { GreetingCard } from "@/components/dashboard/GreetingCard";
 import { MonthInsight } from "@/components/dashboard/MonthInsight";
 import { PullToRefresh } from "@/components/ui/PullToRefresh";
@@ -93,10 +94,10 @@ export function Dashboard() {
 
   const activeTrip = useMemo(() => {
     if (!trips || trips.length === 0) return null;
-    const now = new Date();
+    const today = dateFns.startOfDay(new Date());
     // Prioritize currently active trips, otherwise fallback to the most recent/upcoming
     const current = trips.find(
-      (t: Trip) => new Date(t.start_date) <= now && new Date(t.end_date) >= now
+      (t: Trip) => parseLocalDate(t.start_date) <= today && parseLocalDate(t.end_date) >= today
     );
     return current || trips[0];
   }, [trips]);

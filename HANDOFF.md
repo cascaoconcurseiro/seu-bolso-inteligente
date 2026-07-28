@@ -7,6 +7,9 @@
 ### Entrega
 
 - O redesign global do commit `1be69206` foi revertido; a árvore restaurada foi comparada com o backup `a3861806` e publicada na `main`.
+- Datas de viagem `YYYY-MM-DD` deixaram de ser convertidas para UTC antes da formatação; `01/08/2026` permanece `01/08/2026` no fuso de São Paulo.
+- Resumo e visão detalhada agora contam partida e chegada, portanto `01/08 → 29/08` corresponde a 29 dias de viagem.
+- Resumo, cards, dashboard, convites e prompt de checklist consomem o período originado em `trips.start_date/end_date` no Supabase pelo helper compartilhado.
 - `TripChecklist` preserva a identidade visual anterior e ganhou hierarquia própria para listas longas: resumo de progresso acessível, categorias em cartões responsivos e responsável visível.
 - O formulário de novo item agora permite selecionar um membro da viagem como responsável e oferece as nove categorias do checklist pré-viagem.
 - Os 83 itens de `checklist_viagem_portatil.html` foram inseridos na viagem `Liverpol` de Wesley, em nove categorias e atribuídos ao membro Wesley. Os sete itens anteriores foram preservados.
@@ -18,11 +21,12 @@
 - [x] `npm run lint -- --quiet`.
 - [x] `npm run build`.
 - [x] `git diff --check`.
+- [x] Teste de regressão de fuso e contagem inclusiva: 9 testes aprovados em `dateUtils.test.ts`.
 - [ ] QA visual autenticado em 390 px e 1440 px após o deploy.
 
 ### Próximo passo concreto
 
-Abrir a viagem `Liverpol`, acessar `Preparar > Checklist` e conferir os cartões com 90 itens em 390 px e 1440 px. Se o agrupamento estiver aprovado, decidir se os sete itens antigos sem responsável devem ser consolidados nas novas categorias ou mantidos como histórico.
+Abrir a viagem `Liverpol` e confirmar no Resumo `01 de ago → 29 de ago` e `29 dias de viagem`; depois acessar `Preparar > Checklist` e conferir os cartões com 90 itens em 390 px e 1440 px.
 
 ## Handoff da sessão - 26/07/2026 - Formulários distintos para lugares e paradas
 

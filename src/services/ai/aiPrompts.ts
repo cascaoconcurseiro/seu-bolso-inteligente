@@ -1,4 +1,5 @@
 import { FinancialReportData } from "../aiAdvisorService";
+import { getInclusiveCalendarDays, parseLocalDate } from "@/utils/dateUtils";
 
 export const getFinancialAnalysisPrompt = (data: FinancialReportData) => `
 Você é o consultor financeiro IA oficial do aplicativo.
@@ -235,10 +236,10 @@ export const getTripChecklistPrompt = (
   let durationHint = "";
 
   if (startDate && endDate) {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    const start = parseLocalDate(startDate);
+    const end = parseLocalDate(endDate);
     const month = start.getMonth() + 1;
-    const days = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    const days = getInclusiveCalendarDays(startDate, endDate);
     const dateRange = `${start.toLocaleDateString("pt-BR")} a ${end.toLocaleDateString("pt-BR")}`;
 
     durationHint = `Duração da viagem: ${days} dia${days > 1 ? "s" : ""}.`;

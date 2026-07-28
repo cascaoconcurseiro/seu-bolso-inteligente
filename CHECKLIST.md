@@ -8,6 +8,10 @@
 ## Concluído - 28/07/2026 - Restauração visual e checklist pré-viagem
 
 - [x] **[DESIGN-ROLLBACK]** Redesign global revertido e árvore conferida contra o backup anterior antes da publicação na `main`.
+- [x] **[TRIP-DATE-TZ]** Datas PostgreSQL `date` tratadas como calendário local via `parseISO`, sem deslocamento UTC de `01/08` para `31/07`.
+- [x] **[TRIP-DURATION]** Duração unificada como contagem inclusiva de partida e chegada; `01/08 → 29/08` agora resulta em 29 dias.
+- [x] **[TRIP-DATE-SSOT]** `trips.start_date/end_date` do Supabase documentados como fonte única; dashboard, resumo, convites e IA usam o helper compartilhado.
+- [x] **[TRIP-DATE-TEST]** Regressão reproduzida em `America/Sao_Paulo` antes do fix e protegida por testes de data e duração.
 - [x] **[TRIP-CHECKLIST-DATA]** 83 itens do arquivo portátil inseridos na viagem `Liverpol`, distribuídos em nove categorias e atribuídos ao Wesley, sem duplicatas exatas.
 - [x] **[TRIP-CHECKLIST-UX]** Checklist reorganizado em cartões responsivos com progresso total e por categoria, responsável visível e seletor de responsável no novo item.
 - [x] **[TRIP-CHECKLIST-A11Y]** Checkboxes e exclusões receberam nomes acessíveis, progresso usa semântica `progressbar`, labels foram associados e animações respeitam redução de movimento.

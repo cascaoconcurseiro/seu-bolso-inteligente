@@ -2,6 +2,31 @@ import { describe, it, expect, vi } from "vitest";
 import * as dateUtils from "../dateUtils";
 
 describe("dateUtils", () => {
+  describe("datas de calendário", () => {
+    it("preserva o dia de uma data YYYY-MM-DD no fuso de São Paulo", () => {
+      const originalTimezone = process.env.TZ;
+      try {
+        process.env.TZ = "America/Sao_Paulo";
+
+        const date = dateUtils.parseLocalDate("2026-08-01");
+
+        expect(date.getFullYear()).toBe(2026);
+        expect(date.getMonth()).toBe(7);
+        expect(date.getDate()).toBe(1);
+      } finally {
+        if (originalTimezone) {
+          process.env.TZ = originalTimezone;
+        } else {
+          delete process.env.TZ;
+        }
+      }
+    });
+
+    it("conta o primeiro e o último dia da viagem", () => {
+      expect(dateUtils.getInclusiveCalendarDays("2026-08-01", "2026-08-29")).toBe(29);
+    });
+  });
+
   describe("getBrazilDate", () => {
     it("should return a date in Brazil timezone", () => {
       // Mock system time to a fixed value

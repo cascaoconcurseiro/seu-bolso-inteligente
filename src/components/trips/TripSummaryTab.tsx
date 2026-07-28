@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { parseLocalDate } from "@/utils/dateUtils";
+import { getInclusiveCalendarDays } from "@/utils/dateUtils";
 import { moneyUtils } from "@/utils/money";
 import { useQuery } from "@tanstack/react-query";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
@@ -61,11 +61,7 @@ export function TripSummaryTab({
 }: TripSummaryTabProps) {
   const tripDays = Math.max(
     1,
-    Math.ceil(
-      (parseLocalDate(selectedTrip.end_date).getTime() -
-        parseLocalDate(selectedTrip.start_date).getTime()) /
-        (1000 * 60 * 60 * 24)
-    ) + 1
+    getInclusiveCalendarDays(selectedTrip.start_date, selectedTrip.end_date)
   );
   const currency = selectedTrip.currency || "BRL";
 
@@ -90,7 +86,10 @@ export function TripSummaryTab({
       return SafeFinancialCalculator.add(sum, mySplit ? Number(mySplit.amount) : 0).toNumber();
     }, 0);
 
-  const myTotalPersonal = SafeFinancialCalculator.add(myPersonalExpenses, myShareOfSharedExpenses).toNumber();
+  const myTotalPersonal = SafeFinancialCalculator.add(
+    myPersonalExpenses,
+    myShareOfSharedExpenses
+  ).toNumber();
 
   // (b) Gastos compartilhados pagos por mim (eu paguei a conta toda)
   const mySharedExpensesPaid = tripTransactions

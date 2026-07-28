@@ -48,6 +48,9 @@
 ### 3.3 Datas
 - Use sempre `date-fns`: `parseISO()`, `format()`, `startOfMonth()`.
 - Nunca `new Date(dateString)` para aritmética de datas (resulta em bugs de timezone).
+- `trips.start_date` e `trips.end_date` no Supabase são a fonte única do período da viagem; não manter cópias ou datas substitutas no frontend.
+- Valores PostgreSQL `date` em `YYYY-MM-DD` são datas de calendário, não instantes UTC: usar `parseISO()` para exibição local, nunca `Date.UTC()`.
+- Duração de viagem inclui partida e chegada: `differenceInCalendarDays(end, start) + 1`.
 - `closing_day` e `due_day` são inteiros (dia do mês), não timestamps.
 
 ### 3.4 Segurança

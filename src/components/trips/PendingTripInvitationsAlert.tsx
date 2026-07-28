@@ -8,6 +8,7 @@ import {
 } from "@/hooks/useTripInvitations";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { parseLocalDate } from "@/utils/dateUtils";
 
 export function PendingTripInvitationsAlert() {
   const { data: invitations = [], isLoading, error } = usePendingTripInvitations();
@@ -67,8 +68,8 @@ export function PendingTripInvitationsAlert() {
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />
                   <span>
-                    {dateFns.format(new Date(startDate), "dd/MM/yyyy", { locale: ptBR })} até{" "}
-                    {dateFns.format(new Date(endDate), "dd/MM/yyyy", { locale: ptBR })}
+                    {dateFns.format(parseLocalDate(startDate), "dd/MM/yyyy", { locale: ptBR })} até{" "}
+                    {dateFns.format(parseLocalDate(endDate), "dd/MM/yyyy", { locale: ptBR })}
                   </span>
                 </div>
               )}

@@ -87,7 +87,7 @@ export function NewTripDialog({
     try {
       const start = dateFns.parseISO(startDate);
       const end = dateFns.parseISO(endDate);
-      const days = dateFns.differenceInDays(end, start) + 1; // +1 para incluir o último dia
+      const days = dateFns.differenceInCalendarDays(end, start) + 1;
       return days > 0 ? days : null;
     } catch {
       return null;

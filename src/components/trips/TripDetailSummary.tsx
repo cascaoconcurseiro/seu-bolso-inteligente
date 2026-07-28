@@ -3,7 +3,7 @@ import { ptBR } from "date-fns/locale";
 import { Wallet, Users, Calendar, Banknote, ArrowRight } from "lucide-react";
 import { moneyUtils } from "@/utils/money";
 import { cn } from "@/lib/utils";
-import { parseLocalDate } from "@/utils/dateUtils";
+import { getInclusiveCalendarDays, parseLocalDate } from "@/utils/dateUtils";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useCurrencyRate } from "@/hooks/useCurrencyRate";
 
@@ -200,8 +200,7 @@ export function TripDetailSummary({
             {dateFns.format(parseLocalDate(endDate), "dd 'de' MMM", { locale: ptBR })}
           </p>
           <p className="text-sm text-muted-foreground font-bold uppercase tracking-widest">
-            {dateFns.differenceInDays(parseLocalDate(endDate), parseLocalDate(startDate))} dias de
-            viagem
+            {getInclusiveCalendarDays(startDate, endDate)} dias de viagem
           </p>
         </div>
       </div>

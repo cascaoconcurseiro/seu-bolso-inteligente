@@ -4,6 +4,9 @@
  * Todas as funções usam o horário de Brasília (America/Sao_Paulo)
  */
 
+import { addMonths as dfAddMonths, differenceInCalendarDays, parseISO } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
+
 // Timezone de Brasília
 const BRAZIL_TIMEZONE = "America/Sao_Paulo";
 
@@ -98,32 +101,26 @@ export function parseSafeDate(dateStr: string | null | undefined): Date | null {
 }
 
 /**
- * Converte uma string de data no formato YYYY-MM-DD em um objeto Date UTC,
- * evitando problemas de fuso horário (shifting).
- * MASTER_BLUEPRINT §3.3: usar Date.UTC(), nunca new Date(year, month, day).
+ * Converte YYYY-MM-DD em uma data local de calendário.
+ * Datas sem horário não representam um instante UTC e não devem mudar de dia por causa do fuso.
  */
 export function parseLocalDate(dateStr: string): Date {
   if (!dateStr) return new Date();
   if (dateStr.includes("T") || dateStr.includes("Z")) {
     return new Date(dateStr);
   }
-  const parts = dateStr.split("-");
-  if (parts.length !== 3) return new Date(dateStr);
+  return parseISO(dateStr);
+}
 
-  const year = parseInt(parts[0], 10);
-  const month = parseInt(parts[1], 10) - 1;
-  const day = parseInt(parts[2], 10);
-  return new Date(Date.UTC(year, month, day));
+export function getInclusiveCalendarDays(startDate: string, endDate: string): number {
+  return differenceInCalendarDays(parseLocalDate(endDate), parseLocalDate(startDate)) + 1;
 }
 
 // ─── Funções migradas de lib/dateUtils (unificação DRY) ─────────────────
 
-import { parseISO, addMonths as dfAddMonths } from "date-fns";
-import { formatInTimeZone } from "date-fns-tz";
-
 /**
- * Parse ISO string (YYYY-MM-DD) usando date-fns.
- * Usa UTC para evitar problemas de timezone.
+ * Mantém a API legada de parse de datas ISO usando date-fns.
+ * Datas sem horário permanecem no calendário local, sem conversão implícita para UTC.
  */
 export function parseDateUTC(dateString: string): Date {
   const date = parseISO(dateString);
