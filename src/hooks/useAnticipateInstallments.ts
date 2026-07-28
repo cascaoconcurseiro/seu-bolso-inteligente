@@ -10,7 +10,7 @@ interface AnticipateInstallmentsParams {
   newCompetenceDate: string; // Format: YYYY-MM-DD (always day 1)
 }
 
-interface InstallmentData {
+export interface InstallmentData {
   id: string;
   transaction_date: string;
   competence_date: string;

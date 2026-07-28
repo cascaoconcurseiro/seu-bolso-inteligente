@@ -215,7 +215,7 @@ export function useCreateTransaction() {
         throw new Error("A descrição é obrigatória");
       }
 
-      const { splits, ...transactionData } = input;
+      const { splits: _splits, ...transactionData } = input;
 
       // Parcelamento — usa RPC atômica (ARC-02: rollback automático se splits falharem)
       if (input.is_installment && input.total_installments && input.total_installments > 1) {

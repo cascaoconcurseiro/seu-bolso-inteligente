@@ -90,7 +90,7 @@ export function useTransactions(filters?: TransactionFilters) {
       if (error) throw error;
 
       // Client-side sort como garantia — PostgREST .or() pode embaralhar com UNION
-      const sorted = (data || []).sort((a: any, b: any) => {
+      const sorted = (data || []).sort((a: Transaction, b: Transaction) => {
         const dateDiff = b.date.localeCompare(a.date);
         if (dateDiff !== 0) return dateDiff;
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
@@ -104,7 +104,7 @@ export function useTransactions(filters?: TransactionFilters) {
         );
       }
 
-      return sorted.filter((tx: any) => {
+      return sorted.filter((tx: Transaction) => {
         const accountCurrency = tx.account?.currency || "BRL";
         if (accountCurrency === "BRL") return true;
         if (tx.domain !== "SHARED" || tx.is_shared) return true;

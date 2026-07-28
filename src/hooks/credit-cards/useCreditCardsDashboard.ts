@@ -109,7 +109,7 @@ export function useCreditCardsDashboard() {
     () => creditCards.filter((c) => !c.is_shared_with_me).map((c) => c.id),
     [creditCards]
   );
-  const { data: dependentTransactions = [] } = useDependentTransactions({
+  const { data: _dependentTransactions = [] } = useDependentTransactions({
     cardIds: ownedCardIds,
     startDate: extendedStartDate,
     endDate: extendedEndDate,
@@ -136,8 +136,8 @@ export function useCreditCardsDashboard() {
   const { data: selectedCardDeps } = useAccountDependencies(selectedCard?.id);
   const selectedCardCanDelete = selectedCardDeps?.can_delete === true;
 
-  const [editingTransaction, setEditingTransaction] = useState<any>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; transaction: any | null }>({
+  const [editingTransaction, setEditingTransaction] = useState<Database["public"]["Tables"]["transactions"]["Row"] | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; transaction: Database["public"]["Tables"]["transactions"]["Row"] | null }>({
     isOpen: false,
     transaction: null,
   });
@@ -239,7 +239,7 @@ export function useCreditCardsDashboard() {
     [transactions]
   );
 
-  const getCardInstallments = (invoiceTxs: any[]) =>
+  const getCardInstallments = (invoiceTxs: Database["public"]["Tables"]["transactions"]["Row"][]) =>
     invoiceTxs
       .filter((t) => t.is_installment)
       .map((t) => ({
@@ -442,7 +442,7 @@ export function useCreditCardsDashboard() {
       refetchTransactions();
       queryClient.invalidateQueries({ queryKey: ["dashboard-data"] });
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
       const msg = err?.message || "Erro desconhecido";
       toast.error(`Erro ao processar pagamento: ${msg}`);
       return false;

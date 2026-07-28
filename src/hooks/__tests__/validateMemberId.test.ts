@@ -69,7 +69,7 @@ describe("validateMemberId", () => {
           }),
         }),
       }),
-    } as any);
+    } as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
     const result = await validateMemberId("member-123");
     expect(result).toBe(true);
@@ -85,7 +85,7 @@ describe("validateMemberId", () => {
           }),
         }),
       }),
-    } as any);
+    } as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
     await expect(validateMemberId("invalid-id")).rejects.toThrow(
       "O membro selecionado é inválido ou não foi encontrado."
@@ -114,7 +114,7 @@ describe("validateMemberId", () => {
           }),
         }),
       }),
-    } as any);
+    } as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
     await expect(validateMemberId("member-123")).rejects.toThrow(
       "O membro selecionado é inválido ou não foi encontrado."
@@ -133,7 +133,7 @@ describe("validateMemberId", () => {
           }),
         }),
       }),
-    } as any);
+    } as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
     for (const memberId of memberIds) {
       const result = await validateMemberId(memberId);
