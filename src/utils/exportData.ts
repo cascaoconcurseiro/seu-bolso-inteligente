@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import type { CellHookData } from "jspdf-autotable";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import {
@@ -7,13 +8,17 @@ import {
   formatExportMoney,
   formatTotalsInline,
   resolveItemCurrency,
+  ExportAccount,
+  ExportCard,
+  ExportInvoiceItem,
+  ExportTransaction
 } from "./exportCurrency";
 import { logger } from "@/utils/logger";
 
 const BRAND_COLOR: [number, number, number] = [5, 150, 105]; // Esmeralda / Verde Premium
 const TEXT_COLOR: [number, number, number] = [31, 41, 55]; // Cinza Escuro
 
-// Helper para invocar autoTable de forma resiliente diante de variações de bundler
+/* eslint-disable @typescript-eslint/no-explicit-any */
 const safeCallAutoTable = (doc: jsPDF, options: any) => {
   try {
     if (typeof autoTable === "function") {
@@ -29,9 +34,11 @@ const safeCallAutoTable = (doc: jsPDF, options: any) => {
     logger.error("Erro ao renderizar autoTable no PDF:", error);
   }
 };
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 // Helper para calcular dinamicamente o início do próximo bloco
 const getNextStartY = (doc: jsPDF, fallbackY: number): number => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const lastAutoTable = (doc as any).lastAutoTable;
   if (lastAutoTable && typeof lastAutoTable.finalY === "number") {
     return lastAutoTable.finalY + 12;
@@ -40,7 +47,7 @@ const getNextStartY = (doc: jsPDF, fallbackY: number): number => {
 };
 
 // Helper para formatação de datas de forma ultra-segura
-const safeFormatDate = (dateVal: any): string => {
+const safeFormatDate = (dateVal: unknown): string => {
   if (!dateVal) return "N/A";
   try {
     const d = new Date(dateVal);
@@ -48,7 +55,7 @@ const safeFormatDate = (dateVal: any): string => {
     // Corrige fuso horário local na renderização
     const utcDate = new Date(d.getTime() + d.getTimezoneOffset() * 60000);
     return format(utcDate, "dd/MM/yyyy");
-  } catch (e) {
+  } catch {
     return "N/A";
   }
 };
@@ -68,6 +75,7 @@ const downloadExcel = (htmlContent: string, filename: string) => {
 
 // Helper para adicionar rodapé e numeração de página
 const addFooter = (doc: jsPDF) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const pageCount = (doc as any).internal.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
@@ -82,7 +90,7 @@ const addFooter = (doc: jsPDF) => {
 // =========================================================================
 
 export const exportToCSV = (
-  transactions: any[],
+  transactions: ExportTransaction[],
   filename = "transacoes_seu_bolso_inteligente.csv"
 ) => {
   if (!transactions || transactions.length === 0) {
@@ -199,9 +207,7 @@ export const exportToCSV = (
 };
 
 export const exportToPDF = (
-  transactions: any[],
-  totalIncome: number,
-  totalExpense: number,
+  transactions: ExportTransaction[],
   filename = "relatorio_seu_bolso_inteligente.pdf"
 ) => {
   if (!transactions || transactions.length === 0) {
@@ -234,8 +240,6 @@ export const exportToPDF = (
   doc.text("Resumo Financeiro do Período", 14, 48);
 
   const totalsByCurrency = calculateTransactionTotalsByCurrency(transactions);
-  void totalIncome;
-  void totalExpense;
 
   safeCallAutoTable(doc, {
     head: [["Moeda", "Receitas", "Despesas", "Saldo"]],
@@ -285,9 +289,11 @@ export const exportToPDF = (
     styles: { fontSize: 8.5 },
     headStyles: { fillColor: BRAND_COLOR },
     columnStyles: {
+      0: { fontStyle: "bold" },
+      3: { halign: "right", fontStyle: "bold" },
       5: { halign: "right", fontStyle: "bold" },
     },
-    didParseCell: (cellData: any) => {
+    didParseCell: (cellData: CellHookData) => {
       if (cellData.section === "body" && cellData.column.index === 3) {
         const typeVal = cellData.cell.text[0];
         if (typeVal === "Receita") cellData.cell.styles.textColor = [16, 185, 129];
@@ -304,7 +310,7 @@ export const exportToPDF = (
 // 2. EXPORTAÇÕES DE CONTAS BANCÁRIAS (CHECKING/SAVINGS ETC.)
 // =========================================================================
 
-export const exportAccountsToCSV = (transactions: any[], accounts: any[], periodLabel: string) => {
+export const exportAccountsToCSV = (transactions: ExportTransaction[], accounts: ExportAccount[], periodLabel: string) => {
   const accountIds = accounts.map((a) => a.id);
   const accTransactions = transactions.filter(
     (t) =>
@@ -423,8 +429,8 @@ export const exportAccountsToCSV = (transactions: any[], accounts: any[], period
 };
 
 export const exportAccountsToPDF = (
-  transactions: any[],
-  accounts: any[],
+  transactions: ExportTransaction[],
+  accounts: ExportAccount[],
   periodLabel: string,
   totalBalance: number
 ) => {
@@ -551,7 +557,7 @@ export const exportAccountsToPDF = (
     columnStyles: {
       6: { halign: "right", fontStyle: "bold" },
     },
-    didParseCell: (cellData: any) => {
+    didParseCell: (cellData: CellHookData) => {
       if (cellData.section === "body" && cellData.column.index === 3) {
         const typeVal = cellData.cell.text[0];
         if (typeVal === "Receita") cellData.cell.styles.textColor = [16, 185, 129];
@@ -568,7 +574,7 @@ export const exportAccountsToPDF = (
 // 3. EXPORTAÇÕES DE CARTÕES DE CRÉDITO
 // =========================================================================
 
-export const exportCardsToCSV = (transactions: any[], cards: any[], periodLabel: string) => {
+export const exportCardsToCSV = (transactions: ExportTransaction[], cards: ExportCard[], periodLabel: string) => {
   const cardIds = cards.map((c) => c.id);
   const cardTransactions = transactions.filter(
     (t) => t.account_id && cardIds.includes(t.account_id)
@@ -672,8 +678,8 @@ export const exportCardsToCSV = (transactions: any[], cards: any[], periodLabel:
 };
 
 export const exportCardsToPDF = (
-  transactions: any[],
-  cards: any[],
+  transactions: ExportTransaction[],
+  cards: ExportCard[],
   periodLabel: string,
   totalLimit: number,
   totalInvoices: number
@@ -802,7 +808,7 @@ export const exportCardsToPDF = (
 // 4. EXPORTAÇÕES DE DESPESAS COMPARTILHADAS (SHARED FINANCES)
 // =========================================================================
 
-export const exportSharedToCSV = (invoiceItems: any[], periodLabel: string) => {
+export const exportSharedToCSV = (invoiceItems: ExportInvoiceItem[], periodLabel: string) => {
   if (!invoiceItems || invoiceItems.length === 0) {
     toast.error("Não há lançamentos compartilhados no período selecionado para exportar.");
     return;
@@ -917,9 +923,9 @@ export const exportSharedToCSV = (invoiceItems: any[], periodLabel: string) => {
 };
 
 export const exportSharedToPDF = (
-  invoiceItems: any[],
+  invoiceItems: ExportInvoiceItem[],
   periodLabel: string,
-  totalsByCurrency: Record<string, any>
+  totalsByCurrency: Record<string, unknown>
 ) => {
   if (!invoiceItems || invoiceItems.length === 0) {
     toast.error("Não há lançamentos compartilhados no período selecionado para exportar.");
@@ -1007,7 +1013,7 @@ export const exportSharedToPDF = (
     columnStyles: {
       7: { halign: "right", fontStyle: "bold" },
     },
-    didParseCell: (cellData: any) => {
+    didParseCell: (cellData: CellHookData) => {
       if (cellData.section === "body") {
         if (cellData.column.index === 4) {
           const rel = cellData.cell.text[0];
@@ -1032,8 +1038,8 @@ export const exportSharedToPDF = (
 // =========================================================================
 
 export const exportDetailedCardReportToPDF = (
-  transactions: any[],
-  card: any,
+  transactions: ExportTransaction[],
+  card: ExportCard,
   periodLabel: string
 ) => {
   if (!transactions || transactions.length === 0) {
@@ -1061,31 +1067,18 @@ export const exportDetailedCardReportToPDF = (
 
   // Calcular TOTAIS e CATEGORIAS
   let totalExpense = 0;
-  let ownerExpense = 0;
-  let otherExpense = 0;
   const categoriesMap: Record<string, number> = {};
 
   const currency = card?.currency || "BRL";
-  const ownerId = card?.user_id;
 
   transactions.forEach((t) => {
     const amt = Number(t.amount || 0);
     if (t.type === "EXPENSE") {
       totalExpense += amt;
-      if (t.user_id === ownerId) {
-        ownerExpense += amt;
-      } else {
-        otherExpense += amt;
-      }
       const catName = t.category?.name || "Outros";
       categoriesMap[catName] = (categoriesMap[catName] || 0) + amt;
     } else if (t.type === "INCOME") {
       totalExpense -= amt;
-      if (t.user_id === ownerId) {
-        ownerExpense -= amt;
-      } else {
-        otherExpense -= amt;
-      }
     }
   });
 
@@ -1176,7 +1169,7 @@ export const exportDetailedCardReportToPDF = (
     columnStyles: {
       5: { halign: "right", fontStyle: "bold" },
     },
-    didParseCell: (cellData: any) => {
+    didParseCell: (cellData: CellHookData) => {
       if (cellData.section === "body" && cellData.column.index === 5) {
         cellData.cell.styles.textColor = [239, 68, 68]; // Red for expenses
       }
@@ -1190,8 +1183,8 @@ export const exportDetailedCardReportToPDF = (
 };
 
 export const exportDetailedCardReportToCSV = (
-  transactions: any[],
-  card: any,
+  transactions: ExportTransaction[],
+  card: ExportCard,
   periodLabel: string
 ) => {
   if (!transactions || transactions.length === 0) {

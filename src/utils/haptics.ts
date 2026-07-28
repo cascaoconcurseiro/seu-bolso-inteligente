@@ -4,7 +4,7 @@ export const vibrate = (pattern: number | number[] = 50) => {
   if (typeof window !== "undefined" && navigator.vibrate) {
     try {
       navigator.vibrate(pattern);
-    } catch (e) {
+    } catch {
       // Ignora silenciosamente em navegadores que não suportam ou bloqueiam
     }
   }

@@ -1,10 +1,59 @@
-type CurrencyTotals = {
+export type CurrencyTotals = {
   income: number;
   expense: number;
   balance: number;
 };
 
-export const resolveItemCurrency = (item: any, accounts: any[] = []): string => {
+export interface ExportAccount {
+  id?: string;
+  name?: string;
+  balance?: number;
+  currency?: string;
+  [key: string]: unknown;
+}
+
+export interface ExportTransaction {
+  id?: string;
+  type?: string;
+  amount?: number | string;
+  description?: string;
+  date?: string | Date;
+  category?: { name: string };
+  is_installment?: boolean;
+  current_installment?: number;
+  total_installments?: number;
+  currency?: string;
+  user_id?: string;
+  account_id?: string;
+  destination_account_id?: string;
+  account?: ExportAccount;
+  [key: string]: unknown;
+}
+
+export interface ExportCard {
+  id?: string;
+  name?: string;
+  credit_limit?: number | string;
+  currency?: string;
+  user_id?: string;
+  [key: string]: unknown;
+}
+
+export interface ExportInvoiceItem {
+  id?: string;
+  memberName?: string;
+  date?: string | Date;
+  description?: string;
+  category?: { name: string };
+  type?: string;
+  amount?: number | string;
+  isPaid?: boolean;
+  tripId?: string;
+  currency?: string;
+  [key: string]: unknown;
+}
+
+export const resolveItemCurrency = (item: Partial<ExportTransaction>, accounts: ExportAccount[] = []): string => {
   const account = item?.account || accounts.find((a) => a.id === item?.account_id);
   const destinationAccount = accounts.find((a) => a.id === item?.destination_account_id);
   return account?.currency || item?.currency || destinationAccount?.currency || "BRL";
@@ -27,8 +76,8 @@ export const formatExportMoney = (amount: number, currency = "BRL"): string => {
 };
 
 export const calculateTransactionTotalsByCurrency = (
-  items: any[],
-  accounts: any[] = []
+  items: Partial<ExportTransaction>[],
+  accounts: ExportAccount[] = []
 ): Record<string, CurrencyTotals> => {
   const totals: Record<string, CurrencyTotals> = {};
 

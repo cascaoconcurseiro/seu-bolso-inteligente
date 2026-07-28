@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import type { CellHookData } from "jspdf-autotable";
 import { Asset } from "@/types/database";
 import { formatCurrency } from "./currencyFormatter";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,10 +26,10 @@ const safeCallAutoTable = (doc: jsPDF, options: Record<string, unknown>) => {
   try {
     if (typeof autoTable === "function") {
       autoTable(doc, options);
-    } else if (autoTable && typeof (autoTable as any).default === "function") {
-      (autoTable as any).default(doc, options);
-    } else if (typeof (doc as any).autoTable === "function") {
-      (doc as any).autoTable(options);
+    } else if (autoTable && typeof (autoTable as Record<string, unknown>).default === "function") {
+      ((autoTable as Record<string, unknown>).default as (...args: unknown[]) => unknown)(doc, options);
+    } else if (typeof (doc as Record<string, unknown>).autoTable === "function") {
+      ((doc as Record<string, unknown>).autoTable as (...args: unknown[]) => unknown)(options);
     } else {
       logger.warn("Metodo autoTable não encontrado no escopo global ou local do jsPDF.");
     }
@@ -38,7 +39,7 @@ const safeCallAutoTable = (doc: jsPDF, options: Record<string, unknown>) => {
 };
 
 const getNextStartY = (doc: jsPDF, fallbackY: number): number => {
-  const lastAutoTable = (doc as any).lastAutoTable;
+  const lastAutoTable = (doc as Record<string, unknown>).lastAutoTable as Record<string, unknown>;
   if (lastAutoTable && typeof lastAutoTable.finalY === "number") {
     return lastAutoTable.finalY + 12;
   }
@@ -137,8 +138,16 @@ export const getIRDetails = (
       if (pYear === year) {
         purchasedThisYear = true;
       }
-    } catch (e) {
-      /* ignore */
+    } catch {
+      return {
+        grupo: "99 - Outros Bens e Direitos",
+        codigo: "99 - Outros bens e direitos",
+        cnpj: "",
+        locationCode: "105",
+        discriminacao: "",
+        situacaoAnterior: 0,
+        situacaoAtual: 0,
+      }; /* ignore */
     }
   }
 
@@ -201,7 +210,7 @@ export const getIRDetails = (
     },
   };
 
-  const lookup = cnpjMap[ticker] || { cnpj: "", razaoSocial: asset.name };
+  const lookup = (cnpjMap as Record<string, { cnpj?: string; razaoSocial?: string }>)[ticker] || { cnpj: "", razaoSocial: asset.name };
   const cnpj = lookup.cnpj || "";
   const companyName = lookup.razaoSocial || asset.name;
 
@@ -406,7 +415,7 @@ export const exportPortfolioToPDF = (assets: Asset[]) => {
       6: { fontStyle: "bold" },
     },
 
-    didParseCell: (cellData: Record<string, any>) => {
+    didParseCell: (cellData: CellHookData) => {
       if (cellData.section === "body" && cellData.column.index === 6) {
         const text = cellData.cell.text[0];
         if (text.startsWith("+")) cellData.cell.styles.textColor = [16, 185, 129];
@@ -416,7 +425,7 @@ export const exportPortfolioToPDF = (assets: Asset[]) => {
   });
 
   // Footer
-  const pageCount = (doc as any).internal.getNumberOfPages();
+  const pageCount = (doc as unknown as { internal: { getNumberOfPages: () => number } }).internal.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
     doc.setFontSize(8);
@@ -791,7 +800,7 @@ export const exportToIRPDF = async (assets: Asset[]) => {
         3: { fontStyle: "bold" },
       },
 
-      didParseCell: (cellData: Record<string, any>) => {
+      didParseCell: (cellData: CellHookData) => {
         if (cellData.section === "body" && cellData.column.index === 3) {
           const val = cellData.cell.text[0];
           if (val === "COMPRA") cellData.cell.styles.textColor = [16, 185, 129];
@@ -802,7 +811,7 @@ export const exportToIRPDF = async (assets: Asset[]) => {
   }
 
   // Footer
-  const pageCount = (doc as any).internal.getNumberOfPages();
+  const pageCount = (doc as unknown as { internal: { getNumberOfPages: () => number } }).internal.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
     doc.setFontSize(8);

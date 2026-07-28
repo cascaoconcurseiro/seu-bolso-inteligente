@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import type { CellHookData } from "jspdf-autotable";
 import { format } from "date-fns";
 import { formatCurrency } from "./currencyFormatter";
 import { logger } from "@/utils/logger";
@@ -8,11 +9,11 @@ const BRAND_COLOR: [number, number, number] = [5, 150, 105]; // Esmeralda / Verd
 const TEXT_COLOR: [number, number, number] = [31, 41, 55]; // Cinza Escuro
 
 export interface TripExportData {
-  trip: Record<string, any>;
-  participants: Record<string, any>[];
-  tripTransactions: Record<string, any>[];
-  balances: Record<string, any>[];
-  user: Record<string, any>;
+  trip: Record<string, unknown>;
+  participants: Record<string, unknown>[];
+  tripTransactions: Record<string, unknown>[];
+  balances: Record<string, unknown>[];
+  user: Record<string, unknown>;
 }
 
 // Helper para formatação de datas de forma ultra-segura
@@ -22,7 +23,7 @@ const safeFormatDate = (dateVal: unknown): string => {
     const d = new Date(dateVal as string | number | Date);
     if (isNaN(d.getTime())) return "N/A";
     return format(d, "dd/MM/yyyy");
-  } catch (e) {
+  } catch {
     return "N/A";
   }
 };
@@ -105,7 +106,7 @@ export const exportTripToPDF = (data: TripExportData) => {
     },
   });
 
-  let currentY = (doc as Record<string, any>).lastAutoTable.finalY + 12;
+  let currentY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 12;
 
   // 3. Participantes e Saldos de Acerto
   if (participants && participants.length > 0) {
@@ -139,7 +140,7 @@ export const exportTripToPDF = (data: TripExportData) => {
       columnStyles: {
         3: { fontStyle: "bold" },
       },
-      didParseCell: (cellData: Record<string, any>) => {
+      didParseCell: (cellData: CellHookData) => {
         if (cellData.section === "body" && cellData.column.index === 3) {
           const text = cellData.cell.text[0];
           if (text.startsWith("Recebe"))
@@ -149,7 +150,7 @@ export const exportTripToPDF = (data: TripExportData) => {
       },
     });
 
-    currentY = (doc as Record<string, any>).lastAutoTable.finalY + 12;
+    currentY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 12;
   }
 
   // 4. Detalhamento de Gastos (Tabela Principal)
@@ -199,7 +200,7 @@ export const exportTripToPDF = (data: TripExportData) => {
   }
 
   // 5. Paginação e Rodapé Automático
-  const pageCount = (doc as Record<string, any>).internal.getNumberOfPages();
+  const pageCount = (doc as unknown as { internal: { getNumberOfPages: () => number } }).internal.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
     doc.setFontSize(8);

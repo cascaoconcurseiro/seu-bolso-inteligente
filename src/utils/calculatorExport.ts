@@ -13,7 +13,7 @@ async function getJsPDF() {
       import("jspdf-autotable"),
     ]);
     _jsPDF = pdfModule.default;
-    _autoTable = tableModule.default || (tableModule as any);
+    _autoTable = tableModule.default || (tableModule as Record<string, unknown>);
   }
   return { jsPDF: _jsPDF!, autoTable: _autoTable! };
 }
@@ -67,7 +67,7 @@ export const exportCalculatorToPDF = async (data: CalculatorExportData) => {
     },
   });
 
-  let currentY = (doc as Record<string, any>).lastAutoTable.finalY + 12;
+  let currentY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 12;
 
   // 3. Resultados Resumo
   doc.setFontSize(14);
@@ -97,7 +97,7 @@ export const exportCalculatorToPDF = async (data: CalculatorExportData) => {
     },
   });
 
-  currentY = (doc as Record<string, any>).lastAutoTable.finalY + 12;
+  currentY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 12;
 
   // 4. Detalhamento Mensal/Anual (Tabela Principal)
   if (currentY > 220) {
@@ -120,7 +120,7 @@ export const exportCalculatorToPDF = async (data: CalculatorExportData) => {
   });
 
   // 5. Paginação e Rodapé Automático
-  const pageCount = (doc as Record<string, any>).internal.getNumberOfPages();
+  const pageCount = (doc as unknown as { internal: { getNumberOfPages: () => number } }).internal.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
     doc.setFontSize(8);
