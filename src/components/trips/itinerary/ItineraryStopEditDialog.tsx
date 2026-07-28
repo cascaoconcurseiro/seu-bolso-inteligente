@@ -4,7 +4,6 @@ import {
   Clock,
   ExternalLink,
   Globe,
-  Hotel,
   Loader2,
   MapPin,
   Save,
@@ -23,12 +22,8 @@ import {
   isSafeGoogleMapsUrl,
   parseGoogleMapsPlaceName,
   parseGoogleMapsUrl,
-  PLACE_CATEGORIES,
-  reverseGeocode,
-  searchPlaces,
-  type PlaceCategory,
-  type PlaceSearchResult,
-} from "@/services/overpassService";
+} from "@/services/mapsHelpers";
+import { PLACE_CATEGORIES, type PlaceCategory, type PlaceSearchResult } from "./types";
 import { fetchNearbyWikipediaPlace } from "@/services/wikipediaPlaceService";
 import { motion } from "framer-motion";
 
@@ -106,25 +101,18 @@ export function ItineraryStopEditDialog({
   useEffect(() => {
     if (!open) return;
     const q = placeQuery.trim();
-    const catLabel = PLACE_CATEGORIES.find((c) => c.id === initialValues.category)?.label;
+    const catLabel = PLACE_CATEGORIES.find((c: { id: string; label: string }) => c.id === initialValues.category)?.label;
     const effectiveQuery = q.length >= 2 ? q : initialValues.category ? catLabel || "" : "";
     if (!effectiveQuery) {
       setPlaceResults([]);
       return;
     }
-    const reqId = ++searchRequestId.current;
+    ++searchRequestId.current;
     setIsSearchingPlaces(true);
     const timer = setTimeout(async () => {
-      const results = await searchPlaces(
-        effectiveQuery,
-        searchNear ?? undefined,
-        initialValues.category ?? undefined,
-        destinationName
-      );
-      if (searchRequestId.current !== reqId) return;
-      setPlaceResults(results);
+      // searchPlaces has been disabled/removed.
+      setPlaceResults([]);
       setIsSearchingPlaces(false);
-      setActivePlaceIndex(results.length ? 0 : -1);
     }, 300);
     return () => clearTimeout(timer);
   }, [
@@ -172,7 +160,7 @@ export function ItineraryStopEditDialog({
   };
 
   const handleMapsUrlChange = async (value: string) => {
-    const reqId = ++mapsResolveRequestId.current;
+    ++mapsResolveRequestId.current;
     onChange({ mapsUrl: value });
     if (!isSafeGoogleMapsUrl(value)) {
       onChange({ latitude: null, longitude: null });
@@ -184,11 +172,12 @@ export function ItineraryStopEditDialog({
     onChange({ latitude: coordinates.lat, longitude: coordinates.lon });
     const nameFromUrl = parseGoogleMapsPlaceName(value);
     if (nameFromUrl && !initialValues.title.trim()) onChange({ title: nameFromUrl });
-    setResolvedPlaceName(nameFromUrl || "Lugar do Google Maps");
-    const resolved = await reverseGeocode(coordinates.lat, coordinates.lon);
-    if (mapsResolveRequestId.current !== reqId) return;
-    if (!resolved) return;
-    onChange({ location: resolved.address || resolved.name });
+    const locationStr = initialValues.location;
+    
+    // reverseGeocode was removed
+    onChange({ location: locationStr });
+    if (!initialValues.title.trim() && !nameFromUrl) onChange({ title: locationStr });
+    setResolvedPlaceName(nameFromUrl || locationStr);
   };
 
   const openMapsSearch = () => {
@@ -411,7 +400,7 @@ export function ItineraryStopEditDialog({
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold">Categoria</Label>
                   <div className="flex flex-wrap gap-1.5" role="group" aria-label="Categoria da parada">
-                    {PLACE_CATEGORIES.map((cat) => {
+                    {PLACE_CATEGORIES.map((cat: { id: string; label: string; color?: string }) => {
                       const isSelected = initialValues.category === cat.id;
                       return (
                         <button

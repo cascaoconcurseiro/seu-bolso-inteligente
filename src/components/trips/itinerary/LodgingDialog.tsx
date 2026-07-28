@@ -23,11 +23,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  searchPlaces,
   buildGoogleMapsUrl,
   parseGoogleMapsUrl,
   parseGoogleMapsPlaceName,
-} from "@/services/overpassService";
+} from "@/services/mapsHelpers";
 import { toast } from "sonner";
 
 export interface LodgingSaveData {
@@ -118,30 +117,7 @@ export function LodgingDialog({
       }
     }
 
-    setIsGeocoding(true);
-    try {
-      const results = await searchPlaces(
-        query,
-        searchNear ?? undefined,
-        undefined,
-        destinationName
-      );
-
-      if (results && results.length > 0) {
-        const best = results[0];
-        setLatitude(best.lat);
-        setLongitude(best.lon);
-        if (best.address && !location) setLocation(best.address);
-        setMapsUrl(buildGoogleMapsUrl(best.name, best.address || destinationName));
-        toast.success(`Endereço localizado no mapa: ${best.name}`);
-      } else {
-        toast.error("Não localizamos as coordenadas exatas. Tente incluir a cidade ou bairro no endereço.");
-      }
-    } catch {
-      toast.error("Erro ao buscar endereço no mapa.");
-    } finally {
-      setIsGeocoding(false);
-    }
+    toast.info("A busca avançada de coordenadas foi desativada. Insira um link do Google Maps para precisão automática.");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

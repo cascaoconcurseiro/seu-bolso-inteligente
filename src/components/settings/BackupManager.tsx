@@ -173,7 +173,7 @@ export function BackupManager() {
         setImportedFile(json);
         setConfirmText("");
         toast.success("Arquivo de backup carregado com sucesso. Pronto para restauração.");
-      } catch (err) {
+      } catch {
         toast.error("Erro ao ler o arquivo JSON.");
       }
     };
@@ -198,7 +198,7 @@ export function BackupManager() {
     try {
       // Helper para deletar em lote
       const cleanTable = async (tableName: BackupTableName) => {
-        const { error } = await supabase.from(tableName).delete().eq("user_id", user.id);
+        const { error } = await supabase.from(tableName as any).delete().eq("user_id", user.id);
         if (error) {
           logger.error(`Erro ao limpar tabela ${tableName}:`, error);
           throw error;

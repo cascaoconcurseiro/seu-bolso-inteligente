@@ -17,9 +17,19 @@ import {
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { getCategoryColor } from "@/services/overpassService";
 import { fetchNearbyWikipediaPlace } from "@/services/wikipediaPlaceService";
 import { useState } from "react";
+
+function getCategoryColor(category?: string | null) {
+  if (!category) return "bg-primary/20 text-primary border-primary/20";
+  const cat = category.toLowerCase();
+  if (cat.includes("restauran") || cat.includes("food") || cat.includes("din")) return "bg-orange-500/10 text-orange-600 border-orange-500/20";
+  if (cat.includes("hotel") || cat.includes("lodg")) return "bg-blue-500/10 text-blue-600 border-blue-500/20";
+  if (cat.includes("park") || cat.includes("nature")) return "bg-green-500/10 text-green-600 border-green-500/20";
+  if (cat.includes("museum") || cat.includes("art")) return "bg-purple-500/10 text-purple-600 border-purple-500/20";
+  if (cat.includes("shop")) return "bg-pink-500/10 text-pink-600 border-pink-500/20";
+  return "bg-primary/10 text-primary border-primary/20";
+}
 import type { ItineraryStop, ItineraryStopMeta } from "./types";
 
 interface ItineraryStopCardProps {
@@ -83,7 +93,7 @@ export function ItineraryStopCard({
 
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(placeSearchText)}&travelmode=driving`;
 
-  const catColor = getCategoryColor(stop.category);
+  const catClasses = getCategoryColor(stop.category);
   const hasRichInfo = Boolean(meta.phone || meta.website || meta.openingHours || wiki);
 
   return (
@@ -98,8 +108,7 @@ export function ItineraryStopCard({
       } ${isDragging ? "z-20 opacity-60 shadow-xl" : ""}`}
     >
       <div
-        className="absolute inset-y-4 left-0 w-1 rounded-r-full"
-        style={{ backgroundColor: catColor }}
+        className={`absolute inset-y-4 left-0 w-1 rounded-r-full ${catClasses.split(' ')[0].replace('bg-', 'bg-').replace('/10', '')}`}
         aria-hidden="true"
       />
       <div className="flex items-start gap-3 pl-1">
@@ -173,6 +182,11 @@ export function ItineraryStopCard({
                 <div className="rounded-2xl border border-border/60 bg-muted/30 p-2.5">
                   <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                     Informações úteis
+                    <span
+                      className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold border ${catClasses}`}
+                    >
+                      {stop.category}
+                    </span>
                   </p>
                   <ul className="mt-1.5 space-y-1 text-foreground">
                     {meta.openingHours && (

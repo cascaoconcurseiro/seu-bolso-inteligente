@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Upload, MapPin, Check, FileCode, Link as LinkIcon } from "lucide-react";
 import { parseGPX, parseKML, parseGeoJSON, type ParsedPlace } from "@/utils/gpxKmlParser";
-import { parseGoogleMapsPlaceName, geocodeDestination } from "@/services/overpassService";
+import { parseGoogleMapsPlaceName } from "@/services/mapsHelpers";
 import { toast } from "sonner";
 
 interface ImportPlacesDialogProps {
@@ -45,21 +45,18 @@ export function ImportPlacesDialog({
     for (const line of lines) {
       const placeName = parseGoogleMapsPlaceName(line);
       if (placeName) {
-        const coords = await geocodeDestination(placeName);
         results.push({
           title: placeName,
-          description: `Importado via link: ${line}`,
-          latitude: coords?.lat || 0,
-          longitude: coords?.lon || 0,
+          mapsUrl: line,
         });
-      } else if (line.length > 2) {
-        // Trata texto puro como nome de lugar
-        const coords = await geocodeDestination(line);
+      } else if (line.startsWith("http")) {
+        results.push({
+          title: "Local (Link)",
+          mapsUrl: line,
+        });
+      } else {
         results.push({
           title: line,
-          description: "Importado via texto",
-          latitude: coords?.lat || 0,
-          longitude: coords?.lon || 0,
         });
       }
     }
@@ -193,7 +190,7 @@ export function ImportPlacesDialog({
                     <span className="font-medium truncate">{p.title}</span>
                   </div>
                   <span className="text-[10px] text-slate-400">
-                    {p.latitude ? `${p.latitude.toFixed(3)}, ${p.longitude.toFixed(3)}` : "Sem coord"}
+                    {p.latitude && p.longitude ? `${p.latitude.toFixed(3)}, ${p.longitude.toFixed(3)}` : "Sem coord"}
                   </span>
                 </div>
               ))}

@@ -54,16 +54,10 @@ import { Fragment, useEffect, useMemo, useRef, useState, type KeyboardEvent } fr
 import {
   buildGoogleMapsDirectionsUrl,
   buildGoogleMapsUrl,
-  geocodeDestination,
   isSafeGoogleMapsUrl,
   parseGoogleMapsPlaceName,
   parseGoogleMapsUrl,
-  PLACE_CATEGORIES,
-  reverseGeocode,
-  searchPlaces,
-  type PlaceCategory,
-  type PlaceSearchResult,
-} from "@/services/overpassService";
+} from "@/services/mapsHelpers";
 import type { Trip } from "@/hooks/useTrips";
 import type { TripSuggestion } from "@/services/aiAdvisorService";
 import { getErrorMessage } from "./types";
@@ -74,13 +68,15 @@ import { ItineraryStopCard } from "./itinerary/ItineraryStopCard";
 import { parseStopMeta } from "./itinerary/types";
 import { groupItineraryByDay, moveItineraryItem } from "./planner/itineraryOrder";
 import { TripReservationsPanel } from "./planner/TripReservationsPanel";
-import { PlaceDiscoveryDialog, type DiscoveredPlace } from "./planner/PlaceDiscoveryDialog";
+
 import { fetchWeatherForecast } from "@/services/weatherService";
 import { ImportPlacesDialog } from "./planner/ImportPlacesDialog";
 import { RouteOptimizerDialog } from "./planner/RouteOptimizerDialog";
 import { ItineraryHero } from "./itinerary/ItineraryHero";
 import { exportTripToPdf } from "@/utils/tripPdfExporter";
 import type { ParsedPlace } from "@/utils/gpxKmlParser";
+
+import { PLACE_CATEGORIES, type PlaceCategory, type PlaceSearchResult } from "./itinerary/types";
 
 interface ItineraryItem {
   id: string;
@@ -116,7 +112,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
   const tripId = trip.id;
   const [showDialog, setShowDialog] = useState(false);
   const [showLodgingDialog, setShowLodgingDialog] = useState(false);
-  const [showPlaceDialog, setShowPlaceDialog] = useState(false);
+  
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showOptimizerDialog, setShowOptimizerDialog] = useState(false);
   const [editingItem, setEditingItem] = useState<ItineraryItem | null>(null);
@@ -133,8 +129,8 @@ export function TripItinerary({ trip }: TripItineraryProps) {
   const [mapsUrl, setMapsUrl] = useState("");
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
-  const [isGeocoding, setIsGeocoding] = useState(false);
-  const [isSavingPlace, setIsSavingPlace] = useState(false);
+
+  
   const [focusedItemId, setFocusedItemId] = useState<string | null>(null);
   const [category, setCategory] = useState<PlaceCategory | null>(null);
   const [activeDate, setActiveDate] = useState(trip.start_date);
@@ -179,45 +175,16 @@ export function TripItinerary({ trip }: TripItineraryProps) {
   useEffect(() => {
     const destName = trip.destination || trip.name;
     if (!destName) return;
-    let cancelled = false;
-
-    const res = geocodeDestination(destName);
-    if (!res || typeof res.then !== "function") return;
-
-    res.then((coords) => {
-      if (!coords || cancelled) return;
-
-      const currentLat = trip.latitude;
-      const currentLon = trip.longitude;
-      const isDivergent =
-        currentLat === null ||
-        currentLon === null ||
-        Math.abs(currentLat - coords.lat) > 0.05 ||
-        Math.abs(currentLon - coords.lon) > 0.05;
-
-      if (isDivergent) {
-        setLocalDestCoords(coords);
-        supabase
-          .from("trips")
-          .update({ latitude: coords.lat, longitude: coords.lon })
-          .eq("id", trip.id)
-          .then(({ error }) => {
-            if (!error) {
-              queryClient.invalidateQueries({ queryKey: ["trips"] });
-              queryClient.invalidateQueries({ queryKey: ["trip", trip.id] });
-            }
-          });
-      } else if (!localDestCoords) {
-        setLocalDestCoords(coords);
-      }
-    });
-
-    return () => {
-      cancelled = true;
-    };
+    
+    // Fallback since geocoding is removed
+    const lat = 0;
+    const lon = 0;
+    
+    if (!localDestCoords) {
+      setLocalDestCoords({ lat, lon });
+    }
   }, [trip.destination, trip.name, trip.id, trip.latitude, trip.longitude, queryClient, localDestCoords]);
 
-  // Helper: calcula distância entre duas coordenadas (Haversine)
   const calculateDistanceKm = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
     const R = 6371;
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -232,7 +199,6 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     return R * c;
   };
 
-  // Helper: estimativa de tempo e distância entre duas paradas consecutivas
   const getTravelEstimate = (itemA: ItineraryItem, itemB: ItineraryItem): string | null => {
     if (
       itemA.latitude === null ||
@@ -260,7 +226,6 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     }
   };
 
-  // Helper: extrai metadados embedados no description (mapsUrl, rating)
   const parseMeta = (
     desc: string | null
   ): { text: string; mapsUrl: string; rating: number | null } => {
@@ -279,7 +244,6 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     }
   };
 
-  // Fetch itinerary items
   const { data: items = [], isLoading } = useQuery({
     queryKey: ["trip-itinerary", tripId],
     queryFn: async () => {
@@ -309,7 +273,6 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     },
   });
 
-  // Create mutation
   const createItem = useMutation({
     mutationFn: async (item: Omit<ItineraryItem, "id" | "created_at">) => {
       const { data, error } = await supabase.from("trip_itinerary").insert(item).select().single();
@@ -329,7 +292,6 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     },
   });
 
-  // Update mutation
   const updateItem = useMutation({
     mutationFn: async ({ id, ...item }: Partial<ItineraryItem> & { id: string }) => {
       const { data, error } = await supabase
@@ -407,7 +369,6 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     },
   });
 
-  // Delete mutation
   const deleteItem = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("trip_itinerary").delete().eq("id", id);
@@ -424,7 +385,6 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     },
   });
 
-  // Delete saved place mutation
   const deleteSavedPlace = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("trip_places").delete().eq("id", id);
@@ -440,7 +400,6 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     },
   });
 
-  // Update saved place mutation
   const updateSavedPlace = useMutation({
     mutationFn: async ({
       id,
@@ -476,7 +435,6 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     try {
       const firstDayItemCount = items.filter((item) => item.date === startDate).length;
       const suggestionsToInsert = suggestions.map((s, idx) => {
-        // Embed mapsUrl and rating as JSON metadata in description
         const metadata = JSON.stringify({ mapsUrl: s.mapsUrl || "", rating: s.rating || null });
         const fullDescription = s.description
           ? `${s.description}\n<!--meta:${metadata}-->`
@@ -567,74 +525,11 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     setShowDialog(true);
   };
 
-  const fillFormFromDiscoveredPlace = (place: DiscoveredPlace) => {
-    resetForm();
-    setDate(activeDate || trip.start_date);
-    setTitle(place.name);
-    setLocation(place.address);
-    setMapsUrl(place.mapsUrl);
-    setLatitude(place.latitude);
-    setLongitude(place.longitude);
-    setCategory(place.category);
-  };
-
-  const handleAddDiscoveredPlaceToDay = (place: DiscoveredPlace) => {
-    fillFormFromDiscoveredPlace(place);
-    setShowPlaceDialog(false);
-    setShowDialog(true);
-  };
-
-  const handleSaveDiscoveredPlace = async (place: DiscoveredPlace) => {
-    setIsSavingPlace(true);
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error("Entre novamente para salvar o lugar");
-        return;
-      }
-      const { error } = await supabase.from("trip_places").insert({
-        trip_id: tripId,
-        created_by: user.id,
-        name: place.name,
-        description: null,
-        address: place.address,
-        maps_url: place.mapsUrl,
-        latitude: place.latitude,
-        longitude: place.longitude,
-        category: place.category,
-        source_type: "osm",
-        source_url: place.mapsUrl,
-        source_attribution: "© OpenStreetMap contributors",
-        status: "idea",
-      });
-      if (error) {
-        toast.error("Erro ao salvar lugar", { description: error.message });
-        return;
-      }
-      queryClient.invalidateQueries({ queryKey: ["trip-places", tripId] });
-      toast.success("Lugar guardado nas ideias");
-      setShowPlaceDialog(false);
-    } finally {
-      setIsSavingPlace(false);
-    }
-  };
-
   const handleSubmit = async () => {
     if (!date || !title) return;
 
-    let resolvedLatitude = latitude;
-    let resolvedLongitude = longitude;
-    if (location && (resolvedLatitude === null || resolvedLongitude === null)) {
-      setIsGeocoding(true);
-      const coordinates = await geocodeDestination(
-        `${location}${trip.destination ? `, ${trip.destination}` : ""}`
-      );
-      setIsGeocoding(false);
-      resolvedLatitude = coordinates?.lat ?? null;
-      resolvedLongitude = coordinates?.lon ?? null;
-    }
+    const resolvedLatitude = latitude;
+    const resolvedLongitude = longitude;
 
     const contentData = {
       title,
@@ -734,7 +629,6 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     );
     const targetDates = rangeDays.length > 0 ? rangeDays.map((d) => d.date) : [data.checkInDate];
 
-    // Inserção em lote (Bulk Insert) única e atômica no banco de dados
     const newItems = targetDates.map((d) => {
       const existingInDayCount = items.filter((item) => item.date === d).length;
       return {
@@ -766,7 +660,6 @@ export function TripItinerary({ trip }: TripItineraryProps) {
       return;
     }
 
-    // Invalidação única sem race condition
     queryClient.invalidateQueries({ queryKey: ["trip-itinerary", tripId] });
 
     toast.success(`Hospedagem "${data.title}" cadastrada!`, {
@@ -849,33 +742,29 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     [groupedItems, activeDate]
   );
 
-  // Identifica a hospedagem (Hotel, Pousada, Airbnb, etc.) da viagem ou do dia
   const lodgingStop = useMemo(() => {
     const isLodgingText = (cat?: string | null, title?: string, loc?: string | null) => {
       const text = `${cat || ""} ${title || ""} ${loc || ""}`.toLowerCase();
+      const keywords = [
+        "hotel", "pousada", "airbnb", "resort", "hostel", "hospedagem", "chale", "chalé",
+        "flat", "apartamento", "casa", "suíte", "suite", "studio", "estadia", "aluguel",
+        "quarto", "cabana", "bangalô", "bangalo", "loft", "villa", "vila", "condomínio",
+        "condominio", "residencial", "recanto", "sítio", "sitio", "chácara", "chacara",
+        "camping", "ibis", "novotel", "mercure", "hilton", "marriott", "sheraton",
+        "radisson", "hyatt", "fasano", "palace", "inn", "motel"
+      ];
       return (
         cat === "hotel" ||
         cat === "accommodation" ||
-        text.includes("hotel") ||
-        text.includes("pousada") ||
-        text.includes("airbnb") ||
-        text.includes("resort") ||
-        text.includes("hostel") ||
-        text.includes("hospedagem") ||
-        text.includes("chale") ||
-        text.includes("chalé") ||
-        text.includes("flat") ||
-        text.includes("apartamento")
+        keywords.some((w) => text.includes(w))
       );
     };
 
-    // Tenta primeiro encontrar uma hospedagem no dia ativo (mesmo que ainda sem coords)
     const activeLodging = activeItems.find(
       (item) => isLodgingText(item.category, item.title, item.location)
     );
     if (activeLodging) return activeLodging;
 
-    // Senão busca em toda a viagem
     const anyLodging = items.find(
       (item) => isLodgingText(item.category, item.title, item.location)
     );
@@ -895,35 +784,9 @@ export function TripItinerary({ trip }: TripItineraryProps) {
       return;
     }
 
-    // Se o usuário adicionou um hotel/Airbnb mas ainda sem coordenadas, geocodifica silenciosamente no mapa
     const query = lodgingStop.location || lodgingStop.title;
     if (!query) return;
 
-    let active = true;
-    searchPlaces(query, destCoords ?? undefined, "hotel", trip.destination || trip.name)
-      .then((results) => {
-        if (!active || !results || results.length === 0) return;
-        const top = results[0];
-        setGeocodedLodgingCoords({ lat: top.lat, lon: top.lon });
-        // Salva as coordenadas no banco para requisições futuras
-        supabase
-          .from("trip_itinerary")
-          .update({
-            latitude: top.lat,
-            longitude: top.lon,
-            maps_url: buildGoogleMapsUrl(top.name, top.address || trip.destination || trip.name),
-          })
-          .eq("id", lodgingStop.id)
-          .then(({ error }) => {
-            if (!error) {
-              queryClient.invalidateQueries({ queryKey: ["trip-itinerary", tripId] });
-            }
-          });
-      });
-
-    return () => {
-      active = false;
-    };
   }, [lodgingStop, destCoords, trip.destination, trip.name, tripId, queryClient]);
 
   const lodgingCoords = useMemo(() => {
@@ -1039,7 +902,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
         dayCount={plannerDays.length}
         geocoded={destCoords}
         onAddStop={() => handleOpenDialog()}
-        onSearchPlaces={() => setShowPlaceDialog(true)}
+        
         onOptimize={() => setShowOptimizerDialog(true)}
         onImport={() => setShowImportDialog(true)}
         onExportPdf={() => exportTripToPdf(trip, items)}
@@ -1121,7 +984,17 @@ export function TripItinerary({ trip }: TripItineraryProps) {
               {activeItems.length > 0 && (
                 <Button asChild variant="outline" size="sm" className="min-h-9 px-3 text-xs text-primary hover:text-primary">
                   <a
-                    href={buildGoogleMapsDirectionsUrl(activeItems, trip.destination || trip.name)}
+                    href={buildGoogleMapsDirectionsUrl(
+                      activeItems,
+                      trip.destination || trip.name,
+                      lodgingStop
+                        ? {
+                            ...lodgingStop,
+                            latitude: lodgingStop.latitude ?? lodgingCoords?.lat ?? null,
+                            longitude: lodgingStop.longitude ?? lodgingCoords?.lon ?? null,
+                          }
+                        : null
+                    )}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -1154,10 +1027,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
                   <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
                   Adicionar parada
                 </Button>
-                <Button variant="outline" onClick={() => setShowPlaceDialog(true)} className="min-h-11">
-                  <Search className="mr-2 h-4 w-4" aria-hidden="true" />
-                  Buscar lugares
-                </Button>
+                
               </div>
             </div>
           ) : (
@@ -1211,7 +1081,6 @@ export function TripItinerary({ trip }: TripItineraryProps) {
             </DndContext>
           )}
 
-          {/* Banco de Ideias / Lugares Salvos */}
           <div className="mt-8 rounded-2xl border border-border/70 bg-card p-5 shadow-2xs">
             <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-border/60">
               <div className="flex items-center gap-2">
@@ -1225,16 +1094,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
                   </p>
                 </div>
               </div>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="min-h-9 text-xs"
-                onClick={() => setShowPlaceDialog(true)}
-              >
-                <Plus className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
-                Buscar novos lugares
-              </Button>
+              
             </div>
 
             {savedPlaces.length === 0 ? (
@@ -1354,13 +1214,12 @@ export function TripItinerary({ trip }: TripItineraryProps) {
         {liveMessage}
       </p>
 
-      {/* Dialog */}
       <ItineraryDialog
         open={showDialog}
         onOpenChange={setShowDialog}
         isEditing={!!editingItem}
         dateLocked={false}
-        isLoading={createItem.isPending || updateItem.isPending || isGeocoding}
+        isLoading={createItem.isPending || updateItem.isPending}
         date={date}
         setDate={setDate}
         title={title}
@@ -1380,7 +1239,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
           setLatitude(c?.lat ?? null);
           setLongitude(c?.lon ?? null);
         }}
-        searchNear={destCoords ?? null}
+        searchNear={searchNearCoords ?? null}
         category={category}
         setCategory={setCategory}
         destinationName={trip.destination || trip.name}
@@ -1388,31 +1247,17 @@ export function TripItinerary({ trip }: TripItineraryProps) {
         onSaveOnly={handleSaveOnly}
       />
 
-      <PlaceDiscoveryDialog
-        open={showPlaceDialog}
-        onOpenChange={setShowPlaceDialog}
-        searchNear={searchNearCoords}
-        destinationName={trip.destination || trip.name}
-        lodgingName={lodgingStop?.title}
-        lodgingCoords={lodgingCoords}
-        isSaving={isSavingPlace}
-        onSave={handleSaveDiscoveredPlace}
-        onAddToDay={handleAddDiscoveredPlaceToDay}
-      />
-
-      {/* Dedicated Lodging Modal */}
       <LodgingDialog
         open={showLodgingDialog}
         onOpenChange={setShowLodgingDialog}
         dayOptions={dayOptions}
         defaultDate={activeDate}
         destinationName={trip.destination || trip.name}
-        searchNear={destCoords}
+        searchNear={searchNearCoords || destCoords}
         isLoading={createItem.isPending}
         onSave={handleSaveLodging}
       />
 
-      {/* Delete confirmation */}
       <AlertDialog open={!!deletingItem} onOpenChange={(open) => !open && setDeletingItem(null)}>
         <AlertDialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-2xl !rounded-b-none sm:!rounded-b-2xl p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
           <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
@@ -1450,7 +1295,6 @@ export function TripItinerary({ trip }: TripItineraryProps) {
         onApplyOptimization={handleApplyRouteOptimization}
       />
 
-      {/* Dialog para Editar Lugar Salvo */}
       <Dialog
         open={!!editingSavedPlace}
         onOpenChange={(open) => {
@@ -1526,7 +1370,6 @@ export function TripItinerary({ trip }: TripItineraryProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Alert Dialog para Excluir Lugar Salvo */}
       <AlertDialog
         open={!!deletingSavedPlace}
         onOpenChange={(open) => {
@@ -1562,7 +1405,6 @@ export function TripItinerary({ trip }: TripItineraryProps) {
   );
 }
 
-// Dialog component
 function ItineraryDialog({
   open,
   onOpenChange,
@@ -1621,8 +1463,6 @@ function ItineraryDialog({
   onSaveOnly: () => void;
 }) {
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-
-  // Autocomplete de lugares (Photon/OSM) — só busca quando o usuário digita
   const [placeQuery, setPlaceQuery] = useState("");
   const [placeResults, setPlaceResults] = useState<PlaceSearchResult[]>([]);
   const [isSearchingPlaces, setIsSearchingPlaces] = useState(false);
@@ -1646,27 +1486,18 @@ function ItineraryDialog({
       return;
     }
     const query = placeQuery.trim();
-    const catLabel = PLACE_CATEGORIES.find((c) => c.id === category)?.label;
-    const effectiveQuery = query.length >= 2 ? query : (category ? (catLabel || "") : "");
+    const effectiveQuery = query.length >= 2 ? query : (category ? "" : "");
 
     if (!effectiveQuery) {
       setPlaceResults([]);
       return;
     }
 
-    const requestId = ++searchRequestId.current;
+    ++searchRequestId.current;
     setIsSearchingPlaces(true);
     const timer = setTimeout(async () => {
-      const results = await searchPlaces(
-        effectiveQuery,
-        searchNear ?? undefined,
-        category ?? undefined,
-        destinationName
-      );
-      if (searchRequestId.current !== requestId) return;
-      setPlaceResults(results);
+      setPlaceResults([]);
       setIsSearchingPlaces(false);
-      setActivePlaceIndex(results.length ? 0 : -1);
     }, 300);
     return () => clearTimeout(timer);
   }, [placeQuery, open, searchNear, category, destinationName]);
@@ -1701,7 +1532,7 @@ function ItineraryDialog({
   };
 
   const handleMapsUrlChange = async (value: string) => {
-    const requestId = ++mapsResolveRequestId.current;
+    ++mapsResolveRequestId.current;
     setMapsUrl(value);
     if (!isSafeGoogleMapsUrl(value)) {
       onCoordsChange(null);
@@ -1715,13 +1546,6 @@ function ItineraryDialog({
     const nameFromUrl = parseGoogleMapsPlaceName(value);
     if (nameFromUrl && !title.trim()) setTitle(nameFromUrl);
     setResolvedPlaceName(nameFromUrl || "Lugar do Google Maps");
-
-    const resolved = await reverseGeocode(coordinates.lat, coordinates.lon);
-    if (mapsResolveRequestId.current !== requestId) return;
-    if (!resolved) return;
-    setLocation(resolved.address || resolved.name);
-    if (!title.trim() && !nameFromUrl) setTitle(resolved.name);
-    setResolvedPlaceName(nameFromUrl || resolved.name);
   };
 
   const openMapsSearch = () => {

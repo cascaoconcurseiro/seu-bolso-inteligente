@@ -1,9 +1,10 @@
 export interface ParsedPlace {
   title: string;
   description?: string;
-  latitude: number;
-  longitude: number;
+  latitude?: number;
+  longitude?: number;
   category?: string;
+  mapsUrl?: string;
 }
 
 export function parseGeoJSON(content: string): ParsedPlace[] {

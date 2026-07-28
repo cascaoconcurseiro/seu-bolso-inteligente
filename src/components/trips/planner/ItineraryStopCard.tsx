@@ -11,7 +11,16 @@ import {
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getCategoryColor } from "@/services/overpassService";
+function getCategoryColor(category?: string | null) {
+  if (!category) return "#3b82f6";
+  const cat = category.toLowerCase();
+  if (cat.includes("restauran") || cat.includes("food") || cat.includes("din")) return "#f97316";
+  if (cat.includes("hotel") || cat.includes("lodg")) return "#3b82f6";
+  if (cat.includes("park") || cat.includes("nature")) return "#22c55e";
+  if (cat.includes("museum") || cat.includes("art")) return "#a855f7";
+  if (cat.includes("shop")) return "#ec4899";
+  return "#64748b";
+}
 
 export interface PlannerStop {
   id: string;

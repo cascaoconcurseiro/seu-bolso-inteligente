@@ -5,7 +5,6 @@ import {
   MapPin,
   Plus,
   Route as RouteIcon,
-  Search,
   Sparkles,
   Upload,
 } from "lucide-react";
@@ -25,7 +24,7 @@ interface ItineraryHeroProps {
   dayCount: number;
   geocoded: { lat: number; lon: number } | null;
   onAddStop: () => void;
-  onSearchPlaces: () => void;
+
   onOptimize: () => void;
   onImport: () => void;
   onExportPdf: () => void;
@@ -37,7 +36,7 @@ export function ItineraryHero({
   dayCount,
   geocoded,
   onAddStop,
-  onSearchPlaces,
+
   onOptimize,
   onImport,
   onExportPdf,
@@ -125,15 +124,6 @@ export function ItineraryHero({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            className="min-h-11"
-            onClick={onSearchPlaces}
-          >
-            <Search className="mr-2 h-4 w-4" aria-hidden="true" />
-            Buscar lugares
-          </Button>
           <Button
             type="button"
             variant="outline"

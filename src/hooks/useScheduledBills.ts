@@ -21,7 +21,7 @@ export function useConfirmScheduledBill() {
       if (!user) throw new Error("Usuário não autenticado");
 
       const date = paidDate ?? format(new Date(), "yyyy-MM-dd");
-      const update: Record<string, unknown> = { status: "CONFIRMED", date };
+      const update: { status: "CONFIRMED"; date: string; amount?: number } = { status: "CONFIRMED", date };
       if (amount !== undefined) update.amount = amount;
       const { error } = await supabase
         .from("transactions")
@@ -109,6 +109,9 @@ export function useConfirmRecurringOccurrence() {
         status,
         ...fields
       } = template;
+      
+      void id; void created_at; void updated_at; void last_generated_date;
+      void is_recurring; void recurrence_pattern; void recurrence_day; void status;
 
       const { error } = await supabase.from("transactions").insert({
         ...fields,

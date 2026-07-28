@@ -329,7 +329,7 @@ export function useAdminActions() {
       loadUsersDetailed();
       loadAuditLogs();
       loadErrorLogs();
-    } catch (error) {
+    } catch {
       setPasswordError(true);
       toast.error("Credencial administrativa inválida");
     } finally {
@@ -489,6 +489,7 @@ export function useAdminActions() {
   };
 
   const resetSingleUser = async (userId: string) => {
+    void userId;
     // This RPC is now service_role only — must be called from a server-side function, not the browser.
     throw new Error("admin_reset_single_user deve ser chamado via Edge Function com service_role.");
   };
@@ -501,6 +502,7 @@ export function useAdminActions() {
       const { count: accCount, error: accErr } = await supabase
         .from("accounts")
         .delete({ count: "exact" })
+        // @ts-expect-error 'deleted' is not typed in the generated Supabase types but still exists in the table.
         .eq("deleted", true);
 
       if (accErr) throw accErr;

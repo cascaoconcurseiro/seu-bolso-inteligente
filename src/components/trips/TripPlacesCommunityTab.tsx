@@ -40,6 +40,7 @@ interface PlacePhoto {
   signedUrl?: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = supabase as any;
 
 function stars(rating: number) {
@@ -104,7 +105,7 @@ export function TripPlacesCommunityTab({ trip }: TripPlacesCommunityTabProps) {
         .select("place_id")
         .eq("trip_id", trip.id)
         .eq("place_id", activePlaceId)
-        .eq("user_id", user.id)
+        .eq("user_id", user!.id)
         .maybeSingle();
       if (error) throw error;
       return Boolean(data);
@@ -120,7 +121,7 @@ export function TripPlacesCommunityTab({ trip }: TripPlacesCommunityTabProps) {
         .select("id")
         .eq("trip_id", trip.id)
         .eq("place_id", activePlaceId)
-        .eq("user_id", user.id)
+        .eq("user_id", user!.id)
         .limit(1);
       if (error) throw error;
       return Boolean(data?.length);

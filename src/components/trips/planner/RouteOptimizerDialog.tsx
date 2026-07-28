@@ -7,8 +7,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Route, Check, MapPin, ArrowRight, ExternalLink } from "lucide-react";
-import { buildGoogleMapsUrl } from "@/services/overpassService";
+import { Route, Check, ExternalLink } from "lucide-react";
+import { buildGoogleMapsDirectionsUrl } from "@/services/mapsHelpers";
 import { toast } from "sonner";
 
 interface Stop {
@@ -104,13 +104,13 @@ export function RouteOptimizerDialog({
     const waypoints = optimizedResult.optimized
       .filter((s) => s.latitude && s.longitude)
       .map((s) => ({
-        location: s.title,
-        lat: s.latitude!,
-        lon: s.longitude!,
+        title: s.title,
+        latitude: s.latitude!,
+        longitude: s.longitude!,
       }));
 
     if (waypoints.length > 0) {
-      const url = buildGoogleMapsUrl(waypoints);
+      const url = buildGoogleMapsDirectionsUrl(waypoints);
       window.open(url, "_blank");
     }
   };

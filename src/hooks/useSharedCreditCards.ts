@@ -117,7 +117,7 @@ export function useInviteSharedCard() {
           title: "Convite de Cartão Compartilhado",
           message: `Você foi convidado para compartilhar o cartão ${cardName}.`,
           type: "INVITATION",
-          read: false,
+          is_read: false,
           metadata: { type: "shared_card_invite", shared_card_id: data?.id, account_id: accountId },
         });
       }

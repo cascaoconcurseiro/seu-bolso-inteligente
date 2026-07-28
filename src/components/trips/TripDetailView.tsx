@@ -18,9 +18,6 @@ import { lazy, Suspense } from "react";
 const TripItinerary = lazy(() =>
   import("@/components/trips/TripItinerary").then((module) => ({ default: module.TripItinerary }))
 );
-const TripExploreTab = lazy(() =>
-  import("@/components/trips/explore/TripExploreTab").then((module) => ({ default: module.TripExploreTab }))
-);
 const TripPlacesCommunityTab = lazy(() =>
   import("@/components/trips/TripPlacesCommunityTab").then((module) => ({ default: module.TripPlacesCommunityTab }))
 );
@@ -71,7 +68,6 @@ export function TripDetailView({
 
   const primaryTab =
     activeTab === "itinerary" ? "planner" :
-    activeTab === "explore" ? "explore" :
     activeTab === "community" ? "community" :
     activeTab === "expenses" || activeTab === "exchange" ? "expenses" :
     activeTab === "shopping" || activeTab === "checklist" || activeTab === "preparation" || activeTab === "bags" ? "preparation" :
@@ -98,7 +94,6 @@ export function TripDetailView({
               ["summary", TrendingUp, "Resumo"],
               ["expenses", DollarSign, "Gastos"],
               ["planner", Route, "Roteiro"],
-              ["explore", Compass, "Explorar"],
               ["preparation", ListChecks, "Preparar"],
               ["journal", BookOpen, "Diário"],
               ["community", UsersRound, "Comunidade"],
@@ -123,7 +118,6 @@ export function TripDetailView({
         </TabsContent>
 
         <TabsContent value="planner"><Suspense fallback={loading("Preparando mapa e roteiro…")}><TripItinerary trip={trip} /></Suspense></TabsContent>
-        <TabsContent value="explore"><Suspense fallback={loading("Preparando busca de lugares…")}><TripExploreTab trip={trip} /></Suspense></TabsContent>
         <TabsContent value="community"><Suspense fallback={loading("Preparando comunidade da viagem…")}><TripPlacesCommunityTab trip={trip} /></Suspense></TabsContent>
         <TabsContent value="journal"><TripJournalTab /></TabsContent>
 

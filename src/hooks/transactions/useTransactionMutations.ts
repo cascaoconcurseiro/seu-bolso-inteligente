@@ -34,6 +34,7 @@ export function useBulkCreateTransactions() {
 
       const transactionsToInsert = inputs.map((input) => {
         const { splits, ...transactionData } = input;
+        void splits;
 
         return {
           user_id: user.id,
@@ -122,11 +123,12 @@ export function useUpdateTransaction() {
       }
 
       // We update splits separately since they are in another table.
-      const { splits, transaction_splits, ...restUpdateData } =
+      const { splits, transaction_splits, category, account, trip, is_optimistic, ...restUpdateData } =
         updateData as Partial<Transaction> & {
           splits?: TransactionSplitData[];
           transaction_splits?: TransactionSplitData[];
         };
+      void category; void account; void trip; void is_optimistic;
       const actualSplits = transaction_splits || splits;
 
       const { data, error } = await supabase
@@ -278,7 +280,7 @@ export function useDeleteTransaction() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    onMutate: async ({ id, cascadeType = "NONE" }) => {
+    onMutate: async ({ id }) => {
       await queryClient.cancelQueries({ queryKey: ["transactions"] });
       const previousTransactions = queryClient.getQueriesData({ queryKey: ["transactions"] });
 

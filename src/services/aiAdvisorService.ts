@@ -7,7 +7,7 @@ import {
   getTripItineraryPrompt,
 } from "./ai/aiPrompts";
 import { LOCAL_BRAZILIAN_MAPPINGS, LocalMapping } from "./ai/localMappings";
-import { fetchRealPOIs } from "./overpassService";
+
 
 // In production, all Groq calls are proxied through a Supabase Edge Function
 // so the API key never reaches the client bundle.
@@ -443,23 +443,7 @@ export class AIAdvisorService {
   static async suggestTripItinerary(destination: string): Promise<TripItinerarySuggestion[]> {
     if (!destination) return [];
 
-    // 1. Try Overpass API (real OSM data, free, no key needed)
-    try {
-      const pois = await fetchRealPOIs(destination, 10);
-      if (pois.length >= 3) {
-        return pois.map((poi) => ({
-          title: poi.title,
-          location: poi.location,
-          description: poi.description,
-          durationHours: poi.durationHours,
-          mapsUrl: poi.mapsUrl,
-        }));
-      }
-    } catch (e) {
-      logger.warn("[AIAdvisorService] Overpass falhou, tentando Google Places", e);
-    }
-
-    // 2. Fallback: Google Places via Supabase Edge Function
+    // 1. Try Google Places via Supabase Edge Function
     try {
       const placesResult = await this.fetchPlacesSuggestions(destination);
       if (placesResult.length > 0) return placesResult;
@@ -467,7 +451,7 @@ export class AIAdvisorService {
       logger.warn("[AIAdvisorService] Google Places falhou, usando IA como fallback", e);
     }
 
-    // 3. Last resort: AI-generated (may invent locations)
+    // 2. Last resort: AI-generated (may invent locations)
     const prompt = getTripItineraryPrompt(destination);
     const result = await this.fetchGroq({
       model: "llama-3.3-70b-versatile",

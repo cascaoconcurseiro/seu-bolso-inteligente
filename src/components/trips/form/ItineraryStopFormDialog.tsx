@@ -17,8 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MapPin, Clock, Navigation, Tag, FileText, Compass } from "lucide-react";
-import { PLACE_CATEGORIES, geocodeDestination } from "@/services/overpassService";
+import { Compass } from "lucide-react";
 
 export interface ItineraryStopFormData {
   id?: string;
@@ -63,7 +62,7 @@ export function ItineraryStopFormDialog({
   const [mapsUrl, setMapsUrl] = useState("");
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
-  const [isGeocoding, setIsGeocoding] = useState(false);
+
 
   useEffect(() => {
     if (initialData) {
@@ -99,16 +98,6 @@ export function ItineraryStopFormDialog({
     setLongitude(null);
   };
 
-  const handleGeocode = async () => {
-    if (!location.trim()) return;
-    setIsGeocoding(true);
-    const coords = await geocodeDestination(location);
-    setIsGeocoding(false);
-    if (coords) {
-      setLatitude(coords.lat);
-      setLongitude(coords.lon);
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -230,15 +219,6 @@ export function ItineraryStopFormDialog({
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
               />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleGeocode}
-                disabled={isGeocoding || !location.trim()}
-              >
-                {isGeocoding ? "..." : "Buscar Coordenadas"}
-              </Button>
             </div>
             {latitude && longitude && (
               <span className="text-[10px] text-emerald-600 font-medium">

@@ -32,7 +32,7 @@ export function exportTripToPdf(trip: Trip, items: ExportItem[]): void {
     <html lang="pt-BR">
     <head>
       <meta charset="UTF-8">
-      <title>Roteiro de Viagem - ${trip.title}</title>
+      <title>Roteiro de Viagem - ${trip.name}</title>
       <style>
         body {
           font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -118,11 +118,10 @@ export function exportTripToPdf(trip: Trip, items: ExportItem[]): void {
       </div>
 
       <div class="header">
-        <h1 class="title">${trip.title}</h1>
+        <h1 class="title">${trip.name}</h1>
         <div class="meta">
           📍 Destino: ${trip.destination || "Não informado"} | 📅 Período: ${trip.start_date} até ${trip.end_date}
         </div>
-        ${trip.description ? `<p style="margin: 10px 0 0 0; color: #475569;">${trip.description}</p>` : ""}
       </div>
 
       ${
