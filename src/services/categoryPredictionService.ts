@@ -163,7 +163,7 @@ export class CategoryPredictionService {
 
       const cleanInputWords = cleanInput.split(" ");
 
-      let bestMatch: any = null;
+      let bestMatch: Record<string, unknown> | null = null;
       let bestScore = 0;
 
       for (const row of data) {
@@ -218,14 +218,14 @@ export class CategoryPredictionService {
 
           if (score > bestScore) {
             bestScore = score;
-            bestMatch = row;
+            bestMatch = row as Record<string, unknown>;
           }
         }
       }
 
       if (!bestMatch) return null;
 
-      const categoryObj = bestMatch.categories as any;
+      const categoryObj = bestMatch.categories as { name?: string };
 
       return {
         categoryId: bestMatch.category_id,
@@ -308,12 +308,12 @@ export class CategoryPredictionService {
       if (!bestConcept) return null;
 
       // B. Casar o conceito vencedor com as categorias reais do usuário (hierarquia + sinônimos + emoji)
-      let matchedCategory: any = null;
-      let matchTypeScore = 0;
-
       const subcategories = categories.filter((c) => c.parent_category_id !== null);
       const parentCategories = categories.filter((c) => c.parent_category_id === null);
       const candidates = [...subcategories, ...parentCategories];
+
+      let matchedCategory: typeof candidates[0] | null = null;
+      let matchTypeScore = 0;
 
       const cleanConcept = bestConcept.toLowerCase().trim();
       const synonyms = CONCEPT_SYNONYMS[bestConcept] || [];
@@ -416,7 +416,7 @@ export class CategoryPredictionService {
         `
         )
         .eq("user_id", userId)
-        .eq("type", queryType as any)
+        .eq("type", queryType as "EXPENSE" | "INCOME" | "TRANSFER")
         .not("category_id", "is", null)
         .ilike("description", `%${searchTerm}%`)
         .limit(10);

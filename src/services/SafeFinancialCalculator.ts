@@ -17,7 +17,7 @@ export class SafeFinancialCalculator {
   /**
    * Helper safely converts any value to Decimal
    */
-  static toDecimal(val: any, defaultValue: Decimal = SafeFinancialCalculator.ZERO): Decimal {
+  static toDecimal(val: unknown, defaultValue: Decimal = SafeFinancialCalculator.ZERO): Decimal {
     if (val === null || val === undefined) return defaultValue;
     if (val instanceof Decimal) return val;
     if (typeof val === "number" && isNaN(val)) return defaultValue;

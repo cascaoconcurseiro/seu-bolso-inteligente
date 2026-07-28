@@ -6,10 +6,10 @@ import {
 } from "@/utils/exportCurrency";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 
-const safeFormatDate = (dateVal: any): string => {
+const safeFormatDate = (dateVal: unknown): string => {
   if (!dateVal) return "N/A";
   try {
-    const d = new Date(dateVal);
+    const d = new Date(dateVal as string | number | Date);
     if (isNaN(d.getTime())) return "N/A";
     // Corrige fuso horário local na renderização
     const utcDate = new Date(d.getTime() + d.getTimezoneOffset() * 60000);
@@ -17,11 +17,12 @@ const safeFormatDate = (dateVal: any): string => {
     const month = String(utcDate.getMonth() + 1).padStart(2, "0");
     const year = utcDate.getFullYear();
     return `${day}/${month}/${year}`;
-  } catch (e) {
+  } catch (_e) {
     return "N/A";
   }
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function exportTransactionsToJSON(transactions: any[]): string {
   const data = transactions.map((tx) => ({
     data: tx.date,
@@ -53,6 +54,7 @@ export function downloadFile(content: string, filename: string, mimeType: string
   URL.revokeObjectURL(url);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function exportTransactions(
   transactions: any[],
   format: "csv" | "json" | "pdf" = "csv"

@@ -378,7 +378,7 @@ export class AIAdvisorService {
           suggestion: parsed.suggestion || "",
           categoryId: parsed.categoryId || null,
         };
-      } catch (e) {
+      } catch (_e) {
         return { suggestion: "", categoryId: null };
       }
     }
@@ -447,7 +447,7 @@ export class AIAdvisorService {
     try {
       const placesResult = await this.fetchPlacesSuggestions(destination);
       if (placesResult.length > 0) return placesResult;
-    } catch (e) {
+    } catch (_e) {
       logger.warn("[AIAdvisorService] Google Places falhou, usando IA como fallback", e);
     }
 
@@ -465,7 +465,7 @@ export class AIAdvisorService {
       try {
         const parsed = JSON.parse(result.choices[0].message.content);
         return parsed.suggestions || [];
-      } catch (e) {
+      } catch (_e) {
         return [];
       }
     }
@@ -494,7 +494,7 @@ export class AIAdvisorService {
       try {
         const parsed = JSON.parse(result.choices[0].message.content);
         return parsed.suggestions || [];
-      } catch (e) {
+      } catch (_e) {
         return [];
       }
     }

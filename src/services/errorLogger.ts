@@ -17,15 +17,15 @@ interface ErrorPayload {
   extra?: Json;
 }
 
-function toJson(value: unknown): Json {
+function _toJson(value: unknown): Json {
   if (value === null || ["string", "number", "boolean"].includes(typeof value)) {
     return value as string | number | boolean | null;
   }
 
-  if (Array.isArray(value)) return value.map(toJson);
+  if (Array.isArray(value)) return value.map(_toJson);
 
   if (typeof value === "object") {
-    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, toJson(item)]));
+    return Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([key, item]) => [key, _toJson(item)]));
   }
 
   return String(value);

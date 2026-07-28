@@ -84,11 +84,11 @@ describe("CategoryPredictionService", () => {
           limit: vi.fn().mockReturnThis(),
           not: vi.fn().mockReturnThis(),
           ilike: vi.fn().mockReturnThis(),
-          then: function (resolve: any) {
+          then: function (resolve: (value: unknown) => void) {
             resolve({ data: mockLearnings, error: null });
           },
         }),
-      } as any);
+      } as unknown as typeof supabase);
 
       // Descrição que contém o padrão aprendido "supermercado extra" com ruído transacional
       const result = await CategoryPredictionService.predictCategory(
@@ -116,11 +116,11 @@ describe("CategoryPredictionService", () => {
           limit: vi.fn().mockReturnThis(),
           not: vi.fn().mockReturnThis(),
           ilike: vi.fn().mockReturnThis(),
-          then: function (resolve: any) {
+          then: function (resolve: (value: unknown) => void) {
             resolve({ data: mockCategories, error: null });
           },
         }),
-      } as any);
+      } as unknown as typeof supabase);
 
       // Usuário digita "ifod" (erro de digitação de "ifood")
       const result = await CategoryPredictionService.predictCategory(
@@ -152,11 +152,11 @@ describe("CategoryPredictionService", () => {
           limit: vi.fn().mockReturnThis(),
           not: vi.fn().mockReturnThis(),
           ilike: vi.fn().mockReturnThis(),
-          then: function (resolve: any) {
+          then: function (resolve: (value: unknown) => void) {
             resolve({ data: mockCategories, error: null });
           },
         }),
-      } as any);
+      } as unknown as typeof supabase);
 
       // "extra" é keyword de "Supermercado". E "Rancho Mensal" possui "rancho" como sinônimo de Supermercado!
       const result = await CategoryPredictionService.predictCategory(
@@ -189,7 +189,7 @@ describe("CategoryPredictionService", () => {
           }),
         }),
         insert: insertMock,
-      } as any);
+      } as unknown as typeof supabase);
 
       await CategoryPredictionService.learnFromUser(
         "COMPRA CARTAO 12/05 UBER TRIP #1234",
@@ -241,7 +241,7 @@ describe("CategoryPredictionService", () => {
         }),
         delete: vi.fn().mockReturnValue({ eq: deleteMock }),
         update: vi.fn().mockReturnValue({ eq: updateMock }),
-      } as any);
+      } as unknown as typeof supabase);
 
       await CategoryPredictionService.learnFromUser(
         "Uber Corrida para Casa",
