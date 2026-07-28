@@ -108,20 +108,21 @@ export function Budgets() {
     };
 
     try {
-      showActionFeedback("success");
       if (editingBudget) {
-        setTimeout(() => setEditingBudget(null), 80);
-        updateBudget({ id: editingBudget.id, ...data });
+        await updateBudget({ id: editingBudget.id, ...data });
+        setEditingBudget(null);
       } else {
-        setTimeout(() => setShowNewBudgetDialog(false), 80);
-        createBudget(data);
+        await createBudget(data);
+        setShowNewBudgetDialog(false);
       }
+      showActionFeedback("success");
       resetForm();
       if (document.activeElement instanceof HTMLElement) {
         document.activeElement.blur();
       }
     } catch (err) {
       logger.error("Erro ao salvar orçamento", err);
+      showActionFeedback("error");
     }
   };
 

@@ -29,6 +29,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
 import { useTransactionStore } from "@/store/useTransactionStore";
+import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 
 interface AdvancedOptionsProps {
   isExpense: boolean;
@@ -315,7 +316,17 @@ export function AdvancedOptions({
                   <SelectContent>
                     {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 18, 24].map((n) => (
                       <SelectItem key={n} value={n.toString()}>
-                        {n}x de {currencySymbol} {(numericAmount / n).toFixed(2).replace(".", ",")}
+                        {(() => {
+                          const amounts = SafeFinancialCalculator.distributeInstallments(
+                            numericAmount,
+                            n
+                          );
+                          const regular = amounts[0].toFixed(2).replace(".", ",");
+                          const last = amounts[n - 1].toFixed(2).replace(".", ",");
+                          return amounts[0].equals(amounts[n - 1])
+                            ? `${n}x de ${currencySymbol} ${regular}`
+                            : `${n - 1}x de ${currencySymbol} ${regular} + última de ${currencySymbol} ${last}`;
+                        })()}
                       </SelectItem>
                     ))}
                   </SelectContent>

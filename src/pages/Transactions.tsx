@@ -41,6 +41,9 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useTransactionSync } from "@/hooks/useTransactionSync";
 import { haptics } from "@/utils/haptics";
+import { paginateItems } from "@/utils/frontendFlows";
+
+const TRANSACTION_PAGE_SIZE = 50;
 
 export function Transactions() {
   const location = useLocation();
@@ -48,6 +51,8 @@ export function Transactions() {
     (location.state as any)?.tab === "proximas" ? "proximas" : "lancadas"
   );
   const [searchQuery, setSearchQuery] = useState("");
+  const isSearchingHistory = searchQuery.trim().length > 0;
+  const [visibleCount, setVisibleCount] = useState(TRANSACTION_PAGE_SIZE);
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedAccount, setSelectedAccount] = useState<string>("all");
@@ -69,9 +74,10 @@ export function Transactions() {
   const { user } = useAuth();
   const { currentDate } = useMonth();
   const { data: transactions, isLoading, isError, refetch } = useTransactions();
-  const { data: annualTransactions = [] } = useTransactions({
+  const { data: annualTransactions = [], refetch: refetchAnnualTransactions } = useTransactions({
     startDate: `${currentDate.getFullYear()}-01-01`,
     endDate: `${currentDate.getFullYear()}-12-31`,
+    enabled: isSearchingHistory,
   });
   const { data: familyMembers = [] } = useFamilyMembers();
   const deleteTransaction = useDeleteTransaction();
@@ -157,7 +163,22 @@ export function Transactions() {
     });
   }, [annualTransactions, filterParams]);
 
-  const isSearchingHistory = searchQuery.trim().length > 0;
+  const loadAnnualTransactions = async (): Promise<DisplayTransaction[]> => {
+    const result = await refetchAnnualTransactions();
+    if (result.error) throw result.error;
+    const filtered = applyTransactionFilters(result.data ?? [], {
+      ...filterParams,
+      selectedPeriod: "all",
+    });
+    return filtered.map((transaction) => ({
+      ...transaction,
+      external_id: transaction.external_id ?? null,
+      account: transaction.account
+        ? { ...transaction.account, currency: transaction.account.currency ?? undefined }
+        : undefined,
+    }));
+  };
+
   const displayTransactions = useMemo(() => {
     const base = isSearchingHistory ? filteredAnnualTransactions : filteredTransactions;
     // Na aba "Lançadas", excluir transações com data futura (vão para "Próximas")
@@ -168,16 +189,33 @@ export function Transactions() {
     return base;
   }, [isSearchingHistory, filteredAnnualTransactions, filteredTransactions, activeTab]);
 
+  useEffect(() => {
+    setVisibleCount(TRANSACTION_PAGE_SIZE);
+  }, [
+    searchQuery,
+    selectedType,
+    selectedCategory,
+    selectedAccount,
+    selectedPeriod,
+    selectedCurrency,
+    activeTab,
+  ]);
+
+  const visibleTransactions = useMemo(
+    () => paginateItems(displayTransactions, visibleCount),
+    [displayTransactions, visibleCount]
+  );
+
   const displayTransactionsForUtilities = useMemo<DisplayTransaction[]>(
     () =>
-      displayTransactions.map((transaction) => ({
+      visibleTransactions.map((transaction) => ({
         ...transaction,
         external_id: transaction.external_id ?? null,
         account: transaction.account
           ? { ...transaction.account, currency: transaction.account.currency ?? undefined }
           : undefined,
       })),
-    [displayTransactions]
+    [visibleTransactions]
   );
   const dayGroups = useMemo(
     () => groupTransactionsByDay(displayTransactionsForUtilities),
@@ -226,17 +264,13 @@ export function Transactions() {
       return;
     }
 
-    showActionFeedback("success");
-    haptics.heavy();
-
-    setTimeout(() => {
+    try {
+      await deleteTransaction.mutateAsync({ id: tx.id, cascadeType });
+      if (tx.is_shared) invalidateRelated(tx.id);
+      showActionFeedback("success");
+      haptics.heavy();
       setDeleteConfirm({ isOpen: false, transaction: null });
       setDetailsTransaction(null);
-    }, 80);
-
-    try {
-      deleteTransaction.mutate({ id: tx.id, cascadeType });
-      if (tx.is_shared) invalidateRelated(tx.id);
     } catch {
       /* onError do hook já trata */
     }
@@ -249,12 +283,14 @@ export function Transactions() {
     }
   };
 
-  const handleUnconfirm = (transaction: Transaction) => {
-    showActionFeedback("success");
-    setTimeout(() => {
+  const handleUnconfirm = async (transaction: Transaction) => {
+    try {
+      await unconfirmTransaction.mutateAsync({ id: transaction.id });
+      showActionFeedback("success");
       setDetailsTransaction(null);
-    }, 80);
-    unconfirmTransaction.mutate({ id: transaction.id });
+    } catch {
+      /* onError do hook já trata */
+    }
   };
 
   const getCreatorName = (transaction: Transaction) => {
@@ -357,13 +393,7 @@ export function Transactions() {
         <TransactionHeader
           count={displayTransactions.length}
           filteredTransactions={displayTransactionsForUtilities}
-          filteredAnnualTransactions={filteredAnnualTransactions.map((transaction) => ({
-            ...transaction,
-            external_id: transaction.external_id ?? null,
-            account: transaction.account
-              ? { ...transaction.account, currency: transaction.account.currency ?? undefined }
-              : undefined,
-          }))}
+          loadAnnualTransactions={loadAnnualTransactions}
           onImportOFX={() => setShowOfxModal(true)}
         />
 
@@ -479,7 +509,8 @@ export function Transactions() {
             {isSearchingHistory && (
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/10 border border-primary/20 text-sm text-primary font-medium -mt-1">
                 <Clock className="h-4 w-4 shrink-0" />
-                Buscando em todo o ano · {displayTransactions.length} resultado
+                Buscando entre as 1.000 transações mais recentes de {currentDate.getFullYear()} ·{" "}
+                {displayTransactions.length} resultado
                 {displayTransactions.length !== 1 ? "s" : ""}
               </div>
             )}
@@ -506,6 +537,18 @@ export function Transactions() {
                 selectedAccount !== "all"
               }
             />
+            {visibleCount < displayTransactions.length && (
+              <div className="flex justify-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-11"
+                  onClick={() => setVisibleCount((count) => count + TRANSACTION_PAGE_SIZE)}
+                >
+                  Mostrar mais {Math.min(TRANSACTION_PAGE_SIZE, displayTransactions.length - visibleCount)}
+                </Button>
+              </div>
+            )}
           </>
         )}
 

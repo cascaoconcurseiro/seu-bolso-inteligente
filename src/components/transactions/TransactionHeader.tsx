@@ -13,14 +13,14 @@ import { Transaction } from "@/utils/transactionUtils";
 interface TransactionHeaderProps {
   count: number;
   filteredTransactions: Transaction[];
-  filteredAnnualTransactions: Transaction[];
+  loadAnnualTransactions: () => Promise<Transaction[]>;
   onImportOFX: () => void;
 }
 
 export function TransactionHeader({
   count,
   filteredTransactions,
-  filteredAnnualTransactions,
+  loadAnnualTransactions,
   onImportOFX,
 }: TransactionHeaderProps) {
   return (
@@ -78,9 +78,13 @@ export function TransactionHeader({
                 Mensal em PDF
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => {
-                  exportTransactions(filteredAnnualTransactions, "csv");
-                  toast.success("Transações anuais exportadas em Excel");
+                onClick={async () => {
+                  try {
+                    exportTransactions(await loadAnnualTransactions(), "csv");
+                    toast.success("Transações anuais exportadas em Excel");
+                  } catch {
+                    toast.error("Não foi possível carregar as transações anuais");
+                  }
                 }}
                 className="gap-2 border-t border-border mt-1 pt-2"
               >
@@ -88,9 +92,13 @@ export function TransactionHeader({
                 Anual em Excel
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => {
-                  exportTransactions(filteredAnnualTransactions, "pdf");
-                  toast.success("Transações anuais exportadas em PDF");
+                onClick={async () => {
+                  try {
+                    exportTransactions(await loadAnnualTransactions(), "pdf");
+                    toast.success("Transações anuais exportadas em PDF");
+                  } catch {
+                    toast.error("Não foi possível carregar as transações anuais");
+                  }
                 }}
                 className="gap-2"
               >

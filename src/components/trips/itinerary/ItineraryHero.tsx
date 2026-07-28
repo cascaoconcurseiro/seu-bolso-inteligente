@@ -13,6 +13,7 @@ import { ptBR } from "date-fns/locale";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import type { Trip } from "@/hooks/useTrips";
+import { getTripRoute } from "@/utils/frontendFlows";
 import {
   getFastDestinationCoverImage,
   fetchDestinationCoverImage,
@@ -84,7 +85,7 @@ export function ItineraryHero({
             size="sm"
             className="-ml-2 self-start text-muted-foreground hover:text-foreground"
           >
-            <a href={`/viagens/${trip.id}`}>
+            <a href={getTripRoute(trip.id, "summary")}>
               <ArrowLeft className="mr-1.5 h-4 w-4" aria-hidden="true" />
               Voltar para a viagem
             </a>

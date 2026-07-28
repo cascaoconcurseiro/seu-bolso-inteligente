@@ -36,6 +36,7 @@ import { BasicInfoSection } from "./form/BasicInfoSection";
 import { AccountSelector } from "./form/AccountSelector";
 import { AdvancedOptions } from "./form/AdvancedOptions";
 import { RippleEffect } from "@/components/ui/RippleEffect";
+import { TransactionWarningDialog } from "./TransactionWarningDialog";
 
 import { useTransactionForm } from "./form/useTransactionForm";
 import { useUpdateRecurringSeries } from "@/hooks/transactions/useTransactionMutations";
@@ -128,6 +129,7 @@ export function TransactionForm(props: TransactionFormProps) {
             key={tab}
             type="button"
             onClick={() => form.setActiveTab(tab)}
+            aria-pressed={form.activeTab === tab}
             className={cn(
               "flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg text-[13px] font-medium transition-all",
               form.activeTab === tab
@@ -197,7 +199,8 @@ export function TransactionForm(props: TransactionFormProps) {
             <button
               type="button"
               onClick={() => setTripBannerDismissed(true)}
-              className="p-1 rounded-lg hover:bg-muted transition-colors"
+              className="tap-target p-1 rounded-lg hover:bg-muted transition-colors"
+              aria-label="Não vincular à viagem"
             >
               <X className="h-4 w-4 text-muted-foreground" />
             </button>
@@ -529,51 +532,25 @@ export function TransactionForm(props: TransactionFormProps) {
         currentUserMemberId={form.myMemberRecord?.id}
       />
 
-      {form.showWarningModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-background rounded-xl max-w-md w-full p-6 space-y-4">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-warning/12 flex items-center justify-center">
-                <BellRing className="h-5 w-5 text-warning" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-base mb-2">Atenção</h3>
-                <p className="text-sm text-muted-foreground mb-3">Detectamos avisos. Continuar?</p>
-                <ul className="list-disc list-inside space-y-2 text-sm text-warning">
-                  {form.validationWarnings.map((w, i) => (
-                    <li key={i}>{w}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => {
-                  form.setShowWarningModal(false);
-                  form.setPendingSubmit(null);
-                }}
-              >
-                Cancelar
-              </Button>
-              <Button
-                variant="default"
-                className="flex-1"
-                onClick={async () => {
-                  form.setShowWarningModal(false);
-                  if (form.pendingSubmit)
-                    await form.performSubmit(
-                      form.pendingSubmit as Parameters<typeof form.performSubmit>[0]
-                    );
-                }}
-              >
-                Continuar
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <TransactionWarningDialog
+        open={form.showWarningModal}
+        warnings={form.validationWarnings}
+        onOpenChange={(open) => {
+          form.setShowWarningModal(open);
+          if (!open) form.setPendingSubmit(null);
+        }}
+        onCancel={() => {
+          form.setShowWarningModal(false);
+          form.setPendingSubmit(null);
+        }}
+        onContinue={async () => {
+          const pendingSubmit = form.pendingSubmit;
+          form.setShowWarningModal(false);
+          if (pendingSubmit) {
+            await form.performSubmit(pendingSubmit as Parameters<typeof form.performSubmit>[0]);
+          }
+        }}
+      />
     </div>
   );
 }

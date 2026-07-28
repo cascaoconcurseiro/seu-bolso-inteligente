@@ -149,25 +149,28 @@ export function FixedIncomeSimulator() {
         <CardContent className="space-y-6">
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Investimento Inicial</Label>
+              <Label htmlFor="fixed-income-initial">Investimento inicial</Label>
               <CurrencyInput
+                id="fixed-income-initial"
                 value={initialAmount}
                 onChange={setInitialAmount}
                 className="bg-background"
               />
             </div>
             <div className="space-y-2">
-              <Label>Aporte Mensal</Label>
+              <Label htmlFor="fixed-income-monthly">Aporte mensal</Label>
               <CurrencyInput
+                id="fixed-income-monthly"
                 value={monthlyContribution}
                 onChange={setMonthlyContribution}
                 className="bg-background"
               />
             </div>
             <div className="space-y-2">
-              <Label>Prazo</Label>
+              <Label htmlFor="fixed-income-term">Prazo</Label>
               <div className="flex items-center gap-2">
                 <Input
+                  id="fixed-income-term"
                   type="number"
                   inputMode="decimal"
                   value={term || ""}

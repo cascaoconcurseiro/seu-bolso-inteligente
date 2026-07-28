@@ -111,6 +111,6 @@ export function useTransactions(filters?: TransactionFilters) {
         return false;
       }) as Transaction[];
     },
-    enabled: !!user,
+    enabled: !!user && (filters?.enabled ?? true),
   });
 }

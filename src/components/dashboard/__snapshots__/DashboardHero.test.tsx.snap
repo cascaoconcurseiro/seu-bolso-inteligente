@@ -51,9 +51,11 @@ exports[`DashboardHero > renders correctly with default props (snapshot) 1`] = `
             Saldo das Contas (
             BRL
             )
-            <div
-              class="cursor-help inline-flex items-center justify-center rounded-full transition-colors hover:bg-muted/50 p-1 "
+            <button
+              aria-label="Mais informações"
+              class="cursor-help inline-flex min-h-11 min-w-11 items-center justify-center rounded-full transition-colors hover:bg-muted/50 "
               data-state="closed"
+              type="button"
             >
               <svg
                 class="lucide lucide-circle-help h-4 w-4 text-muted-foreground hover:text-primary transition-colors"
@@ -79,7 +81,7 @@ exports[`DashboardHero > renders correctly with default props (snapshot) 1`] = `
                   d="M12 17h.01"
                 />
               </svg>
-            </div>
+            </button>
           </p>
         </div>
       </div>
@@ -326,9 +328,11 @@ exports[`DashboardHero > renders with wealth history and monthly budget (snapsho
             Saldo das Contas (
             BRL
             )
-            <div
-              class="cursor-help inline-flex items-center justify-center rounded-full transition-colors hover:bg-muted/50 p-1 "
+            <button
+              aria-label="Mais informações"
+              class="cursor-help inline-flex min-h-11 min-w-11 items-center justify-center rounded-full transition-colors hover:bg-muted/50 "
               data-state="closed"
+              type="button"
             >
               <svg
                 class="lucide lucide-circle-help h-4 w-4 text-muted-foreground hover:text-primary transition-colors"
@@ -354,7 +358,7 @@ exports[`DashboardHero > renders with wealth history and monthly budget (snapsho
                   d="M12 17h.01"
                 />
               </svg>
-            </div>
+            </button>
           </p>
         </div>
       </div>
@@ -603,9 +607,11 @@ exports[`DashboardHero > renders with wealth history and monthly budget (snapsho
             class="text-sm text-muted-foreground uppercase tracking-widest font-bold flex items-center gap-1"
           >
             Orçamento do Mês
-            <div
-              class="cursor-help inline-flex items-center justify-center rounded-full transition-colors hover:bg-muted/50 p-1 "
+            <button
+              aria-label="Mais informações"
+              class="cursor-help inline-flex min-h-11 min-w-11 items-center justify-center rounded-full transition-colors hover:bg-muted/50 "
               data-state="closed"
+              type="button"
             >
               <svg
                 class="lucide lucide-circle-help h-4 w-4 text-muted-foreground hover:text-primary transition-colors"
@@ -631,7 +637,7 @@ exports[`DashboardHero > renders with wealth history and monthly budget (snapsho
                   d="M12 17h.01"
                 />
               </svg>
-            </div>
+            </button>
           </p>
           <p
             class="text-sm font-semibold text-foreground"
@@ -721,9 +727,11 @@ exports[`DashboardHero > shows negative balance correctly (snapshot) 1`] = `
             Saldo das Contas (
             BRL
             )
-            <div
-              class="cursor-help inline-flex items-center justify-center rounded-full transition-colors hover:bg-muted/50 p-1 "
+            <button
+              aria-label="Mais informações"
+              class="cursor-help inline-flex min-h-11 min-w-11 items-center justify-center rounded-full transition-colors hover:bg-muted/50 "
               data-state="closed"
+              type="button"
             >
               <svg
                 class="lucide lucide-circle-help h-4 w-4 text-muted-foreground hover:text-primary transition-colors"
@@ -749,7 +757,7 @@ exports[`DashboardHero > shows negative balance correctly (snapshot) 1`] = `
                   d="M12 17h.01"
                 />
               </svg>
-            </div>
+            </button>
           </p>
         </div>
       </div>

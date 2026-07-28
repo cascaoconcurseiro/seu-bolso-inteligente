@@ -211,7 +211,7 @@ export function CategorySelector({
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-[400px] p-0"
+          className="w-[min(400px,calc(100vw-1rem))] p-0"
           align="start"
           onWheel={(e) => {
             e.stopPropagation();
@@ -242,7 +242,8 @@ export function CategorySelector({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 shrink-0"
+                        className="shrink-0"
+                        aria-label={`${isExpanded ? "Recolher" : "Expandir"} subcategorias de ${parent.name}`}
                         onClick={(e) => {
                           e.stopPropagation();
                           toggleParent(parent.id);

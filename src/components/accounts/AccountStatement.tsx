@@ -135,12 +135,12 @@ export function AccountStatement({
                                 {description}
                               </p>
                               {isInitialBalance && (
-                                <span className="text-[11px] bg-primary/10 text-primary px-1.5 py-0.5 rounded uppercase tracking-wider font-bold shrink-0">
+                                <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded uppercase tracking-wider font-bold shrink-0">
                                   Abertura
                                 </span>
                               )}
                               {tx.is_shared && !isInitialBalance && (
-                                <span className="text-[11px] bg-accent/15 text-accent px-1.5 py-0.5 rounded uppercase tracking-wider font-bold shrink-0">
+                                <span className="text-xs bg-accent/15 text-accent px-1.5 py-0.5 rounded uppercase tracking-wider font-bold shrink-0">
                                   Compartilhado
                                 </span>
                               )}
@@ -196,7 +196,11 @@ export function AccountStatement({
                           </div>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <button className="p-2 hover:bg-muted rounded-full transition-colors">
+                              <button
+                                type="button"
+                                aria-label={`Mais opções para ${tx.description || "transação"}`}
+                                className="tap-target p-2 hover:bg-muted rounded-full transition-colors"
+                              >
                                 <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
                               </button>
                             </DropdownMenuTrigger>

@@ -190,9 +190,9 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="space-y-2">
-            <Label>Item</Label>
+            <Label htmlFor="trip-shopping-item">Item</Label>
             <Input
-              id="shoppingItem"
+              id="trip-shopping-item"
               name="shoppingItem"
               placeholder="Ex: Protetor solar, Snorkel…"
               value={newItem}
@@ -207,13 +207,14 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
           </div>
 
           <div className="space-y-2">
-            <Label>Custo Estimado ({trip.currency})</Label>
+            <Label htmlFor="trip-shopping-cost">Custo estimado ({trip.currency})</Label>
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm z-10">
                   {trip.currency}
                 </span>
                 <CurrencyInput
+                  id="trip-shopping-cost"
                   placeholder="0,00"
                   value={newCost}
                   onChange={handleCostChange}
@@ -227,7 +228,12 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
                   }}
                 />
               </div>
-              <Button onClick={handleAddItem} disabled={isAdding || isUpdating} size="icon">
+              <Button
+                onClick={handleAddItem}
+                disabled={isAdding || isUpdating}
+                size="icon"
+                aria-label="Adicionar item à lista de compras"
+              >
                 {isAdding ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
@@ -288,6 +294,7 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
                 size="icon"
                 onClick={() => handleDeleteItem(item.id)}
                 className="flex-shrink-0 text-muted-foreground hover:text-destructive"
+                aria-label={`Excluir ${item.item} da lista de compras`}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>

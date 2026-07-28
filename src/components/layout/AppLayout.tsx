@@ -37,6 +37,7 @@ import { usePrivacy } from "@/contexts/PrivacyContext";
 import { OnboardingGuard } from "@/components/onboarding/OnboardingGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { lazy, Suspense } from "react";
+import { getRouteResourceId, getRouteTitle } from "@/utils/frontendFlows";
 
 const GlobalSearch = lazy(() =>
   import("@/components/search/GlobalSearch").then((module) => ({ default: module.GlobalSearch }))
@@ -77,6 +78,16 @@ export function AppLayout({ children }: AppLayoutProps) {
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
+  useEffect(() => {
+    const routeTitle = getRouteTitle(location.pathname);
+    document.title = routeTitle === "Pé de Meia" ? routeTitle : `${routeTitle} | Pé de Meia`;
+
+    const animationFrame = window.requestAnimationFrame(() => {
+      document.getElementById("main-content")?.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(animationFrame);
+  }, [location.pathname]);
+
   // Ativa a escuta de Realtime global para toda a aplicação
   useGlobalRealtime();
 
@@ -110,20 +121,12 @@ export function AppLayout({ children }: AppLayoutProps) {
     const context: Record<string, string> = {};
 
     // Se estiver em uma viagem específica
-    if (location.pathname.startsWith("/viagens/")) {
-      const tripId = location.pathname.split("/viagens/")[1];
-      if (tripId && tripId !== "") {
-        context.tripId = tripId;
-      }
-    }
+    const tripId = getRouteResourceId(location.pathname, "/viagens");
+    if (tripId) context.tripId = tripId;
 
     // Se estiver em uma conta específica
-    if (location.pathname.startsWith("/contas/")) {
-      const accountId = location.pathname.split("/contas/")[1];
-      if (accountId && accountId !== "") {
-        context.accountId = accountId;
-      }
-    }
+    const accountId = getRouteResourceId(location.pathname, "/contas");
+    if (accountId) context.accountId = accountId;
 
     setShowTransactionModal(true, context);
   };

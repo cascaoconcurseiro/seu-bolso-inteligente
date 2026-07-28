@@ -210,7 +210,6 @@ export function Auth() {
                     size="icon"
                     className="absolute right-0 top-1/2 -translate-y-1/2"
                     onClick={() => setShowPassword(!showPassword)}
-                    tabIndex={-1}
                     aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                   >
                     {showPassword ? (

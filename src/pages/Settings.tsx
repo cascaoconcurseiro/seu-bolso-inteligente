@@ -54,11 +54,14 @@ import { PrivacySettings } from "@/components/settings/PrivacySettings";
 import { HelpSettings } from "@/components/settings/HelpSettings";
 import { AutoShareRulesSettings } from "@/components/settings/AutoShareRulesSettings";
 import { showActionFeedback } from "@/components/ui/ActionFeedback";
+import { getSettingsSection } from "@/utils/frontendFlows";
 
 export function Settings() {
   const { user, signOut } = useAuth();
-  const [searchParams] = useSearchParams();
-  const [activeSection, setActiveSection] = useState<SettingsSection>("account");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeSection, setActiveSection] = useState<SettingsSection>(() =>
+    getSettingsSection(searchParams.get("section"))
+  );
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
   const [showChangePasswordDialog, setShowChangePasswordDialog] = useState(false);
   const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false);
@@ -81,10 +84,13 @@ export function Settings() {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
   useEffect(() => {
-    const section = searchParams.get("section");
-    if (section === "notifications") setActiveSection("notifications");
-    else if (section === "account") setActiveSection("account");
+    setActiveSection(getSettingsSection(searchParams.get("section")));
   }, [searchParams]);
+
+  const handleSectionChange = (section: SettingsSection) => {
+    setActiveSection(section);
+    setSearchParams({ section });
+  };
 
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newCategoryType, setNewCategoryType] = useState<"expense" | "income">("expense");
@@ -98,21 +104,19 @@ export function Settings() {
   const deleteCategory = useDeleteCategory();
 
   const handleCreateCategory = async () => {
-    showActionFeedback("success");
-    setTimeout(() => {
-      setShowAddCategoryDialog(false);
-      setNewCategoryName("");
-      setNewCategoryType("expense");
-      setNewCategoryIcon("📦");
-      setParentCategoryId(null);
-    }, 80);
     try {
-      createCategory.mutate({
+      await createCategory.mutateAsync({
         name: newCategoryName,
         type: newCategoryType,
         icon: newCategoryIcon,
         parent_category_id: parentCategoryId,
       });
+      showActionFeedback("success");
+      setShowAddCategoryDialog(false);
+      setNewCategoryName("");
+      setNewCategoryType("expense");
+      setNewCategoryIcon("📦");
+      setParentCategoryId(null);
     } catch {
       /* onError do hook já trata */
     }
@@ -120,14 +124,12 @@ export function Settings() {
 
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword || newPassword.length < 6) return;
-    showActionFeedback("success");
-    setTimeout(() => {
+    try {
+      await updatePassword.mutateAsync({ newPassword });
+      showActionFeedback("success");
       setShowChangePasswordDialog(false);
       setNewPassword("");
       setConfirmPassword("");
-    }, 80);
-    try {
-      updatePassword.mutate({ newPassword });
     } catch {
       /* onError do hook já trata */
     }
@@ -135,11 +137,13 @@ export function Settings() {
 
   const handleDeleteAccount = async () => {
     if (deleteConfirmText !== "EXCLUIR") return;
-    showActionFeedback("success");
-    setTimeout(() => {
+    try {
+      await deleteAccount.mutateAsync();
+      showActionFeedback("success");
       setShowDeleteAccountDialog(false);
-    }, 80);
-    deleteAccount.mutate();
+    } catch {
+      /* onError do hook já trata */
+    }
   };
 
   const getInitials = (name: string) =>
@@ -167,7 +171,7 @@ export function Settings() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <SettingsSidebar
           activeSection={activeSection}
-          setActiveSection={setActiveSection}
+          setActiveSection={handleSectionChange}
           categoriesCount={categories.length}
           membersCount={members.length}
         />
@@ -208,7 +212,7 @@ export function Settings() {
               categories={categories}
               isLoading={categoriesLoading}
               onAddCategory={() => setShowAddCategoryDialog(true)}
-              onDeleteCategory={(id) => deleteCategory.mutate(id)}
+              onDeleteCategory={(id) => deleteCategory.mutateAsync(id)}
             />
           )}
 

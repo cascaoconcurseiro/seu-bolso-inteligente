@@ -14,7 +14,7 @@ interface CategorySettingsProps {
   categories: any[];
   isLoading: boolean;
   onAddCategory: () => void;
-  onDeleteCategory: (id: string) => void;
+  onDeleteCategory: (id: string) => Promise<unknown>;
 }
 
 export function CategorySettings({
@@ -47,26 +47,28 @@ export function CategorySettings({
 
   const saveEdit = async (id: string) => {
     if (!editName.trim()) return;
-    showActionFeedback("success");
-    setTimeout(() => {
-      setEditingId(null);
-      setEditName("");
-      setEditIcon("");
-    }, 80);
     try {
-      updateCategory.mutate({
+      await updateCategory.mutateAsync({
         id,
         name: editName.trim(),
         icon: editIcon.trim() || "📦",
       });
+      showActionFeedback("success");
+      setEditingId(null);
+      setEditName("");
+      setEditIcon("");
     } catch (err) {
       logger.error("Erro ao atualizar categoria", err instanceof Error ? err : undefined);
     }
   };
 
-  const handleDelete = (id: string) => {
-    showActionFeedback("error");
-    onDeleteCategory(id);
+  const handleDelete = async (id: string) => {
+    try {
+      await onDeleteCategory(id);
+      showActionFeedback("success");
+    } catch (err) {
+      logger.error("Erro ao excluir categoria", err instanceof Error ? err : undefined);
+    }
   };
 
   const handleRestoreDefaults = () => {

@@ -1,10 +1,14 @@
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 
 interface RippleEffectProps {
   status: "success" | "error" | null;
 }
 
 export function RippleEffect({ status }: RippleEffectProps) {
+  const prefersReducedMotion = useReducedMotion();
+
+  if (prefersReducedMotion) return null;
+
   return (
     <AnimatePresence>
       {status && (

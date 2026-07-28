@@ -234,6 +234,7 @@ export function Family() {
                 <Button
                   variant="ghost"
                   size="icon"
+                  aria-label={`Cancelar convite de ${i.member_name || i.name}`}
                   className="text-destructive hover:bg-destructive/10 transition-colors"
                   disabled={cancelInvitation.isPending || removeMember.isPending}
                   onClick={async () => {
@@ -330,7 +331,8 @@ export function Family() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                      className="rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                      aria-label={`Excluir contato ${c.name}`}
                       onClick={async () => {
                         try {
                           await removeMember.mutateAsync(c.id);

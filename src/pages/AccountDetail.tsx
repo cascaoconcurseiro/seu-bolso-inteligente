@@ -100,25 +100,21 @@ export function AccountDetail() {
 
   const handleConfirmDelete = async () => {
     if (!account) return;
-    showActionFeedback("success");
-    setTimeout(() => {
-      navigate("/contas");
-    }, 80);
     try {
-      deleteAccount.mutate(id!);
+      await deleteAccount.mutateAsync(id!);
+      showActionFeedback("success");
+      navigate("/contas");
     } catch (error) {
       logger.error("Erro ao excluir conta:", error);
     }
   };
 
   const handleConfirmArchive = async () => {
-    showActionFeedback("success");
-    setTimeout(() => {
+    try {
+      await archiveAccount.mutateAsync(id || "");
+      showActionFeedback("success");
       setShowArchiveConfirmModal(false);
       navigate("/");
-    }, 80);
-    try {
-      archiveAccount.mutate(id || "");
     } catch (error) {
       toast.error("Erro ao arquivar a conta.");
     }

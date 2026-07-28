@@ -30,8 +30,12 @@ export function AmountInput({ currency, currencySymbol, selectedTrip }: AmountIn
 
   return (
     <div className="flex flex-col items-center justify-center py-4" onBlur={() => setTouched(true)}>
+      <label htmlFor="transaction-amount" className="sr-only">
+        Valor da transação
+      </label>
       <div className="flex items-center justify-center w-full">
         <span
+          aria-hidden="true"
           className={cn(
             "text-[20px] text-[hsl(var(--text-secondary))] font-medium mr-1 mt-1 leading-none"
           )}
@@ -39,6 +43,7 @@ export function AmountInput({ currency, currencySymbol, selectedTrip }: AmountIn
           {currencySymbol}
         </span>
         <CurrencyInput
+          id="transaction-amount"
           placeholder="0,00"
           value={amount}
           onChange={setAmount}
@@ -54,9 +59,19 @@ export function AmountInput({ currency, currencySymbol, selectedTrip }: AmountIn
             textColorClass
           )}
           autoFocus
+          aria-invalid={isEmpty}
+          aria-describedby={isEmpty ? "transaction-amount-error" : undefined}
         />
       </div>
-      {isEmpty && <p className="text-xs text-destructive font-medium mt-1">Informe o valor</p>}
+      {isEmpty && (
+        <p
+          id="transaction-amount-error"
+          className="text-xs text-destructive font-medium mt-1"
+          role="alert"
+        >
+          Informe o valor
+        </p>
+      )}
       {selectedTrip && (
         <p className="text-xs text-muted-foreground flex items-center gap-1 mt-2">
           <Plane className="h-3 w-3" />

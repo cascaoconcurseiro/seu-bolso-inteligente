@@ -179,6 +179,26 @@ export class SafeFinancialCalculator {
   }
 
   /**
+   * Distribui parcelas com duas casas e concentra o resíduo de centavos na última,
+   * mantendo a soma exatamente igual ao total persistido.
+   */
+  static distributeInstallments(total: number | Decimal, installments: number): Decimal[] {
+    if (!Number.isInteger(installments) || installments <= 0) {
+      throw new Error("Invalid number of installments");
+    }
+
+    const roundedTotal = SafeFinancialCalculator.round(total);
+    const regularAmount = SafeFinancialCalculator.calculateInstallment(
+      roundedTotal,
+      installments
+    );
+    const values = Array.from({ length: installments }, () => regularAmount);
+    const previousTotal = regularAmount.times(installments - 1);
+    values[installments - 1] = roundedTotal.minus(previousTotal).toDecimalPlaces(2);
+    return values;
+  }
+
+  /**
    * Distribute amount across splits maintaining total
    */
   static distributeSplits(

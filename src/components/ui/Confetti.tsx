@@ -11,9 +11,12 @@ interface ConfettiProps {
  */
 export function Confetti({ active, duration = 3000 }: ConfettiProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const prefersReducedMotion =
+    typeof window !== "undefined" &&
+    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
   useEffect(() => {
-    if (!active) return;
+    if (!active || prefersReducedMotion) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -97,9 +100,9 @@ export function Confetti({ active, duration = 3000 }: ConfettiProps) {
 
     animId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animId);
-  }, [active, duration]);
+  }, [active, duration, prefersReducedMotion]);
 
-  if (!active) return null;
+  if (!active || prefersReducedMotion) return null;
 
   return (
     <canvas

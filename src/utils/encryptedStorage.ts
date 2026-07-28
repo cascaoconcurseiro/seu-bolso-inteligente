@@ -5,8 +5,9 @@
  * Usa Web Crypto API (AES-256-GCM) com chave derivada de UUID da sessão.
  *
  * Os dados do TanStack Query Persister (localForage → IndexedDB) são
- * automaticamente criptografados em repouso, protegendo contra acesso
- * físico ao dispositivo.
+ * automaticamente cifrados em repouso. Como a chave é derivada de dados da
+ * própria sessão, isso reduz exposição casual no IndexedDB, mas não substitui
+ * a proteção do dispositivo nem constitui um cofre local contra um invasor.
  */
 
 const ALGORITHM = "AES-GCM";
@@ -130,8 +131,8 @@ export function createEncryptedForageStorage(forage: AsyncStringStorage): AsyncS
         const encrypted = await encrypt(value);
         await forage.setItem(key, encrypted);
       } catch {
-        // Web Crypto indisponível — persiste sem criptografia a manter o app funcional
-        await forage.setItem(key, value);
+        // Falha fechada: cache é dispensável e nunca deve degradar para texto puro.
+        await forage.removeItem(key);
       }
     },
     async removeItem(key: string): Promise<void> {

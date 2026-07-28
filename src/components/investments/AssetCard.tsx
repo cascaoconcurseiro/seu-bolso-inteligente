@@ -41,15 +41,21 @@ export function AssetCard({
         `stagger-${(index % 5) + 1}`
       )}
     >
-      <div className="absolute top-2 right-2 p-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <Button variant="ghost" size="icon" onClick={() => onEdit(asset)} className="h-8 w-8">
+      <div className="absolute top-2 right-2 p-2 flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onEdit(asset)}
+          aria-label={`Editar ativo ${asset.ticker || asset.name}`}
+        >
           <Edit className="w-4 h-4 text-muted-foreground" />
         </Button>
         <Button
           variant="ghost"
           size="icon"
           onClick={() => onDelete(asset)}
-          className="h-8 w-8 hover:text-destructive"
+          className="hover:text-destructive"
+          aria-label={`Excluir ativo ${asset.ticker || asset.name}`}
         >
           <Trash2 className="w-4 h-4 text-muted-foreground" />
         </Button>
@@ -66,7 +72,7 @@ export function AssetCard({
             </h3>
             <span
               className={cn(
-                "text-[8px] px-1.5 py-0.5 rounded-full font-bold tracking-tighter uppercase",
+                "text-xs px-1.5 py-0.5 rounded-full font-bold tracking-tight uppercase",
                 asset.location === "BR" ? "bg-success/12 text-success" : "bg-accent/15 text-accent"
               )}
             >
@@ -147,7 +153,7 @@ export function AssetCard({
             )}
           </div>
           {((asset as any).broker_name || (asset as any).broker_id) && (
-            <span className="text-[11px] opacity-60">
+            <span className="text-xs opacity-60">
               {(asset as any).broker_name || getBrokerById((asset as any).broker_id)?.shortName}
             </span>
           )}
@@ -157,8 +163,8 @@ export function AssetCard({
             variant="ghost"
             size="icon"
             onClick={() => onShowHistory(asset)}
-            className="h-8 w-8 text-muted-foreground hover:text-primary"
-            title="Ver histórico"
+            className="text-muted-foreground hover:text-primary"
+            aria-label={`Ver histórico de ${asset.ticker || asset.name}`}
           >
             <Clock className="w-4 h-4" />
           </Button>

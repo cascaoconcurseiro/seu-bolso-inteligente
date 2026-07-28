@@ -13,7 +13,19 @@ interface CurrencyInputProps extends Omit<
 }
 
 export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
-  ({ value, onChange, currency = "BRL", className, ...props }, ref) => {
+  (
+    {
+      value,
+      onChange,
+      currency = "BRL",
+      className,
+      id,
+      "aria-label": ariaLabel,
+      "aria-labelledby": ariaLabelledBy,
+      ...props
+    },
+    ref
+  ) => {
     // Inicializa o estado visual a partir do value (caso venha preenchido)
     const [displayValue, setDisplayValue] = useState(() => {
       if (!value) return "";
@@ -88,6 +100,9 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
     return (
       <Input
         ref={ref}
+        id={id}
+        aria-label={ariaLabel || (!id && !ariaLabelledBy ? "Valor monetário" : undefined)}
+        aria-labelledby={ariaLabelledBy}
         type="text"
         inputMode="decimal"
         value={displayValue}

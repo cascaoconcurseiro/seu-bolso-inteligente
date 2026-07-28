@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import { dateUtils } from "@/utils/dateUtils";
 import {
   invalidateFinancialQueries,
@@ -14,7 +13,6 @@ import { logger } from "@/utils/logger";
 import { generateAllNotifications } from "@/services/notificationGenerator";
 import { createNotification } from "@/services/notificationService";
 import { CreateTransactionInput, Transaction } from "./types";
-import { validatePayerId } from "./helpers";
 import { toast } from "sonner";
 // Splits vindos do formulário usam snake_case (member_id), diferente do
 // TransactionSplitData camelCase de types/transactions
@@ -90,170 +88,36 @@ export function useUpdateTransaction() {
     mutationFn: async ({ id, ...updateData }: Partial<Transaction> & { id: string }) => {
       if (!user) throw new Error("Usuário não autenticado");
 
-      // Verificar se a transação já foi liquidada OU tem splits com acertos parciais
-      const { data: existingTx } = await supabase
-        .from("transactions")
-        .select("is_settled")
-        .eq("id", id)
-        .single();
-
-      if (existingTx?.is_settled) {
-        throw new Error(
-          "Esta transação já foi liquidada/acertada. Desfaça o acerto antes de editá-la."
-        );
-      }
-
-      // Verificar se há splits com acertos parciais (settled_by_debtor/creditor)
-      const { data: existingSplits } = await supabase
-        .from("transaction_splits")
-        .select("id, is_settled, settled_by_debtor, settled_by_creditor")
-        .eq("transaction_id", id);
-
-      if (
-        existingSplits?.some((s) => s.is_settled || s.settled_by_debtor || s.settled_by_creditor)
-      ) {
-        throw new Error(
-          "Esta transação possui acertos parciais. Desfaça os acertos antes de editá-la."
-        );
-      }
-
-      // Validate payer_id and members if they are being updated
-      if (updateData.payer_id !== undefined) {
-        await validatePayerId(updateData.payer_id);
-      }
-
-      // We update splits separately since they are in another table.
-      const { splits, transaction_splits, category, account, trip, is_optimistic, ...restUpdateData } =
-        updateData as Partial<Transaction> & {
-          splits?: TransactionSplitData[];
-          transaction_splits?: TransactionSplitData[];
-        };
-      void category; void account; void trip; void is_optimistic;
+      const {
+        splits,
+        transaction_splits,
+        category,
+        account,
+        trip,
+        is_optimistic,
+        ...restUpdateData
+      } = updateData as Partial<Transaction> & {
+        splits?: TransactionSplitData[];
+        transaction_splits?: TransactionSplitData[];
+      };
+      void category;
+      void account;
+      void trip;
+      void is_optimistic;
       const actualSplits = transaction_splits || splits;
 
-      const { data, error } = await supabase
-        .from("transactions")
-        .update({
-          ...restUpdateData,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", id)
-        .eq("user_id", user.id)
-        .select()
-        .single();
+      const { data, error } = await supabase.rpc(
+        "update_transaction_with_splits_v1" as never,
+        {
+          p_transaction_id: id,
+          p_transaction: restUpdateData,
+          p_splits: actualSplits,
+        } as never
+      );
 
       if (error) {
         logger.error("Erro ao atualizar transação:", error);
         throw new Error(`Erro ao atualizar transação: ${error.message}`);
-      }
-
-      if (actualSplits) {
-        const finalSplits = [...actualSplits];
-
-        // Auto-completar splits se a soma for menor que 100% (Critério #6: O próprio criador assume o restante)
-        if (finalSplits.length > 0) {
-          const totalPercentage = SafeFinancialCalculator.safeSum(
-            finalSplits.map((s: TransactionSplitData) => s.percentage)
-          ).toNumber();
-          if (totalPercentage < 100) {
-            const remainingPercentage = SafeFinancialCalculator.subtract(
-              100,
-              totalPercentage
-            ).toNumber();
-            const { data: currentUserMember } = await supabase
-              .from("family_members")
-              .select("id")
-              .eq("linked_user_id", user.id)
-              .maybeSingle();
-
-            if (currentUserMember) {
-              finalSplits.push({
-                member_id: currentUserMember.id,
-                percentage: remainingPercentage,
-                amount: SafeFinancialCalculator.percentage(
-                  data.amount,
-                  remainingPercentage
-                ).toNumber(),
-              });
-            }
-          }
-        }
-
-        // Save existing splits so we can restore them if the insert fails
-        const { data: existingSplits } = await supabase
-          .from("transaction_splits")
-          .select("*")
-          .eq("transaction_id", id);
-
-        await supabase.from("transaction_splits").delete().eq("transaction_id", id);
-
-        // Inserir os novos
-        if (finalSplits.length > 0) {
-          const memberIds = finalSplits.map((s: TransactionSplitData) => s.member_id);
-          const { data: membersData } = await supabase
-            .from("family_members")
-            .select("id, name, linked_user_id")
-            .or(`id.in.(${memberIds.join(",")}),linked_user_id.in.(${memberIds.join(",")})`);
-
-          const memberNames: Record<string, string> = {};
-          const memberUserIds: Record<string, string> = {};
-          const userIdToMemberId: Record<string, string> = {};
-          const userIdToName: Record<string, string> = {};
-
-          membersData?.forEach((m) => {
-            memberNames[m.id] = m.name;
-            if (m.linked_user_id) {
-              memberUserIds[m.id] = m.linked_user_id;
-              userIdToMemberId[m.linked_user_id] = m.id;
-              userIdToName[m.linked_user_id] = m.name;
-            }
-          });
-
-          let allocatedSum = 0;
-          const splitsToInsert = finalSplits.map((split: TransactionSplitData, index: number) => {
-            const isUserId = !memberNames[split.member_id] && userIdToName[split.member_id];
-            const actualMemberId = isUserId ? userIdToMemberId[split.member_id] : split.member_id;
-            const actualUserId = isUserId ? split.member_id : memberUserIds[split.member_id];
-            const actualName = isUserId
-              ? userIdToName[split.member_id]
-              : memberNames[split.member_id];
-
-            let splitAmount = 0;
-            if (index === finalSplits.length - 1) {
-              splitAmount = SafeFinancialCalculator.subtract(data.amount, allocatedSum).toNumber();
-            } else {
-              const baseAmount =
-                split.amount !== undefined
-                  ? split.amount
-                  : SafeFinancialCalculator.percentage(data.amount, split.percentage).toNumber();
-              splitAmount = baseAmount;
-              allocatedSum = SafeFinancialCalculator.add(allocatedSum, splitAmount).toNumber();
-            }
-
-            return {
-              transaction_id: id,
-              member_id: actualMemberId,
-              user_id: actualUserId,
-              percentage: split.percentage,
-              amount: splitAmount,
-              name: actualName || "Membro",
-              is_settled: false,
-            };
-          });
-
-          const { error: splitsError } = await supabase
-            .from("transaction_splits")
-            .insert(splitsToInsert);
-
-          if (splitsError) {
-            // Restore original splits to avoid data loss
-            if (existingSplits && existingSplits.length > 0) {
-              await supabase.from("transaction_splits").insert(existingSplits);
-            }
-            logger.error("Erro ao atualizar splits:", splitsError);
-            throw new Error(`Erro ao atualizar divisões: ${splitsError.message}`);
-          }
-        }
       }
 
       return data as Transaction;

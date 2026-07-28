@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { toast } from "sonner";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 
 interface WelcomeOnboardingProps {
   onComplete: () => void;
@@ -33,6 +33,13 @@ const variants = {
 };
 
 export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
+  const prefersReducedMotion = useReducedMotion();
+  const stepVariants = prefersReducedMotion
+    ? { enter: { opacity: 0 }, center: { opacity: 1 }, exit: { opacity: 0 } }
+    : variants;
+  const stepTransition = prefersReducedMotion
+    ? { duration: 0 }
+    : { type: "spring" as const, stiffness: 300, damping: 30 };
   const [step, setStep] = useState(1);
   const [dir, setDir] = useState(1);
 
@@ -145,11 +152,11 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
               <motion.div
                 key="s1"
                 custom={dir}
-                variants={variants}
+                variants={stepVariants}
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                transition={stepTransition}
                 className="space-y-5 pt-2"
               >
                 <div className="flex items-center gap-3">
@@ -219,11 +226,11 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
               <motion.div
                 key="s2"
                 custom={dir}
-                variants={variants}
+                variants={stepVariants}
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                transition={stepTransition}
                 className="space-y-5 pt-2"
               >
                 <div className="flex items-center gap-3">
@@ -341,11 +348,11 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
               <motion.div
                 key="s3"
                 custom={dir}
-                variants={variants}
+                variants={stepVariants}
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                transition={stepTransition}
                 className="space-y-5 pt-2"
               >
                 <div className="flex items-center gap-3">
@@ -413,11 +420,11 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
               <motion.div
                 key="s4"
                 custom={dir}
-                variants={variants}
+                variants={stepVariants}
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                transition={stepTransition}
                 className="space-y-5 pt-2"
               >
                 <div className="flex items-center gap-3">

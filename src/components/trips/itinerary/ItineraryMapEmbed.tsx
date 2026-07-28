@@ -1,5 +1,5 @@
 import { ExternalLink, MapPin, Maximize2, Navigation as NavigationIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { ItineraryStop } from "./types";
 
@@ -35,10 +35,18 @@ export function ItineraryMapEmbed({
   const [isOnline, setIsOnline] = useState(
     typeof navigator !== "undefined" ? navigator.onLine : true
   );
-  if (typeof window !== "undefined") {
-    window.addEventListener("online", () => setIsOnline(true), { once: true });
-    window.addEventListener("offline", () => setIsOnline(false), { once: true });
-  }
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
 
   const mapped = useMemo(
     () =>

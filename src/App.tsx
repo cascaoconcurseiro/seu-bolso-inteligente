@@ -179,7 +179,7 @@ const App = () => (
                   }
                 />
                 <Route
-                  path="/viagens"
+                  path="/viagens/:tripId?/:tab?"
                   element={
                     <DeferredPage>
                       <Trips />

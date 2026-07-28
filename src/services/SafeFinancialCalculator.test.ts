@@ -143,6 +143,13 @@ describe("SafeFinancialCalculator - Property-Based Tests", () => {
   });
 
   describe("Unit Tests - Casos Específicos", () => {
+    it("distribui parcelas em centavos e coloca o restante na última", () => {
+      const installments = SafeFinancialCalculator.distributeInstallments(100, 3);
+
+      expect(installments.map((value) => value.toNumber())).toEqual([33.33, 33.33, 33.34]);
+      expect(SafeFinancialCalculator.safeSum(installments).toNumber()).toBe(100);
+    });
+
     it("deve adicionar corretamente valores simples", () => {
       expect(SafeFinancialCalculator.add(10.5, 20.3).toNumber()).toBe(30.8);
       expect(SafeFinancialCalculator.add(0.1, 0.2).toNumber()).toBe(0.3);

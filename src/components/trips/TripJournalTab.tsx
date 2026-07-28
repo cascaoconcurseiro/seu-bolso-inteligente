@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { BookOpen, Plus, Heart, Image as ImageIcon, Smile, Calendar, Trash2 } from "lucide-react";
+import { BookOpen, Plus, Calendar, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export interface JournalEntry {
@@ -35,7 +35,8 @@ export function TripJournalTab() {
         "O voo foi super tranquilo. Logo após fazer check-in no hotel, fomos passear pelas ruas históricas do centro. A comida local superou todas as expectativas!",
       mood: "amazing",
       location: "Centro Histórico",
-      imageUrl: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=800&q=80",
+      imageUrl:
+        "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=800&q=80",
     },
   ]);
 
@@ -79,19 +80,16 @@ export function TripJournalTab() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-bold flex items-center gap-2 text-slate-800 dark:text-slate-100">
-            <BookOpen className="h-5 w-5 text-rose-500" />
-            Diário & Memórias da Viagem (Journey)
+          <h3 className="text-lg font-bold flex items-center gap-2 text-foreground">
+            <BookOpen className="h-5 w-5 text-primary" />
+            Diário e memórias da viagem
           </h3>
-          <p className="text-xs text-slate-500">
-            Guarde seus relatas diários, fotos inesquecíveis e impressões em um diário visual estilo revista.
+          <p className="text-sm text-muted-foreground">
+            Guarde seus relatos diários, fotos e impressões em um diário visual.
           </p>
         </div>
 
-        <Button
-          className="bg-rose-600 hover:bg-rose-700 text-white gap-2"
-          onClick={() => setShowDialog(true)}
-        >
+        <Button className="gap-2" onClick={() => setShowDialog(true)}>
           <Plus className="h-4 w-4" /> Nova Memória
         </Button>
       </div>
@@ -103,10 +101,10 @@ export function TripJournalTab() {
           return (
             <article
               key={entry.id}
-              className="bg-white dark:bg-slate-900 border rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition grid grid-cols-1 md:grid-cols-3 gap-0"
+              className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition grid grid-cols-1 md:grid-cols-3 gap-0"
             >
               {entry.imageUrl && (
-                <div className="h-48 md:h-full min-h-[180px] relative overflow-hidden bg-slate-100 dark:bg-slate-800">
+                <div className="h-48 md:h-full min-h-[180px] relative overflow-hidden bg-muted">
                   <img
                     src={entry.imageUrl}
                     alt={entry.title}
@@ -121,9 +119,9 @@ export function TripJournalTab() {
                 }`}
               >
                 <div>
-                  <div className="flex items-center justify-between gap-2 text-xs text-slate-400 mb-2">
+                  <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground mb-2">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold px-2.5 py-0.5 rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800">
+                      <span className="font-semibold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
                         {moodObj?.label || "✨ Memória"}
                       </span>
                       <span className="flex items-center gap-1">
@@ -134,21 +132,20 @@ export function TripJournalTab() {
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-7 w-7 text-slate-400 hover:text-red-500"
+                      className="text-muted-foreground hover:text-destructive"
                       onClick={() => handleDeleteEntry(entry.id)}
+                      aria-label={`Excluir memória ${entry.title}`}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
 
-                  <h4 className="text-xl font-bold text-slate-800 dark:text-slate-100">
-                    {entry.title}
-                  </h4>
+                  <h4 className="text-xl font-bold text-foreground">{entry.title}</h4>
                   {entry.location && (
-                    <span className="text-xs text-rose-500 font-medium">📍 {entry.location}</span>
+                    <span className="text-sm text-primary font-medium">📍 {entry.location}</span>
                   )}
 
-                  <p className="text-sm text-slate-600 dark:text-slate-300 mt-3 whitespace-pre-line leading-relaxed">
+                  <p className="text-sm text-muted-foreground mt-3 whitespace-pre-line leading-relaxed">
                     {entry.content}
                   </p>
                 </div>
@@ -167,8 +164,9 @@ export function TripJournalTab() {
           <form onSubmit={handleCreateEntry} className="space-y-4 py-2">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>Data</Label>
+                <Label htmlFor="journal-date">Data</Label>
                 <Input
+                  id="journal-date"
                   type="date"
                   required
                   value={date}
@@ -177,8 +175,9 @@ export function TripJournalTab() {
               </div>
 
               <div className="space-y-1.5">
-                <Label>Sentimento / Humor</Label>
+                <Label htmlFor="journal-mood">Sentimento / humor</Label>
                 <select
+                  id="journal-mood"
                   className="w-full h-10 px-3 py-2 bg-background border rounded-md text-sm"
                   value={mood}
                   onChange={(e) => setMood(e.target.value)}
@@ -193,8 +192,9 @@ export function TripJournalTab() {
             </div>
 
             <div className="space-y-1.5">
-              <Label>Título da Memória *</Label>
+              <Label htmlFor="journal-title">Título da memória *</Label>
               <Input
+                id="journal-title"
                 placeholder="Ex: Pôr do sol incrível na praia..."
                 required
                 value={title}
@@ -203,8 +203,9 @@ export function TripJournalTab() {
             </div>
 
             <div className="space-y-1.5">
-              <Label>Localização (opcional)</Label>
+              <Label htmlFor="journal-location">Localização (opcional)</Label>
               <Input
+                id="journal-location"
                 placeholder="Ex: Mirante da Cidade"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
@@ -212,8 +213,9 @@ export function TripJournalTab() {
             </div>
 
             <div className="space-y-1.5">
-              <Label>URL da Foto (opcional)</Label>
+              <Label htmlFor="journal-image">URL da foto (opcional)</Label>
               <Input
+                id="journal-image"
                 placeholder="https://..."
                 value={imageUrl}
                 onChange={(e) => setImageUrl(e.target.value)}
@@ -221,8 +223,9 @@ export function TripJournalTab() {
             </div>
 
             <div className="space-y-1.5">
-              <Label>Seu Relato / Impressões *</Label>
+              <Label htmlFor="journal-content">Seu relato / impressões *</Label>
               <Textarea
+                id="journal-content"
                 placeholder="Escreva como foi o dia, o que você mais gostou..."
                 rows={4}
                 required
@@ -231,7 +234,7 @@ export function TripJournalTab() {
               />
             </div>
 
-            <Button type="submit" className="w-full bg-rose-600 hover:bg-rose-700 text-white">
+            <Button type="submit" className="w-full">
               Salvar Memória no Diário
             </Button>
           </form>

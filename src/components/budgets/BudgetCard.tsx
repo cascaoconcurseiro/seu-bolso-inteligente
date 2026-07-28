@@ -18,23 +18,10 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
   const isWarning = percentage > 80 && percentage <= 100;
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
+    <article
       aria-label={`Orçamento: ${budget.category_name || "Global"}, ${percentage.toFixed(0)}% utilizado`}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onEdit(budget);
-        }
-      }}
-      onClick={(e) => {
-        const target = e.target as HTMLElement;
-        if (target.closest("button")) return;
-        onEdit(budget);
-      }}
       className={cn(
-        "group relative p-6 rounded-4xl border transition-all duration-500 overflow-hidden cursor-pointer focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        "group relative p-6 rounded-4xl border transition-all duration-500 overflow-hidden",
         isOverBudget
           ? "border-destructive/30 bg-destructive/5 shadow-lg shadow-destructive/5"
           : isWarning
@@ -65,8 +52,15 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
             {budget.category_icon || "💰"}
           </div>
           <div>
-            <h3 className="font-display font-bold text-base tracking-tight leading-none mb-1 text-foreground/90">
-              {budget.budget_name}
+            <h3>
+              <button
+                type="button"
+                onClick={() => onEdit(budget)}
+                className="rounded-sm text-left font-display text-base font-bold leading-none tracking-tight text-foreground/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                aria-label={`Abrir orçamento ${budget.budget_name}`}
+              >
+                {budget.budget_name}
+              </button>
             </h3>
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground uppercase font-black tracking-widest">
@@ -81,18 +75,20 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
             </div>
           </div>
         </div>
-        <div className="flex gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+        <div className="flex gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100 transition-opacity">
           <button
+            type="button"
+            aria-label={`Editar orçamento ${budget.budget_name}`}
             onClick={() => onEdit(budget)}
-            className="p-2 hover:bg-muted rounded-xl transition-all hover:scale-110 active:scale-95"
-            title="Editar Orçamento"
+            className="flex h-11 w-11 items-center justify-center rounded-xl hover:bg-muted transition-all hover:scale-110 active:scale-95"
           >
             <Pencil className="h-4 w-4 text-muted-foreground" />
           </button>
           <button
+            type="button"
+            aria-label={`Excluir orçamento ${budget.budget_name}`}
             onClick={() => onDelete(budget.budget_id)}
-            className="p-2 hover:bg-destructive/12 rounded-xl transition-all hover:scale-110 active:scale-95 text-destructive"
-            title="Excluir Orçamento"
+            className="flex h-11 w-11 items-center justify-center rounded-xl hover:bg-destructive/12 transition-all hover:scale-110 active:scale-95 text-destructive"
           >
             <Trash2 className="h-4 w-4" />
           </button>
@@ -178,6 +174,6 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
           </p>
         </div>
       </div>
-    </div>
+    </article>
   );
 }

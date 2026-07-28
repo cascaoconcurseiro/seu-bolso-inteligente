@@ -18,9 +18,14 @@ import {
   useUpdateTrip,
 } from "@/hooks/useTrips";
 import { moneyUtils } from "@/utils/money";
-import { Loader2, Plus, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import {
+  getTripRoute,
+  getTripTabFromRoute,
+  isValidTripRouteTab,
+} from "@/utils/frontendFlows";
+import { AlertCircle, Loader2, Plus, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 import { AddParticipantDialog } from "@/components/trips/AddParticipantDialog";
 import { PendingTripInvitationsAlert } from "@/components/trips/PendingTripInvitationsAlert";
@@ -52,6 +57,7 @@ import { logger } from "@/utils/logger";
 import { exportTripToExcel, exportTripToPDF } from "@/utils/tripExport";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { EmptyState } from "@/components/ui/empty-state";
 
 const EMPTY_TRIP_FORM: TripFormValues = {
   name: "",
@@ -68,10 +74,12 @@ const EMPTY_TRIP_FORM: TripFormValues = {
 export function Trips() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { tripId: selectedTripId = null, tab } = useParams<{
+    tripId?: string;
+    tab?: string;
+  }>();
   const queryClient = useQueryClient();
-  const [view, setView] = useState<"list" | "detail">("list");
-  const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("summary");
+  const activeTab = getTripTabFromRoute(tab);
   const [tripFilter, setTripFilter] = useState<"active" | "archived">("active");
   const [showNewTripDialog, setShowNewTripDialog] = useState(false);
   const [showEditTripDialog, setShowEditTripDialog] = useState(false);
@@ -85,8 +93,18 @@ export function Trips() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [tripToDelete, setTripToDelete] = useState<string | null>(null);
 
-  const { data: trips = [], isLoading } = useTrips();
-  const { data: selectedTrip } = useTrip(selectedTripId);
+  const { data: trips = [], isLoading, isError, refetch } = useTrips();
+  const {
+    data: selectedTrip,
+    isLoading: isTripLoading,
+    isError: isTripError,
+  } = useTrip(selectedTripId);
+
+  useEffect(() => {
+    if (selectedTripId && !isValidTripRouteTab(tab)) {
+      navigate(getTripRoute(selectedTripId, "summary"), { replace: true });
+    }
+  }, [navigate, selectedTripId, tab]);
   const selectedTripFormValues = useMemo<TripFormValues | null>(
     () =>
       selectedTrip
@@ -290,7 +308,32 @@ export function Trips() {
       </div>
     );
 
-  if (view === "detail" && selectedTrip && selectedTripFormValues) {
+  if (selectedTripId && isTripLoading) {
+    return (
+      <div className="grid min-h-[420px] place-items-center" role="status" aria-live="polite">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden="true" />
+        <span className="sr-only">Carregando viagem</span>
+      </div>
+    );
+  }
+
+  if (selectedTripId && (isTripError || !selectedTrip)) {
+    return (
+      <EmptyState
+        icon={AlertCircle}
+        title="Viagem não encontrada"
+        description="Ela pode ter sido removida ou você não possui acesso."
+        variant="danger"
+        action={
+          <Button onClick={() => navigate("/viagens")} className="h-11">
+            Voltar para viagens
+          </Button>
+        }
+      />
+    );
+  }
+
+  if (selectedTripId && selectedTrip && selectedTripFormValues) {
     return (
       <div className="animate-fade-in space-y-6">
         <TripDetailView
@@ -301,22 +344,21 @@ export function Trips() {
           tripFinancialSummary={tripFinancialSummary}
           user={user}
           activeTab={activeTab}
-          setActiveTab={setActiveTab}
+          setActiveTab={(nextTab) => navigate(getTripRoute(selectedTripId, nextTab))}
           myPersonalBudget={selectedTrip.budget || null}
           balances={balances}
           onBack={() => {
-            setView("list");
-            setSelectedTripId(null);
+            navigate("/viagens");
           }}
           onEdit={() => setShowEditTripDialog(true)}
           onAddParticipant={() => setShowAddParticipantDialog(true)}
           onArchive={async () => {
             try {
               await archiveTrip.mutateAsync(selectedTripId!);
+              navigate("/viagens");
             } catch {
               /* onError do hook */
             }
-            setView("list");
           }}
           onUnarchive={async () => {
             try {
@@ -487,6 +529,22 @@ export function Trips() {
     );
   }
 
+  if (isError) {
+    return (
+      <EmptyState
+        icon={AlertCircle}
+        title="Não foi possível carregar suas viagens"
+        description="Verifique sua conexão e tente novamente. Nenhum dado foi alterado."
+        variant="danger"
+        action={
+          <Button onClick={() => void refetch()} className="h-11">
+            Tentar novamente
+          </Button>
+        }
+      />
+    );
+  }
+
   return (
     <div className="space-y-8 animate-fade-in pb-20">
       <div className="relative overflow-hidden rounded-2xl p-4 md:p-6 transition-all duration-700 ease-out bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
@@ -519,9 +577,7 @@ export function Trips() {
           tripFilter={tripFilter}
           setTripFilter={setTripFilter}
           onTripClick={(id) => {
-            setSelectedTripId(id);
-            setView("detail");
-            setActiveTab("summary");
+            navigate(getTripRoute(id, "summary"));
           }}
           onUnarchive={async (id) => {
             try {
@@ -579,7 +635,7 @@ export function Trips() {
                   try {
                     await deleteTrip.mutateAsync(tripToDelete);
                     toast.success("Viagem excluída com sucesso");
-                    setView("list");
+                    navigate("/viagens");
                     setShowDeleteConfirm(false);
                   } catch (err: any) {
                     toast.error(err.message || "Erro ao excluir viagem");

@@ -190,10 +190,10 @@ export function Accounts() {
       .slice(0, 3);
 
   const handleCreateSubmit = async (data: any) => {
-    showActionFeedback("success");
-    setTimeout(() => setShowAddDialog(false), 80);
     try {
-      createAccount.mutate(data);
+      await createAccount.mutateAsync(data);
+      showActionFeedback("success");
+      setShowAddDialog(false);
     } catch {
       /* onError do hook já mostra toast */
     }
@@ -201,10 +201,10 @@ export function Accounts() {
 
   const handleEditSubmit = async (data: any) => {
     if (!editAccount) return;
-    showActionFeedback("success");
-    setTimeout(() => setEditAccount(null), 80);
     try {
-      updateAccount.mutate({ id: editAccount.id, ...data });
+      await updateAccount.mutateAsync({ id: editAccount.id, ...data });
+      showActionFeedback("success");
+      setEditAccount(null);
     } catch {
       /* erro tratado no hook */
     }

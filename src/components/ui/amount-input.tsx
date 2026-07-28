@@ -1,6 +1,6 @@
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { cn } from "@/lib/utils";
-import { ReactNode } from "react";
+import { ReactNode, useId } from "react";
 
 interface AmountInputProps {
   label?: string;
@@ -9,7 +9,9 @@ interface AmountInputProps {
   currency?: string;
   currencySymbol?: string;
   className?: string;
-  error?: boolean;
+  error?: boolean | string;
+  id?: string;
+  name?: string;
   disabled?: boolean;
   autoFocus?: boolean;
   textColorClass?: string;
@@ -32,7 +34,12 @@ export function AmountInput({
   children,
   size = "md",
   containerClassName,
+  id,
+  name,
 }: AmountInputProps) {
+  const generatedId = useId();
+  const inputId = id || generatedId;
+  const errorId = `${inputId}-error`;
   const sizeClasses = {
     sm: "h-10 text-xl",
     md: "h-12 text-2xl",
@@ -49,12 +56,16 @@ export function AmountInput({
     <div className={cn("space-y-2", containerClassName)}>
       <div className="relative flex flex-col items-center justify-center py-2">
         {label && (
-          <span className="text-sm font-medium text-muted-foreground mb-2 text-center">
+          <label
+            htmlFor={inputId}
+            className="text-sm font-medium text-muted-foreground mb-2 text-center"
+          >
             {label}
-          </span>
+          </label>
         )}
         <div className="flex items-center justify-center w-full">
           <span
+            aria-hidden="true"
             className={cn(
               "text-muted-foreground/50 font-medium mr-2 mt-2",
               symbolSizeClasses[size]
@@ -63,6 +74,8 @@ export function AmountInput({
             {currencySymbol}
           </span>
           <CurrencyInput
+            id={inputId}
+            name={name}
             placeholder="0,00"
             value={value}
             onChange={onChange}
@@ -76,9 +89,16 @@ export function AmountInput({
               className
             )}
             autoFocus={autoFocus}
+            aria-invalid={Boolean(error)}
+            aria-describedby={typeof error === "string" ? errorId : undefined}
           />
         </div>
         {children}
+        {typeof error === "string" && (
+          <p id={errorId} className="mt-2 text-sm text-destructive" role="alert">
+            {error}
+          </p>
+        )}
       </div>
     </div>
   );

@@ -173,23 +173,10 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
 
   return (
     <>
-      <div
-        role="button"
-        tabIndex={0}
+      <article
         aria-label={`Meta: ${goal.name}, ${percentage.toFixed(0)}% concluída`}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onEdit(goal);
-          }
-        }}
-        onClick={(e) => {
-          const target = e.target as HTMLElement;
-          if (target.closest("button")) return;
-          onEdit(goal);
-        }}
         className={cn(
-          "group relative bg-card border border-border/50 p-6 rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-1 animate-stagger cursor-pointer",
+          "group relative bg-card border border-border/50 p-6 rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-1 animate-stagger",
           `stagger-${(index % 5) + 1}`
         )}
       >
@@ -203,7 +190,16 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
                 <Target className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-foreground leading-tight">{goal.name}</h3>
+                <h3>
+                  <button
+                    type="button"
+                    onClick={() => onEdit(goal)}
+                    className="rounded-sm text-left text-base font-bold leading-tight text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    aria-label={`Abrir meta ${goal.name}`}
+                  >
+                    {goal.name}
+                  </button>
+                </h3>
                 <div className="flex items-center gap-2 mt-1">
                   <span
                     className={cn(
@@ -226,7 +222,7 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
 
             <div className="flex items-center gap-1">
               {/* Desktop: ações visíveis no hover */}
-              <div className="hidden sm:flex gap-1 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
+              <div className="hidden sm:flex gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all translate-x-2 group-hover:translate-x-0 group-focus-within:translate-x-0">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -239,7 +235,7 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
                       toast.error("Erro ao exportar PDF");
                     }
                   }}
-                  className="h-8 w-8 rounded-lg hover:bg-muted"
+                  className="h-11 w-11 rounded-lg hover:bg-muted"
                 >
                   <FileDown className="w-4 h-4 text-muted-foreground transition-colors" />
                 </Button>
@@ -251,7 +247,7 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
                     e.stopPropagation();
                     onEdit(goal);
                   }}
-                  className="h-8 w-8 rounded-lg hover:bg-primary/10"
+                  className="h-11 w-11 rounded-lg hover:bg-primary/10"
                 >
                   <Edit className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
                 </Button>
@@ -263,7 +259,7 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
                     e.stopPropagation();
                     onDelete(goal);
                   }}
-                  className="h-8 w-8 rounded-lg hover:bg-destructive/10 hover:text-destructive"
+                  className="h-11 w-11 rounded-lg hover:bg-destructive/10 hover:text-destructive"
                 >
                   <Trash2 className="w-4 h-4 text-muted-foreground transition-colors" />
                 </Button>
@@ -277,7 +273,7 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
                       size="icon"
                       aria-label="Mais opções"
                       onClick={(e) => e.stopPropagation()}
-                      className="h-8 w-8 rounded-lg"
+                      className="h-11 w-11 rounded-lg"
                     >
                       <MoreVertical className="w-4 h-4 text-muted-foreground" />
                     </Button>
@@ -477,7 +473,7 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
             {showMilestones && <GoalMilestonesPanel goal={goal} />}
           </div>
         </div>
-      </div>
+      </article>
       <Confetti active={showConfetti} />
     </>
   );

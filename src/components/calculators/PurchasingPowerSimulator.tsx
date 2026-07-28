@@ -107,8 +107,9 @@ export function PurchasingPowerSimulator() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-3">
-            <Label>Valor Base (R$)</Label>
+            <Label htmlFor="purchasing-power-base">Valor base (R$)</Label>
             <Input
+              id="purchasing-power-base"
               type="number"
               inputMode="decimal"
               value={initialAmount || ""}
@@ -118,9 +119,10 @@ export function PurchasingPowerSimulator() {
           </div>
 
           <div className="space-y-2">
-            <Label>Prazo</Label>
+            <Label htmlFor="purchasing-power-term">Prazo</Label>
             <div className="flex items-center gap-2">
               <Input
+                id="purchasing-power-term"
                 type="number"
                 inputMode="decimal"
                 value={term || ""}

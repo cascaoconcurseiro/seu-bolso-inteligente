@@ -147,4 +147,5 @@ export interface TransactionFilters {
   tripId?: string;
   domain?: TransactionDomain;
   limit?: number;
+  enabled?: boolean;
 }

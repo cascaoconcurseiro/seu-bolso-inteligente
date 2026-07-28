@@ -18,6 +18,7 @@ import { useTransactionModal } from "@/hooks/useTransactionModal";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/contexts/AuthContext";
 import { navigationItems, secondaryNavItems } from "@/config/navigation";
+import { getRouteResourceId, isNavigationPathActive } from "@/utils/frontendFlows";
 
 // AUDITORIA 2026-05-10: Componente de Navegação Inferior para Mobile com BottomSheet.
 // Foco em usabilidade com uma mão só e estética de app nativo.
@@ -93,7 +94,7 @@ export function MobileNav() {
 
   const navItems = [
     { label: "Início", icon: Home, path: "/" },
-    { label: "Extrato", icon: ArrowLeftRight, path: "/transacoes" },
+    { label: "Transações", icon: ArrowLeftRight, path: "/transacoes" },
     { label: "Nova", icon: Plus, isAction: true },
     { label: "Relatórios", icon: BarChart2, path: "/relatorios" },
     { label: "Mais", icon: Grid3X3, isMenu: true },
@@ -101,7 +102,16 @@ export function MobileNav() {
 
   const sheetItems = navigationItems;
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => isNavigationPathActive(location.pathname, path);
+
+  const handleNewTransaction = () => {
+    const tripId = getRouteResourceId(location.pathname, "/viagens");
+    const accountId = getRouteResourceId(location.pathname, "/contas");
+    setShowTransactionModal(true, {
+      ...(tripId ? { tripId } : {}),
+      ...(accountId ? { accountId } : {}),
+    });
+  };
 
   return (
     <>
@@ -224,7 +234,7 @@ export function MobileNav() {
                   key="add-btn"
                   whileTap={tapAnimation}
                   aria-label="Nova transação"
-                  onClick={() => setShowTransactionModal(true)}
+                  onClick={handleNewTransaction}
                   className="flex flex-col items-center justify-center gap-1 min-w-[64px] transition-colors duration-200 py-1 rounded-xl text-primary"
                 >
                   <div className="flex items-center justify-center rounded-xl w-7 h-7 bg-primary/15">

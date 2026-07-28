@@ -1,12 +1,11 @@
 import "@testing-library/jest-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { TripItinerary } from "./TripItinerary";
 import type { Trip } from "../../hooks/useTrips";
-import { reverseGeocode, searchPlaces } from "../../services/overpassService";
 
 const queryResult = { data: [], error: null };
 const builder = {
@@ -34,16 +33,6 @@ vi.mock("./TripRouteMap", () => ({
 vi.mock("./AITripSuggestions", () => ({
   AITripSuggestions: () => <button type="button">Gerar sugestões</button>,
 }));
-
-vi.mock("../../services/overpassService", async (importOriginal) => {
-  const original = await importOriginal<typeof import("../../services/overpassService")>();
-  return {
-    ...original,
-    geocodeDestination: vi.fn(),
-    reverseGeocode: vi.fn(),
-    searchPlaces: vi.fn(),
-  };
-});
 
 const trip: Trip = {
   id: "trip-1",
@@ -86,52 +75,19 @@ describe("TripItinerary", () => {
     expect(screen.getByText("Nenhuma parada neste dia")).toBeInTheDocument();
   });
 
-  it("separa a descoberta de lugares do formulário de adicionar parada", async () => {
+  it("abre o formulário atual de adicionar parada com os campos essenciais", async () => {
     const user = userEvent.setup();
     render(<TripItinerary trip={trip} />, { wrapper: TestProviders });
 
     await screen.findByRole("heading", { name: "Lisboa" });
-    await user.click(screen.getAllByRole("button", { name: "Buscar lugares" })[0]);
-
-    expect(screen.getByRole("heading", { name: /Explorar lugares|Buscar lugares/ })).toBeInTheDocument();
-    expect(screen.queryByLabelText("Data")).not.toBeInTheDocument();
-    expect(screen.queryByLabelText("Horário de início")).not.toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: "Fechar" }));
     await user.click(screen.getAllByRole("button", { name: "Adicionar parada" })[0]);
 
     expect(screen.getByRole("heading", { name: "Nova atividade" })).toBeInTheDocument();
     expect(screen.getByLabelText("Data")).toBeInTheDocument();
     expect(screen.getByLabelText(/Início/)).toBeInTheDocument();
-  });
-
-  it("preenche título, endereço e link ao selecionar um lugar", async () => {
-    vi.mocked(searchPlaces).mockResolvedValueOnce([
-      {
-        name: "Museu do Louvre",
-        address: "Rue de Rivoli, Paris, França",
-        lat: 48.8606111,
-        lon: 2.337644,
-      },
-    ]);
-    const user = userEvent.setup();
-    render(<TripItinerary trip={trip} />, { wrapper: TestProviders });
-
-    await screen.findByRole("heading", { name: "Lisboa" });
-    await user.click(screen.getAllByRole("button", { name: "Adicionar parada" })[0]);
-    await user.type(screen.getByRole("combobox", { name: "Buscar local" }), "Louvre");
-
-    await waitFor(() => expect(searchPlaces).toHaveBeenCalled());
-    await user.click(await screen.findByRole("option", { name: /Museu do Louvre/i }));
-
-    expect(screen.getByLabelText(/Título/)).toHaveValue("Museu do Louvre");
-    expect(screen.getByRole("combobox", { name: "Buscar local" })).toHaveValue(
-      "Rue de Rivoli, Paris, França"
-    );
-    expect(screen.getByLabelText("Link do Google Maps")).toHaveValue(
-      "https://www.google.com/maps/search/?api=1&query=48.8606111%2C2.337644"
-    );
-    expect(screen.getByText(/Local selecionado|Pin marcado|marcado no mapa/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Fim/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Título/)).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Buscar local" })).toBeInTheDocument();
   });
 
   it("impede adicionar uma parada quando o horário final é anterior ao inicial", async () => {
@@ -150,11 +106,7 @@ describe("TripItinerary", () => {
     ).toBeInTheDocument();
   });
 
-  it("identifica endereço pelo link do Maps sem sobrescrever um título personalizado", async () => {
-    vi.mocked(reverseGeocode).mockResolvedValueOnce({
-      name: "Museu do Louvre",
-      address: "Rue de Rivoli, Paris, França",
-    });
+  it("extrai o lugar do link do Maps sem sobrescrever um título personalizado", async () => {
     const user = userEvent.setup();
     render(<TripItinerary trip={trip} />, { wrapper: TestProviders });
 
@@ -169,12 +121,7 @@ describe("TripItinerary", () => {
       "https://www.google.com/maps/place/Museu+do+Louvre/data=!3d48.8606111!4d2.337644"
     );
 
-    await waitFor(() =>
-      expect(screen.getByRole("combobox", { name: "Buscar local" })).toHaveValue(
-        "Rue de Rivoli, Paris, França"
-      )
-    );
     expect(screen.getByLabelText(/Título/)).toHaveValue("Meu passeio no Louvre");
-    expect(reverseGeocode).toHaveBeenCalledWith(48.8606111, 2.337644);
+    expect(screen.getByText("Local selecionado: Museu do Louvre")).toBeInTheDocument();
   });
 });

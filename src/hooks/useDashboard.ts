@@ -70,15 +70,7 @@ export function useDashboardData() {
 
       if (error) {
         logger.error("[useDashboardData] Erro RPC:", JSON.stringify(error, null, 2));
-        return {
-          total_income: 0,
-          total_expense: 0,
-          pending_income: 0,
-          pending_expense: 0,
-          balance: 0,
-          totals_by_currency: [],
-          recent_transactions: [],
-        };
+        throw error;
       }
 
       const summary = (data ?? {}) as Partial<DashboardSummary>;

@@ -128,7 +128,7 @@ export function NotificationButton() {
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent className="w-[380px] p-0" align="end" sideOffset={8}>
+      <PopoverContent className="w-[min(380px,calc(100vw-1rem))] p-0" align="end" sideOffset={8}>
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
           <h3 className="font-semibold">Notificações</h3>
@@ -282,7 +282,7 @@ function NotificationItem({ notification, onClick, onDismiss }: NotificationItem
           <Button
             variant="ghost"
             size="icon"
-            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+            className="h-10 w-10 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity flex-shrink-0"
             onClick={(e) => {
               e.stopPropagation();
               onDismiss();
