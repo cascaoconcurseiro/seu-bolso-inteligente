@@ -104,7 +104,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
         return;
       }
 
-      const amount = moneyUtils.parse(settleAmount.replace(".", "").replace(",", "."));
+      const amount = moneyUtils.parse(settleAmount);
       if (isNaN(amount) || amount < 0) {
         toast.error("Valor inválido");
         setIsSettling(false);

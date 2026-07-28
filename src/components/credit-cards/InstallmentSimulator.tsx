@@ -22,12 +22,12 @@ export function InstallmentSimulator({
   const [interestRate, setInterestRate] = useState(2.99);
 
   const available = Math.max(0, (creditLimit ?? 0) - Math.abs(currentBalance));
-  const monthly = purchaseAmount > 0 ? purchaseAmount / installments : 0;
+  const monthly = purchaseAmount > 0 && installments > 0 ? purchaseAmount / installments : 0;
   const totalWithInterest =
     purchaseAmount > 0 && installments > 1
       ? purchaseAmount * Math.pow(1 + interestRate / 100, installments)
       : purchaseAmount;
-  const monthlyWithInterest = totalWithInterest / installments;
+  const monthlyWithInterest = installments > 0 ? totalWithInterest / installments : 0;
   const exceedsLimit = purchaseAmount > available;
 
   return (
