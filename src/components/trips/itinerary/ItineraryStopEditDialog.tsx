@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Calendar,
   Clock,
@@ -18,12 +18,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useQuery } from "@tanstack/react-query";
 import {
-  buildGoogleMapsUrl,
   isSafeGoogleMapsUrl,
   parseGoogleMapsPlaceName,
   parseGoogleMapsUrl,
 } from "@/services/mapsHelpers";
-import { PLACE_CATEGORIES, type PlaceCategory, type PlaceSearchResult } from "./types";
+import { PLACE_CATEGORIES, type PlaceCategory } from "./types";
 import { fetchNearbyWikipediaPlace } from "@/services/wikipediaPlaceService";
 import { motion } from "framer-motion";
 
@@ -63,8 +62,6 @@ export function ItineraryStopEditDialog({
   mode,
   initialValues,
   dayOptions,
-  destinationName,
-  searchNear,
   isLoading,
   isGeocoding,
   onSubmit,
@@ -72,99 +69,27 @@ export function ItineraryStopEditDialog({
   onChange,
 }: ItineraryStopEditDialogProps) {
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-  const [placeQuery, setPlaceQuery] = useState("");
-  const [placeResults, setPlaceResults] = useState<PlaceSearchResult[]>([]);
-  const [isSearchingPlaces, setIsSearchingPlaces] = useState(false);
-  const [activePlaceIndex, setActivePlaceIndex] = useState(-1);
-  const [resolvedPlaceName, setResolvedPlaceName] = useState("");
   const [timeError, setTimeError] = useState("");
   const [activeTab, setActiveTab] = useState<"details" | "info" | "advanced">("details");
-  const searchRequestId = useRef(0);
   const mapsResolveRequestId = useRef(0);
 
   // Limpa quando fecha
   useEffect(() => {
     if (!open) {
-      searchRequestId.current += 1;
       mapsResolveRequestId.current += 1;
-      setPlaceQuery("");
-      setPlaceResults([]);
-      setActivePlaceIndex(-1);
-      setResolvedPlaceName("");
       setTimeError("");
       setActiveTab("details");
       return;
     }
   }, [open]);
 
-  // Auto-sugestão de lugares
-  useEffect(() => {
-    if (!open) return;
-    const q = placeQuery.trim();
-    const catLabel = PLACE_CATEGORIES.find((c: { id: string; label: string }) => c.id === initialValues.category)?.label;
-    const effectiveQuery = q.length >= 2 ? q : initialValues.category ? catLabel || "" : "";
-    if (!effectiveQuery) {
-      setPlaceResults([]);
-      return;
-    }
-    ++searchRequestId.current;
-    setIsSearchingPlaces(true);
-    const timer = setTimeout(async () => {
-      // searchPlaces has been disabled/removed.
-      setPlaceResults([]);
-      setIsSearchingPlaces(false);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [
-    placeQuery,
-    open,
-    searchNear,
-    initialValues.category,
-    destinationName,
-  ]);
 
-  const handlePickPlace = (place: PlaceSearchResult) => {
-    onChange({
-      title: initialValues.title.trim() ? initialValues.title : place.name,
-      location: place.address || place.name,
-      mapsUrl: buildGoogleMapsUrl(place.name, place.address || destinationName),
-      latitude: place.lat,
-      longitude: place.lon,
-      phone: place.phone ?? initialValues.phone,
-      website: place.website ?? initialValues.website,
-      openingHours: place.openingHours ?? initialValues.openingHours,
-      category: place.category ?? initialValues.category,
-    });
-    setResolvedPlaceName(place.name);
-    setPlaceQuery("");
-    setPlaceResults([]);
-    setActivePlaceIndex(-1);
-    setActiveTab("details");
-  };
-
-  const handlePlaceKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (!placeResults.length) return;
-    if (event.key === "ArrowDown") {
-      event.preventDefault();
-      setActivePlaceIndex((i) => (i + 1) % placeResults.length);
-    } else if (event.key === "ArrowUp") {
-      event.preventDefault();
-      setActivePlaceIndex((i) => (i <= 0 ? placeResults.length - 1 : i - 1));
-    } else if (event.key === "Enter" && activePlaceIndex >= 0) {
-      event.preventDefault();
-      handlePickPlace(placeResults[activePlaceIndex]);
-    } else if (event.key === "Escape") {
-      setPlaceResults([]);
-      setActivePlaceIndex(-1);
-    }
-  };
 
   const handleMapsUrlChange = async (value: string) => {
     ++mapsResolveRequestId.current;
     onChange({ mapsUrl: value });
     if (!isSafeGoogleMapsUrl(value)) {
       onChange({ latitude: null, longitude: null });
-      setResolvedPlaceName("");
       return;
     }
     const coordinates = parseGoogleMapsUrl(value);
@@ -177,7 +102,6 @@ export function ItineraryStopEditDialog({
     // reverseGeocode was removed
     onChange({ location: locationStr });
     if (!initialValues.title.trim() && !nameFromUrl) onChange({ title: locationStr });
-    setResolvedPlaceName(nameFromUrl || locationStr);
   };
 
   const openMapsSearch = () => {
@@ -269,7 +193,7 @@ export function ItineraryStopEditDialog({
 
         <form
           className="flex min-h-0 flex-1 flex-col"
-          aria-busy={isLoading || isGeocoding || isSearchingPlaces}
+          aria-busy={isLoading || isGeocoding}
           onSubmit={(e) => {
             e.preventDefault();
             submit();
@@ -314,7 +238,7 @@ export function ItineraryStopEditDialog({
                         onChange({ startTime: e.target.value });
                         setTimeError("");
                       }}
-                      className="h-10 text-sm"
+                      className="h-11 text-base sm:h-10 sm:text-sm"
                     />
                   </div>
                   <div className="space-y-1.5 sm:col-span-1">
@@ -329,7 +253,7 @@ export function ItineraryStopEditDialog({
                         onChange({ endTime: e.target.value });
                         setTimeError("");
                       }}
-                      className="h-10 text-sm"
+                      className="h-11 text-base sm:h-10 sm:text-sm"
                     />
                   </div>
                 </div>
@@ -351,12 +275,12 @@ export function ItineraryStopEditDialog({
                     onChange={(e) => onChange({ title: e.target.value })}
                     aria-required="true"
                     required
-                    className="h-10 text-sm"
+                    className="h-11 text-base sm:h-10 sm:text-sm"
                   />
                 </div>
 
                 {/* Endereço / Local (Airbnb, Pousada, Rua e Número) */}
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 mt-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="itinerary-location-basic" className="text-xs font-semibold">
                       Endereço Completo / Local
@@ -370,30 +294,52 @@ export function ItineraryStopEditDialog({
                   <div className="flex gap-2">
                     <Input
                       id="itinerary-location-basic"
-                      placeholder="Ex: Rua das Flores 123, Caxias do Sul (ou cole o link do Google Maps)"
+                      placeholder="Ex: Rua das Flores 123, Caxias do Sul"
                       value={initialValues.location}
-                      onChange={(e) => {
-                        onChange({ location: e.target.value });
-                        setPlaceQuery(e.target.value);
-                      }}
-                      onKeyDown={handlePlaceKeyDown}
-                      className="h-10 text-sm flex-1"
+                      onChange={(e) => onChange({ location: e.target.value })}
+                      className="h-11 text-base sm:h-10 sm:text-sm flex-1"
                     />
                     <Button
                       type="button"
                       variant="outline"
-                      size="sm"
+                      size="icon"
                       onClick={openMapsSearch}
-                      className="h-10 px-3 text-xs shrink-0"
+                      className="h-11 w-11 sm:h-10 sm:w-10 shrink-0"
                       title="Abrir no Google Maps para obter o endereço exato"
                     >
-                      <Search className="mr-1 h-3.5 w-3.5" />
-                      Buscar
+                      <Search className="h-4 w-4" />
                     </Button>
                   </div>
-                  <p className="text-[11px] text-muted-foreground">
-                    💡 Para Airbnb ou casa de aluguel: digite o endereço completo (rua, número e cidade) para localizar com precisão e priorizar atrações e restaurantes próximos.
+                  <p className="text-[11px] text-muted-foreground leading-tight">
+                    💡 Para Airbnb ou atrações: digite o endereço completo para localizar com precisão.
                   </p>
+                </div>
+
+                {/* Link do Google Maps */}
+                <div className="space-y-1.5 mt-2">
+                  <Label htmlFor="itinerary-maps-url-basic" className="text-xs font-semibold flex items-center gap-1">
+                    <MapPin className="h-3 w-3 text-muted-foreground" />
+                    Link do Google Maps
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="itinerary-maps-url-basic"
+                      placeholder="Cole um link do Google Maps..."
+                      value={initialValues.mapsUrl}
+                      onChange={(e) => void handleMapsUrlChange(e.target.value)}
+                      className="h-11 text-base sm:h-10 sm:text-sm"
+                    />
+                    {initialValues.mapsUrl && isSafeGoogleMapsUrl(initialValues.mapsUrl) && (
+                      <a
+                        href={initialValues.mapsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="grid h-11 w-11 sm:h-10 sm:w-10 shrink-0 place-items-center rounded-md border border-input bg-background hover:bg-accent"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                    )}
+                  </div>
                 </div>
 
                 {/* Categoria — chips */}
@@ -434,109 +380,7 @@ export function ItineraryStopEditDialog({
                 animate={{ opacity: 1, y: 0 }}
                 className="space-y-4"
               >
-                {/* Local + autocomplete */}
-                <div className="space-y-2 rounded-2xl border border-border/60 bg-muted/20 p-3">
-                  <Label htmlFor="itinerary-location" className="text-xs font-semibold">
-                    Local
-                  </Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="itinerary-location"
-                      placeholder="Endereço ou nome do lugar…"
-                      value={initialValues.location}
-                      onChange={(e) => {
-                        onChange({ location: e.target.value });
-                        setPlaceQuery(e.target.value);
-                      }}
-                      onKeyDown={handlePlaceKeyDown}
-                      className="h-10 text-sm"
-                      autoComplete="off"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      className="h-10 w-10 shrink-0"
-                      onClick={openMapsSearch}
-                      disabled={!initialValues.location && !initialValues.title}
-                      aria-label="Buscar local no Maps"
-                    >
-                      <Search className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  {(placeResults.length > 0 || isSearchingPlaces) && (
-                    <div
-                      id="itinerary-place-results"
-                      role="listbox"
-                      className="max-h-56 overflow-y-auto rounded-xl border border-border bg-popover shadow-xl"
-                    >
-                      {isSearchingPlaces && placeResults.length === 0 && (
-                        <p className="px-3 py-2.5 text-xs text-muted-foreground">
-                          Buscando sugestões…
-                        </p>
-                      )}
-                      {placeResults.map((place, idx) => (
-                        <button
-                          key={`${place.lat}-${place.lon}-${idx}`}
-                          type="button"
-                          role="option"
-                          aria-selected={idx === activePlaceIndex}
-                          className={`flex min-h-10 w-full items-start gap-2 px-3 py-2 text-left transition-colors ${
-                            idx === activePlaceIndex ? "bg-accent" : "hover:bg-accent/50"
-                          }`}
-                          onClick={() => handlePickPlace(place)}
-                        >
-                          <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
-                          <span className="min-w-0">
-                            <span className="block text-xs font-semibold leading-tight text-foreground">
-                              {place.name}
-                            </span>
-                            {place.address && (
-                              <span className="block truncate text-[11px] text-muted-foreground">
-                                {place.address}
-                              </span>
-                            )}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  {hasCoords && (
-                    <p className="flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                      <MapPin className="h-3 w-3" />
-                      {resolvedPlaceName
-                        ? `Local selecionado: ${resolvedPlaceName}`
-                        : "Coordenadas confirmadas"}
-                    </p>
-                  )}
-                </div>
 
-                {/* Link do Google Maps */}
-                <div className="space-y-1.5">
-                  <Label htmlFor="itinerary-maps-url" className="text-xs font-semibold flex items-center gap-1">
-                    <MapPin className="h-3 w-3 text-muted-foreground" />
-                    Link do Google Maps
-                  </Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="itinerary-maps-url"
-                      placeholder="Cole um link do Google Maps para extrair coordenadas…"
-                      value={initialValues.mapsUrl}
-                      onChange={(e) => void handleMapsUrlChange(e.target.value)}
-                      className="h-10 text-xs"
-                    />
-                    {initialValues.mapsUrl && isSafeGoogleMapsUrl(initialValues.mapsUrl) && (
-                      <a
-                        href={initialValues.mapsUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="grid h-10 w-10 shrink-0 place-items-center rounded-md border border-input bg-background hover:bg-accent"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                    )}
-                  </div>
-                </div>
 
                 {/* Horário, telefone, site */}
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -665,7 +509,7 @@ export function ItineraryStopEditDialog({
                   </p>
                   {!hasCoords && (
                     <p className="mt-2 text-xs">
-                      Sem coordenadas — a parada não aparecerá no mapa. Use a aba "Detalhes" para
+                      Sem coordenadas — a parada não aparecerá no mapa. Use a aba "Básico" para
                       buscar ou colar um link do Google Maps.
                     </p>
                   )}
