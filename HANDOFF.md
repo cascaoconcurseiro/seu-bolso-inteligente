@@ -1,6 +1,28 @@
 # HANDOFF.md — Ponto de Continuidade
 
-> Última atualização: 2026-07-26
+> Última atualização: 2026-07-28
+
+## Handoff da sessão - 28/07/2026 - Restauração visual e checklist pré-viagem
+
+### Entrega
+
+- O redesign global do commit `1be69206` foi revertido; a árvore restaurada foi comparada com o backup `a3861806` e publicada na `main`.
+- `TripChecklist` preserva a identidade visual anterior e ganhou hierarquia própria para listas longas: resumo de progresso acessível, categorias em cartões responsivos e responsável visível.
+- O formulário de novo item agora permite selecionar um membro da viagem como responsável e oferece as nove categorias do checklist pré-viagem.
+- Os 83 itens de `checklist_viagem_portatil.html` foram inseridos na viagem `Liverpol` de Wesley, em nove categorias e atribuídos ao membro Wesley. Os sete itens anteriores foram preservados.
+- Leitura posterior no Supabase confirmou 90 itens totais, 83 atribuídos ao Wesley e zero pares exatos duplicados de categoria/item.
+
+### Verificação
+
+- [x] `npx tsc --noEmit`.
+- [x] `npm run lint -- --quiet`.
+- [x] `npm run build`.
+- [x] `git diff --check`.
+- [ ] QA visual autenticado em 390 px e 1440 px após o deploy.
+
+### Próximo passo concreto
+
+Abrir a viagem `Liverpol`, acessar `Preparar > Checklist` e conferir os cartões com 90 itens em 390 px e 1440 px. Se o agrupamento estiver aprovado, decidir se os sete itens antigos sem responsável devem ser consolidados nas novas categorias ou mantidos como histórico.
 
 ## Handoff da sessão - 26/07/2026 - Formulários distintos para lugares e paradas
 

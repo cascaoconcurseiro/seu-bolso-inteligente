@@ -1,7 +1,18 @@
 # CHECKLIST.md — Sprint Kanban: Seu Bolso Inteligente
 
 > Kanban de tarefas em markdown. Atualizar a cada sessão.
-> Última atualização: **2026-07-26 — Identidade visual verde-petróleo**
+> Última atualização: **2026-07-28 — Checklist pré-viagem**
+
+---
+
+## Concluído - 28/07/2026 - Restauração visual e checklist pré-viagem
+
+- [x] **[DESIGN-ROLLBACK]** Redesign global revertido e árvore conferida contra o backup anterior antes da publicação na `main`.
+- [x] **[TRIP-CHECKLIST-DATA]** 83 itens do arquivo portátil inseridos na viagem `Liverpol`, distribuídos em nove categorias e atribuídos ao Wesley, sem duplicatas exatas.
+- [x] **[TRIP-CHECKLIST-UX]** Checklist reorganizado em cartões responsivos com progresso total e por categoria, responsável visível e seletor de responsável no novo item.
+- [x] **[TRIP-CHECKLIST-A11Y]** Checkboxes e exclusões receberam nomes acessíveis, progresso usa semântica `progressbar`, labels foram associados e animações respeitam redução de movimento.
+- [x] **[TRIP-CHECKLIST-VERIFY]** TypeScript, ESLint, build PWA e `git diff --check` aprovados; leitura no Supabase confirmou 90 itens totais e 83 atribuídos ao Wesley.
+- [ ] **[TRIP-CHECKLIST-QA-AUTH]** Validar visualmente a viagem `Liverpol` em 390 px e 1440 px após o deploy.
 
 ---
 

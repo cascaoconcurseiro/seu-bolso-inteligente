@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, ListChecks, Trash2 } from "lucide-react";
+import { Plus, ListChecks, Trash2, UserRound } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -27,6 +27,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import type { Trip } from "@/hooks/useTrips";
 import type { TripSuggestion } from "@/services/aiAdvisorService";
 import { getErrorMessage } from "./types";
+import { useTripMembers } from "@/hooks/useTripMembers";
 
 interface ChecklistItem {
   id: string;
@@ -43,23 +44,42 @@ interface TripChecklistProps {
   trip: Trip;
 }
 
-const CATEGORIES = [
-  { value: "documentos", label: "Documentos" },
+const PRIMARY_CATEGORIES = [
+  { value: "documentos_imigracao", label: "Documentos e imigração" },
+  { value: "dinheiro_cartoes", label: "Dinheiro e cartões" },
   { value: "roupas", label: "Roupas" },
-  { value: "higiene", label: "Higiene" },
+  { value: "calcados_treino", label: "Calçados e treino" },
   { value: "eletronicos", label: "Eletrônicos" },
-  { value: "remedios", label: "Remédios" },
+  { value: "higiene_saude", label: "Higiene e saúde" },
+  { value: "bagagem_mao", label: "Mochila ou bagagem de mão" },
+  { value: "mala", label: "Mala" },
+  { value: "antes_sair", label: "Antes de sair de casa" },
   { value: "outros", label: "Outros" },
 ];
+const LEGACY_CATEGORY_LABELS: Record<string, string> = {
+  documentos: "Documentos",
+  higiene: "Higiene",
+  remedios: "Remédios",
+  remédios: "Remédios",
+  eletrônicos: "Eletrônicos",
+};
+const CATEGORY_ORDER = new Map(
+  [
+    ...PRIMARY_CATEGORIES.map((category) => category.value),
+    ...Object.keys(LEGACY_CATEGORY_LABELS),
+  ].map((category, index) => [category, index])
+);
 
 export function TripChecklist({ trip }: TripChecklistProps) {
   const tripId = trip.id;
   const [showDialog, setShowDialog] = useState(false);
   const [newItem, setNewItem] = useState("");
   const [newCategory, setNewCategory] = useState("");
+  const [newAssignee, setNewAssignee] = useState("unassigned");
   const [, setIsApplyingAI] = useState(false);
 
   const queryClient = useQueryClient();
+  const { data: members = [] } = useTripMembers(tripId);
 
   // Fetch checklist items
   const { data: items = [], isLoading } = useQuery({
@@ -79,7 +99,12 @@ export function TripChecklist({ trip }: TripChecklistProps) {
 
   // Create mutation
   const createItem = useMutation({
-    mutationFn: async (item: { trip_id: string; item: string; category: string | null }) => {
+    mutationFn: async (item: {
+      trip_id: string;
+      item: string;
+      category: string | null;
+      assigned_to: string | null;
+    }) => {
       const { data, error } = await supabase
         .from("trip_checklist")
         .insert({
@@ -98,6 +123,7 @@ export function TripChecklist({ trip }: TripChecklistProps) {
       toast.success("Item adicionado");
       setNewItem("");
       setNewCategory("");
+      setNewAssignee("unassigned");
       setShowDialog(false);
     },
     onError: (error) => {
@@ -142,6 +168,7 @@ export function TripChecklist({ trip }: TripChecklistProps) {
       trip_id: tripId,
       item: newItem.trim(),
       category: newCategory || null,
+      assigned_to: newAssignee === "unassigned" ? null : newAssignee,
     });
   };
 
@@ -187,9 +214,30 @@ export function TripChecklist({ trip }: TripChecklistProps) {
   // Calcular progresso
   const completedCount = items.filter((i) => i.is_completed).length;
   const progress = items.length > 0 ? (completedCount / items.length) * 100 : 0;
+  const assigneeNames = useMemo(
+    () => new Map(members.map((member) => [member.id, member.display_name || "Participante"])),
+    [members]
+  );
+  const getCategoryLabel = (category: string) =>
+    PRIMARY_CATEGORIES.find((option) => option.value === category)?.label ||
+    LEGACY_CATEGORY_LABELS[category] ||
+    "Outros";
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4" role="status" aria-label="Carregando checklist">
+        <div className="h-32 animate-pulse rounded-2xl bg-muted motion-reduce:animate-none" />
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="h-52 animate-pulse rounded-2xl bg-muted motion-reduce:animate-none" />
+          <div className="h-52 animate-pulse rounded-2xl bg-muted motion-reduce:animate-none" />
+        </div>
+        <span className="sr-only">Carregando checklist</span>
+      </div>
+    );
+  }
 
   // Estado vazio
-  if (!isLoading && items.length === 0) {
+  if (items.length === 0) {
     return (
       <div className="space-y-6">
         <EmptyState
@@ -221,6 +269,9 @@ export function TripChecklist({ trip }: TripChecklistProps) {
           setNewItem={setNewItem}
           newCategory={newCategory}
           setNewCategory={setNewCategory}
+          newAssignee={newAssignee}
+          setNewAssignee={setNewAssignee}
+          members={members}
           onSubmit={handleSubmit}
         />
       </div>
@@ -229,13 +280,23 @@ export function TripChecklist({ trip }: TripChecklistProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header com progresso */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm uppercase tracking-widest text-muted-foreground font-medium">
-            Checklist ({completedCount}/{items.length})
-          </h2>
-          <div className="flex items-center gap-2">
+      <section
+        className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5"
+        aria-labelledby="trip-checklist-title"
+      >
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+              Preparação da viagem
+            </p>
+            <h2 id="trip-checklist-title" className="mt-1 text-xl font-semibold tracking-tight">
+              Checklist pré-viagem
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {completedCount} de {items.length} itens concluídos
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
             <AITripSuggestions
               type="checklist"
               destination={trip.destination || trip.name}
@@ -249,81 +310,119 @@ export function TripChecklist({ trip }: TripChecklistProps) {
             </Button>
           </div>
         </div>
-        <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+        <div
+          className="mt-4 h-2.5 w-full overflow-hidden rounded-full bg-muted"
+          role="progressbar"
+          aria-label="Progresso do checklist"
+          aria-valuemin={0}
+          aria-valuemax={items.length}
+          aria-valuenow={completedCount}
+          aria-valuetext={`${completedCount} de ${items.length} itens concluídos`}
+        >
           <div
-            className="h-full bg-positive transition-all rounded-full"
+            className="h-full rounded-full bg-positive transition-[width] duration-300 motion-reduce:transition-none"
             style={{ width: `${progress}%` }}
           />
         </div>
-      </div>
+      </section>
 
-      {/* Lista agrupada por categoria */}
-      <div className="space-y-6">
-        {Object.entries(groupedItems).map(([category, categoryItems]) => {
-          const categoryLabel = CATEGORIES.find((c) => c.value === category)?.label || "Outros";
-          return (
-            <div key={category} className="space-y-2">
-              <h3 className="font-medium text-sm text-muted-foreground">{categoryLabel}</h3>
-              <div className="space-y-2">
-                {categoryItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className={cn(
-                      "flex items-center justify-between p-3 rounded-xl border transition-all duration-300",
-                      item.is_completed
-                        ? "bg-muted/30 border-transparent opacity-70"
-                        : "bg-card/40 border-border/50 hover:bg-card/80 hover:shadow-sm"
-                    )}
-                  >
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <Checkbox
-                        checked={item.is_completed}
-                        disabled={toggleItem.isPending && toggleItem.variables?.id === item.id}
-                        className="rounded-full h-5 w-5 border-muted-foreground/30 data-[state=checked]:bg-positive data-[state=checked]:border-positive data-[state=checked]:text-white shadow-sm transition-all duration-300"
-                        onCheckedChange={async (checked) => {
+      <div className="grid items-start gap-4 lg:grid-cols-2">
+        {Object.entries(groupedItems)
+          .sort(
+            ([categoryA], [categoryB]) =>
+              (CATEGORY_ORDER.get(categoryA) ?? PRIMARY_CATEGORIES.length) -
+              (CATEGORY_ORDER.get(categoryB) ?? PRIMARY_CATEGORIES.length)
+          )
+          .map(([category, categoryItems]) => {
+            const categoryLabel = getCategoryLabel(category);
+            const categoryCompleted = categoryItems.filter((item) => item.is_completed).length;
+            return (
+              <section
+                key={category}
+                className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm"
+                aria-labelledby={`checklist-category-${category}`}
+              >
+                <header className="flex items-center justify-between border-b border-border/60 px-4 py-3">
+                  <h3 id={`checklist-category-${category}`} className="font-semibold">
+                    {categoryLabel}
+                  </h3>
+                  <span className="text-xs tabular-nums text-muted-foreground">
+                    {categoryCompleted}/{categoryItems.length}
+                  </span>
+                </header>
+                <div className="divide-y divide-border/50 px-4">
+                  {categoryItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className={cn(
+                        "group flex items-start justify-between gap-3 py-3 transition-colors",
+                        item.is_completed && "opacity-65"
+                      )}
+                    >
+                      <div className="flex min-w-0 flex-1 items-start gap-3">
+                        <Checkbox
+                          id={`checklist-item-${item.id}`}
+                          aria-label={`${item.is_completed ? "Desmarcar" : "Marcar"} ${item.item}`}
+                          checked={item.is_completed}
+                          disabled={toggleItem.isPending && toggleItem.variables?.id === item.id}
+                          className="mt-0.5 h-5 w-5 shrink-0 rounded-md border-muted-foreground/40 data-[state=checked]:border-positive data-[state=checked]:bg-positive data-[state=checked]:text-white"
+                          onCheckedChange={async (checked) => {
+                            try {
+                              await toggleItem.mutateAsync({
+                                id: item.id,
+                                is_completed: !!checked,
+                              });
+                            } catch (error: unknown) {
+                              toast.error(getErrorMessage(error, "Erro ao atualizar item"));
+                            }
+                          }}
+                        />
+                        <label
+                          htmlFor={`checklist-item-${item.id}`}
+                          className="min-w-0 cursor-pointer"
+                        >
+                          <span
+                            className={cn(
+                              "block text-sm font-medium leading-5",
+                              item.is_completed && "line-through text-muted-foreground"
+                            )}
+                          >
+                            {item.item}
+                          </span>
+                          {item.assigned_to && assigneeNames.has(item.assigned_to) && (
+                            <span className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                              <UserRound className="h-3 w-3" aria-hidden="true" />
+                              {assigneeNames.get(item.assigned_to)}
+                            </span>
+                          )}
+                        </label>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        disabled={deleteItem.isPending && deleteItem.variables === item.id}
+                        onClick={async () => {
                           try {
-                            await toggleItem.mutateAsync({ id: item.id, is_completed: !!checked });
+                            await deleteItem.mutateAsync(item.id);
                           } catch (error: unknown) {
-                            toast.error(getErrorMessage(error, "Erro ao atualizar item"));
+                            toast.error(getErrorMessage(error, "Erro ao excluir item"));
                           }
                         }}
-                      />
-                      <span
-                        className={cn(
-                          "text-sm font-medium transition-all duration-300 truncate",
-                          item.is_completed
-                            ? "line-through text-muted-foreground"
-                            : "text-foreground"
-                        )}
+                        className="h-8 w-8 shrink-0 text-muted-foreground opacity-70 hover:text-destructive sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+                        aria-label={`Remover ${item.item}`}
                       >
-                        {item.item}
-                      </span>
+                        {deleteItem.isPending && deleteItem.variables === item.id ? (
+                          <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </Button>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      disabled={deleteItem.isPending && deleteItem.variables === item.id}
-                      onClick={async () => {
-                        try {
-                          await deleteItem.mutateAsync(item.id);
-                        } catch (error: unknown) {
-                          toast.error(getErrorMessage(error, "Erro ao excluir item"));
-                        }
-                      }}
-                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                    >
-                      {deleteItem.isPending && deleteItem.variables === item.id ? (
-                        <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <Trash2 className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        })}
+                  ))}
+                </div>
+              </section>
+            );
+          })}
       </div>
 
       {/* Dialog */}
@@ -335,6 +434,9 @@ export function TripChecklist({ trip }: TripChecklistProps) {
         setNewItem={setNewItem}
         newCategory={newCategory}
         setNewCategory={setNewCategory}
+        newAssignee={newAssignee}
+        setNewAssignee={setNewAssignee}
+        members={members}
         onSubmit={handleSubmit}
       />
     </div>
@@ -350,6 +452,9 @@ function ChecklistDialog({
   setNewItem,
   newCategory,
   setNewCategory,
+  newAssignee,
+  setNewAssignee,
+  members,
   onSubmit,
 }: {
   open: boolean;
@@ -359,6 +464,9 @@ function ChecklistDialog({
   setNewItem: (v: string) => void;
   newCategory: string;
   setNewCategory: (v: string) => void;
+  newAssignee: string;
+  setNewAssignee: (v: string) => void;
+  members: Array<{ id: string; display_name?: string }>;
   onSubmit: () => void;
 }) {
   return (
@@ -378,8 +486,9 @@ function ChecklistDialog({
         <div className="flex-1 overflow-y-auto px-6">
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label>Item *</Label>
+              <Label htmlFor="new-checklist-item">Item *</Label>
               <Input
+                id="new-checklist-item"
                 placeholder="Ex: Passaporte"
                 value={newItem}
                 onChange={(e) => setNewItem(e.target.value)}
@@ -388,15 +497,31 @@ function ChecklistDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label>Categoria</Label>
+              <Label htmlFor="new-checklist-category">Categoria</Label>
               <Select value={newCategory} onValueChange={setNewCategory}>
-                <SelectTrigger className="h-11">
+                <SelectTrigger id="new-checklist-category" className="h-11">
                   <SelectValue placeholder="Selecione uma categoria" />
                 </SelectTrigger>
                 <SelectContent>
-                  {CATEGORIES.map((cat) => (
+                  {PRIMARY_CATEGORIES.map((cat) => (
                     <SelectItem key={cat.value} value={cat.value}>
                       {cat.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-checklist-assignee">Responsável</Label>
+              <Select value={newAssignee} onValueChange={setNewAssignee}>
+                <SelectTrigger id="new-checklist-assignee" className="h-11">
+                  <SelectValue placeholder="Sem responsável" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unassigned">Sem responsável</SelectItem>
+                  {members.map((member) => (
+                    <SelectItem key={member.id} value={member.id}>
+                      {member.display_name || "Participante"}
                     </SelectItem>
                   ))}
                 </SelectContent>
