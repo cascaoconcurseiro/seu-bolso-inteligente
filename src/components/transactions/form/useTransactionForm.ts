@@ -35,6 +35,7 @@ import { toast } from "sonner";
 import { showActionFeedback } from "@/components/ui/ActionFeedback";
 import { moneyUtils } from "@/utils/money";
 import type { Transaction } from "@/hooks/transactions/types";
+import { useTransactionDuplicates } from "./useTransactionDuplicates";
 
 interface TransactionFormProps {
   onSuccess?: () => void;
@@ -153,6 +154,7 @@ export function useTransactionForm({
     // Só armazena o split do parceiro — o SplitModal em modo "Eu Paguei"
     // trabalha com splits implícitos (o criador assume o restante).
     store.setSplits([{ memberId: matched.member_id, percentage: otherPct, amount: 0 }]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     activeTab,
     categoryId,
@@ -194,7 +196,7 @@ export function useTransactionForm({
         store.setHasUserSelectedCategoryManually(false);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [predictedCategoryId, store.hasUserSelectedCategoryManually, categoryId, store]);
 
   const handleCategoryChange = (val: string) => {
@@ -289,7 +291,6 @@ export function useTransactionForm({
   }, [initialData?.id]);
 
   // Validation & Warnings
-  const [duplicateWarning, setDuplicateWarning] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [validationWarnings, setValidationWarnings] = useState<string[]>([]);
   const [showWarningModal, setShowWarningModal] = useState(false);
@@ -304,52 +305,16 @@ export function useTransactionForm({
     }
   }, [categoriesLoading, categoriesChecked, categories?.length, createDefaultCategories]);
 
-  // Duplicate detection
-  useEffect(() => {
-    if (!allTransactions || allTransactions.length === 0) {
-      setDuplicateWarning(false);
-      return;
-    }
-    const handler = setTimeout(() => {
-      const numericAmount = moneyUtils.parse(amount) || 0;
-      if (!description || numericAmount === 0 || !date) {
-        setDuplicateWarning(false);
-        return;
-      }
-      const accountId = store.accountId;
-      const hasDuplicate = allTransactions.some((tx) => {
-        // onMutate adiciona a própria transação ao cache antes da resposta do servidor.
-        // Ela não é uma duplicata e não deve disparar o aviso durante o salvamento.
-        if (tx.is_optimistic || tx.id.startsWith("temp-")) return false;
-        if (initialData && tx.id === initialData.id) return false;
-        if (initialData && initialData.series_id && tx.series_id === initialData.series_id)
-          return false;
-        if (tx.type !== activeTab) return false;
-        if (accountId && tx.account_id !== accountId) return false;
-
-        const amountMatch = Math.abs(tx.amount - numericAmount) < 0.01;
-
-        const desc1 = tx.description.toLowerCase().trim();
-        const desc2 = description.toLowerCase().trim();
-        const descMatch = desc1 === desc2;
-
-        // Only consider transactions that have a real creation timestamp
-        if (!tx.created_at) return false;
-        const msSinceCreation = new Date().getTime() - new Date(tx.created_at).getTime();
-        // Must have been created in the past and within the last 30 minutes
-        const withinWindow = msSinceCreation >= 0 && msSinceCreation <= 30 * 60 * 1000;
-
-        // The selected date in the form must match the existing tx date (same calendar day)
-        const txDateStr = tx.date;
-        const formDateStr = format(date, "yyyy-MM-dd");
-        const dateMatch = txDateStr?.slice(0, 10) === formDateStr?.slice(0, 10);
-
-        return amountMatch && descMatch && withinWindow && dateMatch;
-      });
-      setDuplicateWarning(hasDuplicate);
-    }, 500);
-    return () => clearTimeout(handler);
-  }, [amount, description, date, activeTab, allTransactions, initialData, store.accountId]);
+  // Duplicate detection sub-hook
+  const duplicateWarning = useTransactionDuplicates({
+    allTransactions,
+    amount,
+    description,
+    date,
+    activeTab,
+    accountId: store.accountId,
+    initialData,
+  });
 
   // When a trip is selected, build a merged member list that includes trip participants
   // who have a user account (user_id != null). Guests (user_id === null) are skipped
