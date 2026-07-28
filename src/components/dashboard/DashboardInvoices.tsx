@@ -137,12 +137,12 @@ export const DashboardInvoices = memo(function DashboardInvoices({
   if (cardsWithPendingInvoices.length === 0) return null;
 
   return (
-    <div className="space-y-3 animate-fade-in-up stagger-4">
-      <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
+    <section className="space-y-3" aria-labelledby="pending-invoices-title">
+      <h2 id="pending-invoices-title" className="text-base font-semibold text-foreground">
         Faturas pendentes
       </h2>
-      <div className="space-y-2">
-        {cardsWithPendingInvoices.map((card, index) => {
+      <ul className="divide-y divide-border border-y border-border">
+        {cardsWithPendingInvoices.map((card) => {
           const invoiceMonth = card.targetInvoiceMonth!;
           const invoiceDateParam = `${invoiceMonth.getFullYear()}-${String(invoiceMonth.getMonth() + 1).padStart(2, "0")}`;
 
@@ -151,42 +151,42 @@ export const DashboardInvoices = memo(function DashboardInvoices({
           const capitalizedMonthLabel = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
 
           return (
-            <Link
-              key={card.id}
-              to={`/cartoes?cardId=${card.id}&invoiceDate=${invoiceDateParam}`}
-              className={cn(
-                "group flex items-center justify-between py-4 border-b border-border/40 last:border-0 hover:bg-card/30 transition-colors animate-stagger -mx-2 px-2 rounded-xl",
-                `stagger-${index + 1}`
-              )}
-            >
-              <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
-                <BankIcon bankId={card.bank_id} accountName={card.name} size="md" />
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium text-sm md:text-base truncate">Fatura {card.name}</p>
-                  <p
-                    className={cn(
-                      "text-xs md:text-sm truncate font-medium",
-                      card.isOverdue ? "text-negative" : "text-muted-foreground"
-                    )}
-                  >
-                    {card.isOverdue
-                      ? `Atrasada ${Math.abs(card.daysUntilDue)} dia${Math.abs(card.daysUntilDue) !== 1 ? "s" : ""} • ${capitalizedMonthLabel}`
-                      : card.daysUntilDue === 0
-                        ? `Vence hoje • ${capitalizedMonthLabel}`
-                        : `Vence em ${card.daysUntilDue} dia${card.daysUntilDue !== 1 ? "s" : ""} • ${capitalizedMonthLabel}`}
-                  </p>
+            <li key={card.id}>
+              <Link
+                to={`/cartoes?cardId=${card.id}&invoiceDate=${invoiceDateParam}`}
+                className="group flex min-h-16 items-center justify-between gap-3 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <BankIcon bankId={card.bank_id} accountName={card.name} size="md" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-foreground md:text-base">
+                      Fatura {card.name}
+                    </p>
+                    <p
+                      className={cn(
+                        "truncate text-sm",
+                        card.isOverdue ? "font-medium text-negative" : "text-muted-foreground"
+                      )}
+                    >
+                      {card.isOverdue
+                        ? `Atrasada ${Math.abs(card.daysUntilDue)} dia${Math.abs(card.daysUntilDue) !== 1 ? "s" : ""} · ${capitalizedMonthLabel}`
+                        : card.daysUntilDue === 0
+                          ? `Vence hoje · ${capitalizedMonthLabel}`
+                          : `Vence em ${card.daysUntilDue} dia${card.daysUntilDue !== 1 ? "s" : ""} · ${capitalizedMonthLabel}`}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-1 md:gap-2 shrink-0">
-                <span className="text-destructive font-mono font-semibold text-sm md:text-base whitespace-nowrap">
-                  -{formatCurrency(card.targetInvoiceTotal)}
-                </span>
-                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
-              </div>
-            </Link>
+                <div className="flex shrink-0 items-center gap-1">
+                  <span className="whitespace-nowrap text-sm font-semibold tabular-nums text-destructive md:text-base">
+                    -{formatCurrency(card.targetInvoiceTotal)}
+                  </span>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                </div>
+              </Link>
+            </li>
           );
         })}
-      </div>
-    </div>
+      </ul>
+    </section>
   );
 });

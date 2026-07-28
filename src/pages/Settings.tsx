@@ -155,18 +155,16 @@ export function Settings() {
       .slice(0, 2);
 
   return (
-    <div className="space-y-8 animate-fade-in pb-20">
-      <div className="relative overflow-hidden rounded-2xl p-4 md:p-6 transition-all duration-700 ease-out bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="font-display font-black text-3xl tracking-tighter">Configurações</h1>
-            <p className="text-muted-foreground text-sm font-medium">
-              Personalize sua experiência financeira
-            </p>
-          </div>
-        </div>
-      </div>
+    <div className="space-y-8 pb-20">
+      <header className="border-b border-border pb-5 md:pb-6">
+        <p className="mb-1 text-sm font-medium text-primary">Preferências</p>
+        <h1 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
+          Configurações
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Conta, segurança, categorias, notificações e privacidade
+        </p>
+      </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <SettingsSidebar

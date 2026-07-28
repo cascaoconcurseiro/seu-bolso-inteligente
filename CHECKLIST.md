@@ -1,7 +1,20 @@
 # CHECKLIST.md — Sprint Kanban: Seu Bolso Inteligente
 
 > Kanban de tarefas em markdown. Atualizar a cada sessão.
-> Última atualização: **2026-07-26 — Identidade visual verde-petróleo**
+> Última atualização: **2026-07-28 — Direção de arte operacional**
+
+---
+
+## Concluído - 28/07/2026 - Direção de arte operacional
+
+- [x] **[ART-BACKUP]** Estado anterior publicado em `codex/backup-before-art-direction-20260728`, commit `a386180695b08b60c1b4fe7d2a7fa939a56664fc`.
+- [x] **[ART-SYSTEM]** Tokens de superfícies, raios e sombras calmas adicionados; movimentos globais, glows, lift, scale e stagger reduzidos com suporte reforçado a `prefers-reduced-motion`.
+- [x] **[ART-NAV]** Os 11 destinos continuam diretamente visíveis no desktop, agrupados semanticamente em Dia a dia, Planejamento, Vida compartilhada e Ferramentas; shell mobile preservado e simplificado.
+- [x] **[ART-DASHBOARD]** Dashboard reorganizado como cockpit financeiro: saldo dominante, métricas contábeis em linha, orçamento acessível e listas operacionais sem cartões/animações decorativas.
+- [x] **[ART-PAGES]** Cabeçalhos de Transações, Contas, Cartões, Compartilhados, Família, Viagens, Orçamentos, Metas, Simuladores e Configurações normalizados com microcopy concreta.
+- [x] **[ART-A11Y]** Listas, navegação, progresso, tooltips e ações tocadas nesta fase receberam semântica, nomes acessíveis, foco e alvos mínimos adequados.
+- [x] **[ART-VERIFY]** 288 testes aprovados, TypeScript aprovado, lint com zero erros, build PWA de produção aprovado e `git diff --check` limpo.
+- [ ] **[ART-QA-AUTH]** Validar visualmente Dashboard e telas canônicas em sessão autenticada, light/dark, nas larguras 390, 768 e 1440 px.
 
 ---
 

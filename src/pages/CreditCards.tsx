@@ -657,16 +657,16 @@ export function CreditCards() {
   }
 
   return (
-    <div className="space-y-5 animate-fade-in pb-20">
-      <div className="relative overflow-hidden rounded-2xl p-4 md:p-6 transition-all duration-700 ease-out bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-5 pb-20">
+      <header className="border-b border-border pb-5 md:pb-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="font-display font-black text-2xl md:text-3xl tracking-tighter">
+            <p className="mb-1 text-sm font-medium text-primary">Crédito</p>
+            <h1 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
               Cartões
             </h1>
-            <p className="text-muted-foreground mt-1 text-sm md:text-base font-medium">
-              Gerencie faturas e limites
+            <p className="mt-1 text-sm text-muted-foreground">
+              Faturas, limites e vencimentos em um só lugar
             </p>
           </div>
           <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 w-full sm:w-auto">
@@ -707,7 +707,7 @@ export function CreditCards() {
             </Button>
           </div>
         </div>
-      </div>
+      </header>
 
       {creditCards.length > 0 ? (
         <CreditCardsList

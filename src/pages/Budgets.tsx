@@ -170,22 +170,27 @@ export function Budgets() {
   }
 
   return (
-    <div className="space-y-8 animate-fade-in pb-20">
-      {/* Header com Glassmorphism */}
-      <div className="sticky top-2 z-40 relative overflow-hidden rounded-4xl p-5 md:p-8 transition-all duration-700 ease-out bg-background/60 backdrop-blur-xl border border-border/40 shadow-sm">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-          <div className="space-y-2">
+    <div className="space-y-8 pb-20">
+      <header className="border-b border-border pb-5 md:pb-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="mb-1 text-sm font-medium text-primary">Planejamento</p>
             <div className="flex items-center gap-2">
-              <h1 className="font-display font-black text-3xl md:text-3xl tracking-tighter">
+              <h1 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
                 Orçamentos
               </h1>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div className="h-6 w-6 rounded-full bg-primary/10 text-primary flex items-center justify-center cursor-help transition-transform hover:scale-110">
-                      <HelpCircle className="h-3.5 w-3.5" />
-                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-10 w-10 text-muted-foreground"
+                      aria-label="Como funcionam os orçamentos"
+                    >
+                      <HelpCircle className="h-4 w-4" aria-hidden="true" />
+                    </Button>
                   </TooltipTrigger>
                   <TooltipContent className="max-w-xs space-y-2 p-3 bg-card text-card-foreground shadow-premium-sm border-border">
                     <p className="font-bold text-sm">Controle Inteligente</p>
@@ -198,21 +203,21 @@ export function Budgets() {
                 </Tooltip>
               </TooltipProvider>
             </div>
-            <p className="text-muted-foreground mt-2 text-sm md:text-base font-medium flex items-center gap-2">
-              Gestão de limites para{" "}
+            <p className="mt-1 text-sm text-muted-foreground">
+              Limites de gastos para{" "}
               {dateFns.format(safeCurrentDate, "MMMM yyyy", { locale: ptBR })}
             </p>
           </div>
           <Button
             onClick={() => setShowNewBudgetDialog(true)}
             size="default"
-            className="shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 group h-12 px-6 w-full sm:w-auto font-bold rounded-2xl"
+            className="h-11 w-full gap-2 px-4 font-medium sm:w-auto"
           >
             <Plus className="h-5 w-5 mr-2 transition-transform group-hover:scale-110" />
-            Novo Orçamento
+            Novo orçamento
           </Button>
         </div>
-      </div>
+      </header>
 
       {/* Mini Dashboard de Orçamentos */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">

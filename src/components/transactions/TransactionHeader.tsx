@@ -24,36 +24,32 @@ export function TransactionHeader({
   onImportOFX,
 }: TransactionHeaderProps) {
   return (
-    <div className="relative overflow-hidden rounded-2xl p-4 md:p-6 transition-all duration-700 ease-out bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 mb-6">
-      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-      <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <header className="mb-6 border-b border-border pb-5 md:pb-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="font-display font-black text-2xl md:text-4xl tracking-tighter">
+          <p className="mb-1 text-sm font-medium text-primary">Movimentações</p>
+          <h1 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
             Transações
           </h1>
-          <p className="text-muted-foreground mt-1 text-sm md:text-base font-medium">
-            {count} registros
+          <p className="mt-1 text-sm text-muted-foreground">
+            {count === 1 ? "1 registro neste período" : `${count} registros neste período`}
           </p>
         </div>
-        <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 w-full sm:w-auto">
+        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto">
           <Button
             variant="default"
             size="sm"
-            className="w-full sm:w-auto gap-1 md:gap-2 h-10 md:h-12 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 px-2"
+            className="h-11 w-full gap-2 px-3 sm:w-auto"
             onClick={onImportOFX}
           >
             <FileSpreadsheet className="h-4 w-4" />
-            <span className="text-xs md:text-sm truncate">Importar OFX</span>
+            <span className="truncate text-sm">Importar OFX</span>
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full sm:w-auto gap-1 md:gap-2 h-10 md:h-12 px-2"
-              >
+              <Button variant="outline" size="sm" className="h-11 w-full gap-2 px-3 sm:w-auto">
                 <Download className="h-4 w-4" />
-                <span className="text-xs md:text-sm">Exportar</span>
+                <span className="text-sm">Exportar</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -109,6 +105,6 @@ export function TransactionHeader({
           </DropdownMenu>
         </div>
       </div>
-    </div>
+    </header>
   );
 }

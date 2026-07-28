@@ -15,76 +15,48 @@ export function TransactionSummary({
   const result = totalIncome - totalExpense;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 animate-fade-in-up">
-      {/* Entradas */}
-      <div className="group flex flex-col gap-2 p-3 sm:p-4 rounded-2xl border border-success/20 bg-success/5 hover:bg-success/12 transition-colors">
-        <div className="flex items-center justify-between">
-          <p className="text-sm sm:text-sm text-success/70 dark:text-success/70 uppercase font-bold tracking-widest">
-            Entradas
-          </p>
-          <div className="p-1 sm:p-2 rounded-lg bg-success/15">
-            <TrendingUp className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-success" />
-          </div>
-        </div>
-        <p className="font-mono font-bold text-sm sm:text-base text-success dark:text-success tabular-nums leading-tight">
+    <dl
+      className="grid overflow-hidden rounded-xl border border-border bg-card sm:grid-cols-3 sm:divide-x sm:divide-border"
+      aria-label="Resumo das transações no período"
+    >
+      <div className="flex items-center justify-between gap-4 border-b border-border p-4 sm:block sm:border-b-0">
+        <dt className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <TrendingUp className="h-4 w-4 text-positive" aria-hidden="true" />
+          Entradas
+        </dt>
+        <dd className="mt-0 font-mono text-base font-semibold tabular-nums text-positive sm:mt-2">
           +{formatCurrency(totalIncome)}
-        </p>
+        </dd>
       </div>
 
-      {/* Saídas */}
-      <div className="group flex flex-col gap-2 p-3 sm:p-4 rounded-2xl border border-destructive/20 bg-destructive/5 hover:bg-destructive/12 transition-colors">
-        <div className="flex items-center justify-between">
-          <p className="text-sm sm:text-sm text-destructive/70 dark:text-destructive/70 uppercase font-bold tracking-widest">
-            Saídas
-          </p>
-          <div className="p-1 sm:p-2 rounded-lg bg-destructive/15">
-            <TrendingDown className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-destructive" />
-          </div>
-        </div>
-        <p className="font-mono font-bold text-sm sm:text-base text-destructive dark:text-destructive tabular-nums leading-tight">
+      <div className="flex items-center justify-between gap-4 border-b border-border p-4 sm:block sm:border-b-0">
+        <dt className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <TrendingDown className="h-4 w-4 text-negative" aria-hidden="true" />
+          Saídas
+        </dt>
+        <dd className="mt-0 font-mono text-base font-semibold tabular-nums text-negative sm:mt-2">
           -{formatCurrency(totalExpense)}
-        </p>
+        </dd>
       </div>
 
-      {/* Resultado */}
-      <div
-        className={cn(
-          "group flex flex-col gap-2 p-3 sm:p-4 rounded-2xl border transition-colors",
-          result >= 0
-            ? "border-primary/20 bg-primary/5 hover:bg-primary/10"
-            : "border-warning/20 bg-warning/5 hover:bg-warning/10"
-        )}
-      >
-        <div className="flex items-center justify-between">
-          <p
-            className={cn(
-              "text-xs sm:text-xs uppercase font-bold tracking-widest",
-              result >= 0 ? "text-primary/70" : "text-warning/70 dark:text-warning/70"
-            )}
-          >
-            Resultado
-          </p>
-          <div
-            className={cn("p-1 sm:p-2 rounded-lg", result >= 0 ? "bg-primary/15" : "bg-warning/15")}
-          >
-            <Scale
-              className={cn(
-                "h-3 w-3 sm:h-3.5 sm:w-3.5",
-                result >= 0 ? "text-primary" : "text-warning"
-              )}
-            />
-          </div>
-        </div>
-        <p
+      <div className="flex items-center justify-between gap-4 bg-muted/30 p-4 sm:block">
+        <dt className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <Scale
+            className={cn("h-4 w-4", result >= 0 ? "text-primary" : "text-warning")}
+            aria-hidden="true"
+          />
+          Resultado
+        </dt>
+        <dd
           className={cn(
-            "font-mono font-bold text-sm sm:text-base tabular-nums leading-tight",
-            result >= 0 ? "text-primary" : "text-warning dark:text-warning"
+            "mt-0 font-mono text-base font-semibold tabular-nums sm:mt-2",
+            result >= 0 ? "text-foreground" : "text-warning"
           )}
         >
           {result >= 0 ? "+" : "-"}
           {formatCurrency(Math.abs(result))}
-        </p>
+        </dd>
       </div>
-    </div>
+    </dl>
   );
 }

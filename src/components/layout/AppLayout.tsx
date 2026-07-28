@@ -7,19 +7,8 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { useGlobalRealtime } from "@/hooks/useGlobalRealtime";
 import { useCategories, useCreateDefaultCategories } from "@/hooks/useCategories";
 import { UserAvatar } from "@/components/ui/user-avatar";
-import {
-  Settings,
-  Moon,
-  Sun,
-  LogOut,
-  Plus,
-  Eye,
-  EyeOff,
-  ChevronDown,
-  Search,
-  Grid3X3,
-} from "lucide-react";
-import { navigationItems, secondaryNavItems } from "@/config/navigation";
+import { Settings, Moon, Sun, LogOut, Plus, Eye, EyeOff, Search } from "lucide-react";
+import { navigationGroups } from "@/config/navigation";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -37,7 +26,7 @@ import { usePrivacy } from "@/contexts/PrivacyContext";
 import { OnboardingGuard } from "@/components/onboarding/OnboardingGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { lazy, Suspense } from "react";
-import { getRouteResourceId, getRouteTitle } from "@/utils/frontendFlows";
+import { getRouteResourceId, getRouteTitle, isNavigationPathActive } from "@/utils/frontendFlows";
 
 const GlobalSearch = lazy(() =>
   import("@/components/search/GlobalSearch").then((module) => ({ default: module.GlobalSearch }))
@@ -141,100 +130,26 @@ export function AppLayout({ children }: AppLayoutProps) {
       >
         Pular para o conteúdo principal
       </a>
-      {/* TopBar */}
-      <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl transform-gpu safe-top">
+      <header className="sticky top-0 z-50 w-full border-b border-border bg-background safe-top">
         <div className="w-full px-4 md:px-6 lg:px-8">
-          <div className="flex h-12 items-center justify-between gap-2">
-            {/* Logo Wordmark */}
-            <Link to="/" className="flex items-center gap-2 flex-shrink-0 mr-1 lg:mr-6 min-w-max">
+          <div className="flex h-14 items-center justify-between gap-3">
+            <Link to="/" className="flex min-w-max flex-shrink-0 items-center">
               <span className="font-display font-bold text-sm md:text-base tracking-tight whitespace-nowrap block">
                 pé de meia
               </span>
             </Link>
 
-            {/* Desktop Navigation */}
-            <nav
-              className="hidden md:flex items-center gap-0 flex-1 justify-center flex-wrap"
-              aria-label="Navegação principal"
-            >
-              {navigationItems.map((item) => {
-                const isActive =
-                  location.pathname === item.path ||
-                  (item.path !== "/" && location.pathname.startsWith(item.path));
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    title={item.label}
-                    className={cn(
-                      "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors duration-150 whitespace-nowrap",
-                      isActive
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:text-foreground hover:bg-secondary/70"
-                    )}
-                  >
-                    <Icon className="h-3.5 w-3.5 flex-shrink-0" />
-                    {item.label}
-                  </Link>
-                );
-              })}
-              {secondaryNavItems.length > 0 && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      className={cn(
-                        "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors duration-150 whitespace-nowrap",
-                        "text-muted-foreground hover:text-foreground hover:bg-secondary/70"
-                      )}
-                      aria-label="Mais itens de navegação"
-                    >
-                      <Grid3X3 className="h-3.5 w-3.5 flex-shrink-0" />
-                      Mais
-                      <ChevronDown className="h-3 w-3 opacity-50" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48">
-                    {secondaryNavItems.map((item) => {
-                      const Icon = item.icon;
-                      const isActive =
-                        location.pathname === item.path ||
-                        (item.path !== "/" && location.pathname.startsWith(item.path));
-                      return (
-                        <DropdownMenuItem key={item.path} asChild>
-                          <Link
-                            to={item.path}
-                            className={cn(
-                              "flex items-center gap-2 cursor-pointer",
-                              isActive && "text-primary font-medium"
-                            )}
-                          >
-                            <Icon className="h-4 w-4" />
-                            {item.label}
-                          </Link>
-                        </DropdownMenuItem>
-                      );
-                    })}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </nav>
-
-            {/* Right Section — isolado para não derrubar o header inteiro em caso de erro */}
             <ErrorBoundary fallback={null}>
-              <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
+              <div className="ml-auto flex flex-shrink-0 items-center gap-1">
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setShowSearch(true)}
-                  className="text-muted-foreground hover:text-foreground relative"
+                  className="text-muted-foreground hover:text-foreground"
                   aria-label="Buscar (Ctrl+K)"
                   title="Buscar (Ctrl+K)"
                 >
                   <Search className="h-4 w-4" />
-                  <span className="absolute -bottom-0.5 right-0 text-[9px] font-mono text-muted-foreground/60 hidden md:inline">
-                    Ctrl+K
-                  </span>
                 </Button>
                 <NotificationButton />
 
@@ -308,16 +223,57 @@ export function AppLayout({ children }: AppLayoutProps) {
               </div>
             </ErrorBoundary>
           </div>
+
+          <nav
+            className="hidden md:flex flex-wrap items-start justify-center gap-x-5 gap-y-2 border-t border-border/60 py-2"
+            aria-label="Navegação principal"
+          >
+            {navigationGroups.map((group, groupIndex) => {
+              const groupLabelId = `navigation-group-${groupIndex}`;
+              return (
+                <div
+                  key={group.label}
+                  role="group"
+                  aria-labelledby={groupLabelId}
+                  className="space-y-1"
+                >
+                  <p id={groupLabelId} className="px-2 text-xs font-semibold text-muted-foreground">
+                    {group.label}
+                  </p>
+                  <div className="flex flex-wrap gap-1">
+                    {group.items.map((item) => {
+                      const active = isNavigationPathActive(location.pathname, item.path);
+                      const Icon = item.icon;
+                      return (
+                        <Link
+                          key={item.path}
+                          to={item.path}
+                          aria-current={active ? "page" : undefined}
+                          className={cn(
+                            "flex min-h-9 items-center gap-1.5 rounded-md px-2 text-xs font-medium transition-colors",
+                            active
+                              ? "bg-primary/10 text-primary"
+                              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                          )}
+                        >
+                          <Icon className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+                          <span>{item.label}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </nav>
         </div>
 
-        {/* Month Selector - Below TopBar */}
-        {/* Hide month selector on pages that don't use monthly context */}
         {!["/cartoes", "/simuladores", "/configuracoes", "/familia", "/viagens"].includes(
           location.pathname
         ) &&
           !location.pathname.startsWith("/cartoes/") &&
           !location.pathname.startsWith("/viagens/") && (
-            <div className="border-t border-border bg-background shadow-sm">
+            <div className="border-t border-border bg-background">
               <div className="w-full px-4 md:px-6 lg:px-8 py-1.5 md:py-2 flex items-center justify-between gap-4">
                 <div className="flex-1 hidden md:block" />
 

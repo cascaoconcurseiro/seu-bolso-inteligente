@@ -1,7 +1,7 @@
 # MASTER_BLUEPRINT.md — Mapa do Projeto: Seu Bolso Inteligente
 
 > Este documento é a fonte única de verdade arquitetural do projeto. Leia antes de qualquer implementação.
-> Última atualização: 2026-07-26 (lugares e reservas persistentes + RLS de viagens)
+> Última atualização: 2026-07-28 (direção de arte operacional)
 
 ---
 
@@ -10,7 +10,7 @@
 - **Nome:** Seu Bolso Inteligente (alias: meupedemeia)
 - **URL Produção:** https://meupedemeia.vercel.app
 - **Repositório:** cascaoconcurseiro/seu-bolso-inteligente
-- **Branch de desenvolvimento:** `claude/compassionate-mendel-6zyijq`
+- **Branch de integração e deploy:** `main`
 - **Supabase Project ID:** `vrrcagukyfnlhxuvnssp`
 
 ---
@@ -20,7 +20,7 @@
 | Camada | Tecnologia |
 |---|---|
 | Frontend | React 18 + TypeScript (Strict) + Vite |
-| Estilização | Tailwind CSS + Glassmorphism Dark Mode |
+| Estilização | Tailwind CSS + design system operacional light/dark |
 | Componentes | Radix UI primitives + shadcn/ui |
 | Estado servidor | TanStack React Query v5 (staleTime: 2min, gcTime: 24h) |
 | Estado cliente | Zustand |
@@ -34,6 +34,14 @@
 ---
 
 ## 3. INVARIÁVEIS ABSOLUTAS (nunca violar)
+
+### 3.0 Direção visual
+- A interface é um cockpit financeiro calmo: dados e decisões vêm antes de decoração.
+- Verde-petróleo é assinatura de marca e interação; positivo/receita e negativo/despesa continuam cores semânticas separadas.
+- Desktop mantém todos os destinos principais visíveis, agrupados por tarefa; não reintroduzir menu genérico `Mais`.
+- Gradiente, glassmorphism, glow, sombras fortes e animações escalonadas não são padrão arquitetural. Só usar quando comunicarem estado, profundidade real ou conquista significativa.
+- Cabeçalhos de página seguem hierarquia estável: contexto curto, título concreto, descrição operacional e ações.
+- Todo movimento respeita `prefers-reduced-motion`; controles por ícone têm nome acessível e alvos de toque mínimos.
 
 ### 3.1 Financeiro
 - **SSOT de Saldo:** o saldo de conta é SEMPRE calculado via trigger PostgreSQL (soma de transações), com cobertura em INSERT, UPDATE e DELETE de `transactions` (o gap de UPDATE foi fechado em 2026-07-01, migration `20260702084014` — antes disso, editar uma transação não recalculava o saldo). Nunca atualize `accounts.balance` diretamente. Função oficial única: `recalculate_account_balance(p_account_id)` — qualquer outra função de "saldo de conta" é órfã/depreciada.
@@ -184,4 +192,4 @@ supabase/
 5. Sem `float` para cálculos financeiros
 6. Sem `new Date()` para aritmética de datas
 7. Sem deletes físicos em tabelas financeiras
-8. Commits em branch de desenvolvimento, nunca direto em `main`
+8. Todo ciclo concluído é integrado e publicado em `main`; branches auxiliares não são estado final de entrega.

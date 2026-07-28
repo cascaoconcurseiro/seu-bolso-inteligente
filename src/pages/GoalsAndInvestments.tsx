@@ -144,17 +144,16 @@ export function GoalsAndInvestments() {
   };
 
   return (
-    <div className="space-y-8 animate-fade-in pb-20">
-      {/* Header com Glassmorphism */}
-      <div className="relative overflow-hidden rounded-4xl p-5 md:p-8 transition-all duration-700 ease-out bg-background/60 backdrop-blur-xl border border-border/40 shadow-sm">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-        <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-2">
-            <h1 className="font-display font-black text-3xl md:text-3xl tracking-tighter text-foreground">
-              Metas e Investimentos
+    <div className="space-y-8 pb-20">
+      <header className="border-b border-border pb-5 md:pb-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="mb-1 text-sm font-medium text-primary">Patrimônio futuro</p>
+            <h1 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
+              Metas e investimentos
             </h1>
-            <p className="text-muted-foreground mt-2 text-sm md:text-base font-medium flex items-center gap-2">
-              <Target className="w-4 h-4" />
+            <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+              <Target className="h-4 w-4" aria-hidden="true" />
               {activeTab === "IRPF"
                 ? "Relatório de Imposto de Renda (IRPF)"
                 : "Gestão de Patrimônio"}
@@ -168,7 +167,7 @@ export function GoalsAndInvestments() {
                   onClick={() => syncPrices.mutate()}
                   disabled={syncPrices.isPending}
                   variant="outline"
-                  className="shadow-sm transition-all h-12 font-medium bg-background/50 backdrop-blur-sm"
+                  className="h-11 font-medium"
                 >
                   <RefreshCw
                     className={cn("w-4 h-4 mr-2", syncPrices.isPending && "animate-spin")}
@@ -187,15 +186,15 @@ export function GoalsAndInvestments() {
                   }
                 }}
                 size="default"
-                className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 group h-12 w-full sm:w-auto font-bold"
+                className="h-11 w-full gap-2 font-medium sm:w-auto"
               >
                 <Plus className="w-4 h-4 mr-2 transition-transform group-hover:scale-110" />
-                {activeTab === "GOALS" ? "Nova Meta" : "Novo Ativo"}
+                {activeTab === "GOALS" ? "Nova meta" : "Novo ativo"}
               </Button>
             </div>
           )}
         </div>
-      </div>
+      </header>
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="w-full sm:w-auto overflow-x-auto pb-1 -mb-1 hide-scrollbar">

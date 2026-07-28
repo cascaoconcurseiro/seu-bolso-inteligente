@@ -18,11 +18,7 @@ import {
   useUpdateTrip,
 } from "@/hooks/useTrips";
 import { moneyUtils } from "@/utils/money";
-import {
-  getTripRoute,
-  getTripTabFromRoute,
-  isValidTripRouteTab,
-} from "@/utils/frontendFlows";
+import { getTripRoute, getTripTabFromRoute, isValidTripRouteTab } from "@/utils/frontendFlows";
 import { AlertCircle, Loader2, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -546,26 +542,28 @@ export function Trips() {
   }
 
   return (
-    <div className="space-y-8 animate-fade-in pb-20">
-      <div className="relative overflow-hidden rounded-2xl p-4 md:p-6 transition-all duration-700 ease-out bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-          <div className="space-y-2">
-            <h1 className="font-display font-black text-3xl tracking-tighter">Viagens</h1>
-            <p className="text-muted-foreground text-sm font-medium">
-              Organize despesas e roteiros em grupo
+    <div className="space-y-8 pb-20">
+      <header className="border-b border-border pb-5 md:pb-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="mb-1 text-sm font-medium text-primary">Planejamento</p>
+            <h1 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
+              Viagens
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Roteiros, reservas e gastos organizados por viagem
             </p>
           </div>
           <Button
             size="default"
             onClick={() => setShowNewTripDialog(true)}
-            className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 group h-12 w-full sm:w-auto font-bold"
+            className="h-11 w-full gap-2 font-medium sm:w-auto"
           >
             <Plus className="h-4 w-4 mr-2 transition-transform group-hover:scale-110" />
-            Nova Viagem
+            Nova viagem
           </Button>
         </div>
-      </div>
+      </header>
 
       <PendingTripInvitationsAlert />
 

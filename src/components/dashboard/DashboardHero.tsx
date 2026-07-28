@@ -1,5 +1,5 @@
 import { moneyUtils } from "@/utils/money";
-import { Globe, TrendingUp, TrendingDown, Target } from "lucide-react";
+import { TrendingDown, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { lazy, Suspense, useMemo, memo } from "react";
 import { usePrivacy } from "@/contexts/PrivacyContext";
@@ -45,40 +45,34 @@ export const DashboardHero = memo(function DashboardHero({
   // O balance já é o saldo real das contas. Os pendentes são apenas informativos (chips abaixo).
   // Somar pending aqui causaria duplicação pois eles já fazem parte do saldo bancário registrado.
   const predictedBalance = balance;
+  const budgetUsage =
+    (monthlyBudget ?? 0) > 0 ? Number(((expenses / (monthlyBudget ?? 0)) * 100).toFixed(1)) : 0;
 
   return (
-    <div className="relative group overflow-hidden p-5 md:p-6 rounded-4xl border border-border/50 bg-gradient-to-br from-card/80 via-card/50 to-muted/30 backdrop-blur-xl animate-fade-in-up">
-      {/* Elementos Decorativos de Fundo */}
-      <div className="absolute top-0 right-0 -mr-12 -mt-12 w-64 h-64 bg-primary/5 rounded-full blur-[100px] group-hover:bg-primary/10 transition-colors duration-1000" />
-      <div className="absolute bottom-0 left-0 -ml-12 -mb-12 w-64 h-64 bg-accent/5 rounded-full blur-[100px] group-hover:bg-accent/10 transition-colors duration-1000" />
-
-      <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-        <div className="space-y-4 flex-1">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-primary/10">
-                <TrendingUp className="h-4 w-4 text-primary" />
-              </div>
-              <p className="text-xs text-muted-foreground/70 uppercase tracking-[0.2em] font-semibold flex items-center gap-1">
-                Saldo das Contas ({currency})
-                <InfoTooltip content="Soma do saldo atual de todas as suas contas correntes e poupanças. Não inclui investimentos nem reserva de emergência." />
+    <section
+      className="overflow-hidden rounded-2xl border border-border bg-card"
+      aria-labelledby="dashboard-balance-title"
+    >
+      <div className="grid gap-6 p-5 md:p-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-end">
+        <div className="min-w-0">
+          <div className="flex min-h-11 flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-1">
+              <p id="dashboard-balance-title" className="text-sm font-medium text-muted-foreground">
+                {`Saldo das contas em ${currency}`}
               </p>
+              <InfoTooltip content="Soma do saldo atual de todas as suas contas correntes e poupanças. Não inclui investimentos nem reserva de emergência." />
             </div>
 
             {currency !== "BRL" && (
-              <div className="flex items-center gap-2 bg-primary/10 text-primary px-2.5 py-1 rounded-full text-sm font-bold border border-primary/20 shadow-sm animate-in fade-in zoom-in duration-300">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                </span>
+              <div className="text-sm text-muted-foreground" aria-live="polite">
                 {isRateLoading ? (
-                  <span className="h-3 w-16 bg-primary/20 animate-pulse rounded" />
+                  <span className="inline-block h-4 w-28 animate-pulse rounded bg-muted" />
                 ) : realTimeRate ? (
                   <span>
                     1 {currency} = {moneyUtils.format(realTimeRate, "BRL")}
                   </span>
                 ) : (
-                  <span className="text-xs opacity-60">Indisponível</span>
+                  <span>Cotação indisponível</span>
                 )}
               </div>
             )}
@@ -86,7 +80,7 @@ export const DashboardHero = memo(function DashboardHero({
 
           <h1
             className={cn(
-              "font-display font-black text-3xl sm:text-4xl md:text-5xl tracking-tighter transition-all duration-500 animate-fade-in-up",
+              "mt-1 font-display text-4xl font-semibold tracking-tight tabular-nums sm:text-5xl",
               predictedBalance >= 0 ? "text-foreground" : "text-destructive",
               isPrivate && "blur-md opacity-50 select-none"
             )}
@@ -94,108 +88,79 @@ export const DashboardHero = memo(function DashboardHero({
             {isPrivate ? "R$ •••••" : formatCurrency(predictedBalance)}
           </h1>
 
-          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3 w-full">
-            <div className="animate-stagger stagger-1 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl bg-accent/10 border border-accent/20 group/patrimony transition-all hover:bg-accent/15 overflow-hidden">
-              <div className="shrink-0 p-1.5 rounded-full bg-accent text-accent-foreground shadow-lg shadow-accent/20 group-hover/patrimony:scale-110 transition-transform">
-                <Globe className="h-3 w-3" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate">
-                  Patrimônio
-                </p>
-                <p
-                  className={cn(
-                    "text-xs sm:text-sm font-bold text-foreground truncate",
-                    isPrivate && "blur-md opacity-50 select-none"
-                  )}
-                >
-                  {isPrivate ? "•••••" : formatCurrency(totalPatrimony)}
-                </p>
-              </div>
-            </div>
-
-            <div className="animate-stagger stagger-2 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl bg-positive/10 border border-positive/20 group/income transition-all hover:bg-positive/15 overflow-hidden">
-              <div className="shrink-0 p-1.5 rounded-full bg-success text-white shadow-lg shadow-success/20 group-hover/income:scale-110 transition-transform">
-                <TrendingUp className="h-3 w-3" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate">
-                  Entradas
-                </p>
-                <p
-                  className={cn(
-                    "text-xs sm:text-sm font-bold text-positive truncate",
-                    isPrivate && "blur-md opacity-50 select-none"
-                  )}
-                >
-                  {isPrivate ? "•••••" : formatCurrency(income)}
-                </p>
-              </div>
-            </div>
-
-            <div className="animate-stagger stagger-3 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl bg-negative/10 border border-negative/20 group/expense transition-all hover:bg-negative/15 overflow-hidden">
-              <div className="shrink-0 p-1.5 rounded-full bg-destructive text-white shadow-lg shadow-destructive/20 group-hover/expense:scale-110 transition-transform">
-                <TrendingDown className="h-3 w-3" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate">
-                  Saídas
-                </p>
-                <p
-                  className={cn(
-                    "text-xs sm:text-sm font-bold text-negative truncate",
-                    isPrivate && "blur-md opacity-50 select-none"
-                  )}
-                >
-                  {isPrivate ? "•••••" : formatCurrency(expenses)}
-                </p>
-              </div>
-            </div>
-
-            {income > 0 && (
-              <div
+          <dl className="mt-6 grid grid-cols-2 border-t border-border sm:grid-cols-4">
+            <div className="min-w-0 py-3 pr-3 sm:border-r sm:border-border">
+              <dt className="text-sm text-muted-foreground">Patrimônio</dt>
+              <dd
                 className={cn(
-                  "animate-stagger stagger-4 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl border transition-all overflow-hidden",
-                  savingsRate >= 0
-                    ? "bg-positive/10 border-positive/20 hover:bg-positive/15"
-                    : "bg-warning/10 border-warning/20 hover:bg-warning/15"
+                  "mt-1 truncate text-sm font-semibold tabular-nums text-foreground",
+                  isPrivate && "blur-md opacity-50 select-none"
                 )}
               >
-                <div
-                  className={cn(
-                    "shrink-0 p-1.5 rounded-full text-white shadow-lg",
-                    savingsRate >= 0
-                      ? "bg-success shadow-success/20"
-                      : "bg-warning shadow-warning/20"
-                  )}
-                >
-                  <Target className="h-3 w-3" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate">
-                    Poupança
-                  </p>
-                  <p
-                    className={cn(
-                      "text-sm font-bold truncate",
-                      savingsRate >= 0 ? "text-positive" : "text-warning"
-                    )}
-                  >
-                    {savingsRate > 0 ? `+${savingsRate}%` : `${savingsRate}%`}
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
+                {isPrivate ? "•••••" : formatCurrency(totalPatrimony)}
+              </dd>
+            </div>
+            <div className="min-w-0 border-l border-border py-3 pl-3 sm:border-l-0 sm:border-r sm:pr-3">
+              <dt className="flex items-center gap-1 text-sm text-muted-foreground">
+                <TrendingUp className="h-4 w-4 text-success" aria-hidden="true" />
+                Entradas
+              </dt>
+              <dd
+                className={cn(
+                  "mt-1 truncate text-sm font-semibold tabular-nums text-positive",
+                  isPrivate && "blur-md opacity-50 select-none"
+                )}
+              >
+                {isPrivate ? "•••••" : formatCurrency(income)}
+              </dd>
+            </div>
+            <div className="min-w-0 border-t border-border py-3 pr-3 sm:border-r sm:border-t-0">
+              <dt className="flex items-center gap-1 text-sm text-muted-foreground">
+                <TrendingDown className="h-4 w-4 text-destructive" aria-hidden="true" />
+                Saídas
+              </dt>
+              <dd
+                className={cn(
+                  "mt-1 truncate text-sm font-semibold tabular-nums text-negative",
+                  isPrivate && "blur-md opacity-50 select-none"
+                )}
+              >
+                {isPrivate ? "•••••" : formatCurrency(expenses)}
+              </dd>
+            </div>
+            <div className="min-w-0 border-l border-t border-border py-3 pl-3 sm:border-l-0 sm:border-t-0">
+              <dt className="text-sm text-muted-foreground">Taxa de poupança</dt>
+              <dd
+                className={cn(
+                  "mt-1 text-sm font-semibold tabular-nums",
+                  income <= 0
+                    ? "text-muted-foreground"
+                    : savingsRate >= 0
+                      ? "text-positive"
+                      : "text-warning",
+                  isPrivate && "blur-md opacity-50 select-none"
+                )}
+              >
+                {isPrivate
+                  ? "•••"
+                  : income > 0
+                    ? `${savingsRate > 0 ? "+" : ""}${savingsRate}%`
+                    : "Sem entradas"}
+              </dd>
+            </div>
+          </dl>
         </div>
 
-        {/* Sparkline de Evolução Patrimonial dos últimos 6 meses */}
         {wealthHistory && wealthHistory.length > 0 && (
           <Suspense
             fallback={
-              <div className="w-full lg:w-[280px] h-[90px] rounded-2xl border border-border/30 bg-card/10 backdrop-blur-sm p-3.5 relative overflow-hidden group/chart animate-pulse">
-                <div className="w-1/2 h-3 bg-muted rounded mb-2"></div>
-                <div className="w-full h-full bg-muted/50 rounded-lg mt-2"></div>
+              <div
+                className="h-[90px] w-full animate-pulse rounded-xl border border-border p-3.5 lg:w-[280px]"
+                aria-label="Carregando evolução patrimonial"
+                aria-busy="true"
+              >
+                <div className="mb-2 h-3 w-1/2 rounded bg-muted" />
+                <div className="mt-2 h-full w-full rounded-lg bg-muted/50" />
               </div>
             }
           >
@@ -204,42 +169,51 @@ export const DashboardHero = memo(function DashboardHero({
         )}
       </div>
 
-      {/* Barra de Progresso do Orçamento Mensal Global */}
       {(monthlyBudget ?? 0) > 0 && (
-        <div className="mt-5 pt-4 border-t border-border/30">
-          <div className="flex justify-between items-end mb-2">
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-warning/10">
-                <Target className="h-4 w-4 text-warning" />
+        <div className="border-t border-border bg-muted/20 px-5 py-4 md:px-6">
+          <div className="mb-2 flex flex-wrap items-end justify-between gap-2">
+            <div>
+              <div className="flex items-center gap-1">
+                <p className="text-sm font-medium text-foreground">Orçamento do mês</p>
+                <InfoTooltip content="Configurado nas suas preferências. Ajuda a limitar os gastos (saídas) totais do mês corrente." />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground uppercase tracking-widest font-bold flex items-center gap-1">
-                  Orçamento do Mês
-                  <InfoTooltip content="Configurado nas suas preferências. Ajuda a limitar os gastos (saídas) totais do mês corrente." />
-                </p>
-                <p className="text-sm font-semibold text-foreground">
-                  {formatCurrency(expenses)}{" "}
-                  <span className="text-muted-foreground font-normal">
-                    / {formatCurrency(monthlyBudget ?? 0)}
-                  </span>
-                </p>
-              </div>
-            </div>
-            <div className="text-right">
               <p
                 className={cn(
-                  "text-xs font-bold",
-                  expenses > (monthlyBudget ?? 0) ? "text-destructive" : "text-success"
+                  "text-sm text-muted-foreground",
+                  isPrivate && "blur-md opacity-50 select-none"
                 )}
               >
-                {((expenses / (monthlyBudget ?? 0)) * 100).toFixed(1)}% utilizado
+                {isPrivate
+                  ? "••••• de •••••"
+                  : `${formatCurrency(expenses)} de ${formatCurrency(monthlyBudget ?? 0)}`}
               </p>
             </div>
+            <p
+              className={cn(
+                "text-sm font-semibold tabular-nums",
+                expenses > (monthlyBudget ?? 0) ? "text-destructive" : "text-foreground",
+                isPrivate && "blur-md opacity-50 select-none"
+              )}
+            >
+              {isPrivate ? "•••" : `${budgetUsage.toFixed(1)}% utilizado`}
+            </p>
           </div>
-          <div className="h-3 w-full bg-muted/50 rounded-full overflow-hidden">
+          <div
+            className="h-2 w-full overflow-hidden rounded-full bg-muted"
+            role="progressbar"
+            aria-label="Uso do orçamento mensal"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={isPrivate ? undefined : Math.min(budgetUsage, 100)}
+            aria-valuetext={
+              isPrivate
+                ? "Valor oculto"
+                : `${budgetUsage.toFixed(1)}% utilizado${budgetUsage > 100 ? ", acima do orçamento" : ""}`
+            }
+          >
             <div
               className={cn(
-                "h-full rounded-full transition-all duration-1000 ease-out",
+                "h-full rounded-full",
                 expenses > (monthlyBudget ?? 0)
                   ? "bg-destructive"
                   : expenses > (monthlyBudget ?? 0) * 0.8
@@ -251,6 +225,6 @@ export const DashboardHero = memo(function DashboardHero({
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 });
