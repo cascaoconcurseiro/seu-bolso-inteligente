@@ -1,92 +1,32 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`DashboardHero > renders correctly with default props (snapshot) 1`] = `
-<section
-  aria-labelledby="dashboard-balance-title"
-  class="overflow-hidden rounded-2xl border border-border bg-card"
+<div
+  class="relative group overflow-hidden p-5 md:p-6 rounded-4xl border border-border/50 bg-gradient-to-br from-card/80 via-card/50 to-muted/30 backdrop-blur-xl animate-fade-in-up"
 >
   <div
-    class="grid gap-6 p-5 md:p-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-end"
+    class="absolute top-0 right-0 -mr-12 -mt-12 w-64 h-64 bg-primary/5 rounded-full blur-[100px] group-hover:bg-primary/10 transition-colors duration-1000"
+  />
+  <div
+    class="absolute bottom-0 left-0 -ml-12 -mb-12 w-64 h-64 bg-accent/5 rounded-full blur-[100px] group-hover:bg-accent/10 transition-colors duration-1000"
+  />
+  <div
+    class="relative flex flex-col lg:flex-row lg:items-center justify-between gap-8"
   >
     <div
-      class="min-w-0"
+      class="space-y-4 flex-1"
     >
       <div
-        class="flex min-h-11 flex-wrap items-center justify-between gap-2"
+        class="flex flex-wrap items-center justify-between gap-2"
       >
         <div
-          class="flex items-center gap-1"
+          class="flex items-center gap-2"
         >
-          <p
-            class="text-sm font-medium text-muted-foreground"
-            id="dashboard-balance-title"
-          >
-            Saldo das contas em BRL
-          </p>
-          <button
-            aria-label="Mais informações"
-            class="cursor-help inline-flex min-h-11 min-w-11 items-center justify-center rounded-full transition-colors hover:bg-muted/50 "
-            data-state="closed"
-            type="button"
+          <div
+            class="p-1.5 rounded-lg bg-primary/10"
           >
             <svg
-              class="lucide lucide-circle-help h-4 w-4 text-muted-foreground hover:text-primary transition-colors"
-              fill="none"
-              height="24"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              width="24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <circle
-                cx="12"
-                cy="12"
-                r="10"
-              />
-              <path
-                d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"
-              />
-              <path
-                d="M12 17h.01"
-              />
-            </svg>
-          </button>
-        </div>
-      </div>
-      <h1
-        class="mt-1 font-display text-4xl font-semibold tracking-tight tabular-nums sm:text-5xl text-foreground"
-      >
-        R$ 5000.00
-      </h1>
-      <dl
-        class="mt-6 grid grid-cols-2 border-t border-border sm:grid-cols-4"
-      >
-        <div
-          class="min-w-0 py-3 pr-3 sm:border-r sm:border-border"
-        >
-          <dt
-            class="text-sm text-muted-foreground"
-          >
-            Patrimônio
-          </dt>
-          <dd
-            class="mt-1 truncate text-sm font-semibold tabular-nums text-foreground"
-          >
-            R$ 0.00
-          </dd>
-        </div>
-        <div
-          class="min-w-0 border-l border-border py-3 pl-3 sm:border-l-0 sm:border-r sm:pr-3"
-        >
-          <dt
-            class="flex items-center gap-1 text-sm text-muted-foreground"
-          >
-            <svg
-              aria-hidden="true"
-              class="lucide lucide-trending-up h-4 w-4 text-success"
+              class="lucide lucide-trending-up h-4 w-4 text-primary"
               fill="none"
               height="24"
               stroke="currentColor"
@@ -104,23 +44,150 @@ exports[`DashboardHero > renders correctly with default props (snapshot) 1`] = `
                 points="16 7 22 7 22 13"
               />
             </svg>
-            Entradas
-          </dt>
-          <dd
-            class="mt-1 truncate text-sm font-semibold tabular-nums text-positive"
+          </div>
+          <p
+            class="text-xs text-muted-foreground/70 uppercase tracking-[0.2em] font-semibold flex items-center gap-1"
           >
-            R$ 8000.00
-          </dd>
+            Saldo das Contas (
+            BRL
+            )
+            <button
+              aria-label="Mais informações"
+              class="cursor-help inline-flex min-h-11 min-w-11 items-center justify-center rounded-full transition-colors hover:bg-muted/50 "
+              data-state="closed"
+              type="button"
+            >
+              <svg
+                class="lucide lucide-circle-help h-4 w-4 text-muted-foreground hover:text-primary transition-colors"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                />
+                <path
+                  d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"
+                />
+                <path
+                  d="M12 17h.01"
+                />
+              </svg>
+            </button>
+          </p>
         </div>
+      </div>
+      <h1
+        class="font-display font-black text-3xl sm:text-4xl md:text-5xl tracking-tighter transition-all duration-500 animate-fade-in-up text-foreground"
+      >
+        R$ 5000.00
+      </h1>
+      <div
+        class="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3 w-full"
+      >
         <div
-          class="min-w-0 border-t border-border py-3 pr-3 sm:border-r sm:border-t-0"
+          class="animate-stagger stagger-1 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl bg-accent/10 border border-accent/20 group/patrimony transition-all hover:bg-accent/15 overflow-hidden"
         >
-          <dt
-            class="flex items-center gap-1 text-sm text-muted-foreground"
+          <div
+            class="shrink-0 p-1.5 rounded-full bg-accent text-accent-foreground shadow-lg shadow-accent/20 group-hover/patrimony:scale-110 transition-transform"
           >
             <svg
-              aria-hidden="true"
-              class="lucide lucide-trending-down h-4 w-4 text-destructive"
+              class="lucide lucide-globe h-3 w-3"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+              />
+              <path
+                d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"
+              />
+              <path
+                d="M2 12h20"
+              />
+            </svg>
+          </div>
+          <div
+            class="min-w-0"
+          >
+            <p
+              class="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate"
+            >
+              Patrimônio
+            </p>
+            <p
+              class="text-xs sm:text-sm font-bold text-foreground truncate"
+            >
+              R$ 0.00
+            </p>
+          </div>
+        </div>
+        <div
+          class="animate-stagger stagger-2 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl bg-positive/10 border border-positive/20 group/income transition-all hover:bg-positive/15 overflow-hidden"
+        >
+          <div
+            class="shrink-0 p-1.5 rounded-full bg-success text-white shadow-lg shadow-success/20 group-hover/income:scale-110 transition-transform"
+          >
+            <svg
+              class="lucide lucide-trending-up h-3 w-3"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <polyline
+                points="22 7 13.5 15.5 8.5 10.5 2 17"
+              />
+              <polyline
+                points="16 7 22 7 22 13"
+              />
+            </svg>
+          </div>
+          <div
+            class="min-w-0"
+          >
+            <p
+              class="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate"
+            >
+              Entradas
+            </p>
+            <p
+              class="text-xs sm:text-sm font-bold text-positive truncate"
+            >
+              R$ 8000.00
+            </p>
+          </div>
+        </div>
+        <div
+          class="animate-stagger stagger-3 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl bg-negative/10 border border-negative/20 group/expense transition-all hover:bg-negative/15 overflow-hidden"
+        >
+          <div
+            class="shrink-0 p-1.5 rounded-full bg-destructive text-white shadow-lg shadow-destructive/20 group-hover/expense:scale-110 transition-transform"
+          >
+            <svg
+              class="lucide lucide-trending-down h-3 w-3"
               fill="none"
               height="24"
               stroke="currentColor"
@@ -138,121 +205,105 @@ exports[`DashboardHero > renders correctly with default props (snapshot) 1`] = `
                 points="16 17 22 17 22 11"
               />
             </svg>
-            Saídas
-          </dt>
-          <dd
-            class="mt-1 truncate text-sm font-semibold tabular-nums text-negative"
+          </div>
+          <div
+            class="min-w-0"
           >
-            R$ 3000.00
-          </dd>
+            <p
+              class="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate"
+            >
+              Saídas
+            </p>
+            <p
+              class="text-xs sm:text-sm font-bold text-negative truncate"
+            >
+              R$ 3000.00
+            </p>
+          </div>
         </div>
         <div
-          class="min-w-0 border-l border-t border-border py-3 pl-3 sm:border-l-0 sm:border-t-0"
+          class="animate-stagger stagger-4 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl border transition-all overflow-hidden bg-positive/10 border-positive/20 hover:bg-positive/15"
         >
-          <dt
-            class="text-sm text-muted-foreground"
+          <div
+            class="shrink-0 p-1.5 rounded-full text-white shadow-lg bg-success shadow-success/20"
           >
-            Taxa de poupança
-          </dt>
-          <dd
-            class="mt-1 text-sm font-semibold tabular-nums text-positive"
+            <svg
+              class="lucide lucide-target h-3 w-3"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+              />
+              <circle
+                cx="12"
+                cy="12"
+                r="6"
+              />
+              <circle
+                cx="12"
+                cy="12"
+                r="2"
+              />
+            </svg>
+          </div>
+          <div
+            class="min-w-0"
           >
-            +63%
-          </dd>
+            <p
+              class="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate"
+            >
+              Poupança
+            </p>
+            <p
+              class="text-sm font-bold truncate text-positive"
+            >
+              +63%
+            </p>
+          </div>
         </div>
-      </dl>
+      </div>
     </div>
   </div>
-</section>
+</div>
 `;
 
 exports[`DashboardHero > renders with wealth history and monthly budget (snapshot) 1`] = `
-<section
-  aria-labelledby="dashboard-balance-title"
-  class="overflow-hidden rounded-2xl border border-border bg-card"
+<div
+  class="relative group overflow-hidden p-5 md:p-6 rounded-4xl border border-border/50 bg-gradient-to-br from-card/80 via-card/50 to-muted/30 backdrop-blur-xl animate-fade-in-up"
 >
   <div
-    class="grid gap-6 p-5 md:p-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-end"
+    class="absolute top-0 right-0 -mr-12 -mt-12 w-64 h-64 bg-primary/5 rounded-full blur-[100px] group-hover:bg-primary/10 transition-colors duration-1000"
+  />
+  <div
+    class="absolute bottom-0 left-0 -ml-12 -mb-12 w-64 h-64 bg-accent/5 rounded-full blur-[100px] group-hover:bg-accent/10 transition-colors duration-1000"
+  />
+  <div
+    class="relative flex flex-col lg:flex-row lg:items-center justify-between gap-8"
   >
     <div
-      class="min-w-0"
+      class="space-y-4 flex-1"
     >
       <div
-        class="flex min-h-11 flex-wrap items-center justify-between gap-2"
+        class="flex flex-wrap items-center justify-between gap-2"
       >
         <div
-          class="flex items-center gap-1"
+          class="flex items-center gap-2"
         >
-          <p
-            class="text-sm font-medium text-muted-foreground"
-            id="dashboard-balance-title"
-          >
-            Saldo das contas em BRL
-          </p>
-          <button
-            aria-label="Mais informações"
-            class="cursor-help inline-flex min-h-11 min-w-11 items-center justify-center rounded-full transition-colors hover:bg-muted/50 "
-            data-state="closed"
-            type="button"
+          <div
+            class="p-1.5 rounded-lg bg-primary/10"
           >
             <svg
-              class="lucide lucide-circle-help h-4 w-4 text-muted-foreground hover:text-primary transition-colors"
-              fill="none"
-              height="24"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              width="24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <circle
-                cx="12"
-                cy="12"
-                r="10"
-              />
-              <path
-                d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"
-              />
-              <path
-                d="M12 17h.01"
-              />
-            </svg>
-          </button>
-        </div>
-      </div>
-      <h1
-        class="mt-1 font-display text-4xl font-semibold tracking-tight tabular-nums sm:text-5xl text-foreground"
-      >
-        R$ 5000.00
-      </h1>
-      <dl
-        class="mt-6 grid grid-cols-2 border-t border-border sm:grid-cols-4"
-      >
-        <div
-          class="min-w-0 py-3 pr-3 sm:border-r sm:border-border"
-        >
-          <dt
-            class="text-sm text-muted-foreground"
-          >
-            Patrimônio
-          </dt>
-          <dd
-            class="mt-1 truncate text-sm font-semibold tabular-nums text-foreground"
-          >
-            R$ 0.00
-          </dd>
-        </div>
-        <div
-          class="min-w-0 border-l border-border py-3 pl-3 sm:border-l-0 sm:border-r sm:pr-3"
-        >
-          <dt
-            class="flex items-center gap-1 text-sm text-muted-foreground"
-          >
-            <svg
-              aria-hidden="true"
-              class="lucide lucide-trending-up h-4 w-4 text-success"
+              class="lucide lucide-trending-up h-4 w-4 text-primary"
               fill="none"
               height="24"
               stroke="currentColor"
@@ -270,23 +321,150 @@ exports[`DashboardHero > renders with wealth history and monthly budget (snapsho
                 points="16 7 22 7 22 13"
               />
             </svg>
-            Entradas
-          </dt>
-          <dd
-            class="mt-1 truncate text-sm font-semibold tabular-nums text-positive"
+          </div>
+          <p
+            class="text-xs text-muted-foreground/70 uppercase tracking-[0.2em] font-semibold flex items-center gap-1"
           >
-            R$ 8000.00
-          </dd>
+            Saldo das Contas (
+            BRL
+            )
+            <button
+              aria-label="Mais informações"
+              class="cursor-help inline-flex min-h-11 min-w-11 items-center justify-center rounded-full transition-colors hover:bg-muted/50 "
+              data-state="closed"
+              type="button"
+            >
+              <svg
+                class="lucide lucide-circle-help h-4 w-4 text-muted-foreground hover:text-primary transition-colors"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                />
+                <path
+                  d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"
+                />
+                <path
+                  d="M12 17h.01"
+                />
+              </svg>
+            </button>
+          </p>
         </div>
+      </div>
+      <h1
+        class="font-display font-black text-3xl sm:text-4xl md:text-5xl tracking-tighter transition-all duration-500 animate-fade-in-up text-foreground"
+      >
+        R$ 5000.00
+      </h1>
+      <div
+        class="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3 w-full"
+      >
         <div
-          class="min-w-0 border-t border-border py-3 pr-3 sm:border-r sm:border-t-0"
+          class="animate-stagger stagger-1 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl bg-accent/10 border border-accent/20 group/patrimony transition-all hover:bg-accent/15 overflow-hidden"
         >
-          <dt
-            class="flex items-center gap-1 text-sm text-muted-foreground"
+          <div
+            class="shrink-0 p-1.5 rounded-full bg-accent text-accent-foreground shadow-lg shadow-accent/20 group-hover/patrimony:scale-110 transition-transform"
           >
             <svg
-              aria-hidden="true"
-              class="lucide lucide-trending-down h-4 w-4 text-destructive"
+              class="lucide lucide-globe h-3 w-3"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+              />
+              <path
+                d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"
+              />
+              <path
+                d="M2 12h20"
+              />
+            </svg>
+          </div>
+          <div
+            class="min-w-0"
+          >
+            <p
+              class="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate"
+            >
+              Patrimônio
+            </p>
+            <p
+              class="text-xs sm:text-sm font-bold text-foreground truncate"
+            >
+              R$ 0.00
+            </p>
+          </div>
+        </div>
+        <div
+          class="animate-stagger stagger-2 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl bg-positive/10 border border-positive/20 group/income transition-all hover:bg-positive/15 overflow-hidden"
+        >
+          <div
+            class="shrink-0 p-1.5 rounded-full bg-success text-white shadow-lg shadow-success/20 group-hover/income:scale-110 transition-transform"
+          >
+            <svg
+              class="lucide lucide-trending-up h-3 w-3"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <polyline
+                points="22 7 13.5 15.5 8.5 10.5 2 17"
+              />
+              <polyline
+                points="16 7 22 7 22 13"
+              />
+            </svg>
+          </div>
+          <div
+            class="min-w-0"
+          >
+            <p
+              class="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate"
+            >
+              Entradas
+            </p>
+            <p
+              class="text-xs sm:text-sm font-bold text-positive truncate"
+            >
+              R$ 8000.00
+            </p>
+          </div>
+        </div>
+        <div
+          class="animate-stagger stagger-3 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl bg-negative/10 border border-negative/20 group/expense transition-all hover:bg-negative/15 overflow-hidden"
+        >
+          <div
+            class="shrink-0 p-1.5 rounded-full bg-destructive text-white shadow-lg shadow-destructive/20 group-hover/expense:scale-110 transition-transform"
+          >
+            <svg
+              class="lucide lucide-trending-down h-3 w-3"
               fill="none"
               height="24"
               stroke="currentColor"
@@ -304,66 +482,30 @@ exports[`DashboardHero > renders with wealth history and monthly budget (snapsho
                 points="16 17 22 17 22 11"
               />
             </svg>
-            Saídas
-          </dt>
-          <dd
-            class="mt-1 truncate text-sm font-semibold tabular-nums text-negative"
+          </div>
+          <div
+            class="min-w-0"
           >
-            R$ 3000.00
-          </dd>
+            <p
+              class="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate"
+            >
+              Saídas
+            </p>
+            <p
+              class="text-xs sm:text-sm font-bold text-negative truncate"
+            >
+              R$ 3000.00
+            </p>
+          </div>
         </div>
         <div
-          class="min-w-0 border-l border-t border-border py-3 pl-3 sm:border-l-0 sm:border-t-0"
+          class="animate-stagger stagger-4 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl border transition-all overflow-hidden bg-positive/10 border-positive/20 hover:bg-positive/15"
         >
-          <dt
-            class="text-sm text-muted-foreground"
-          >
-            Taxa de poupança
-          </dt>
-          <dd
-            class="mt-1 text-sm font-semibold tabular-nums text-positive"
-          >
-            +63%
-          </dd>
-        </div>
-      </dl>
-    </div>
-    <div
-      aria-busy="true"
-      aria-label="Carregando evolução patrimonial"
-      class="h-[90px] w-full animate-pulse rounded-xl border border-border p-3.5 lg:w-[280px]"
-    >
-      <div
-        class="mb-2 h-3 w-1/2 rounded bg-muted"
-      />
-      <div
-        class="mt-2 h-full w-full rounded-lg bg-muted/50"
-      />
-    </div>
-  </div>
-  <div
-    class="border-t border-border bg-muted/20 px-5 py-4 md:px-6"
-  >
-    <div
-      class="mb-2 flex flex-wrap items-end justify-between gap-2"
-    >
-      <div>
-        <div
-          class="flex items-center gap-1"
-        >
-          <p
-            class="text-sm font-medium text-foreground"
-          >
-            Orçamento do mês
-          </p>
-          <button
-            aria-label="Mais informações"
-            class="cursor-help inline-flex min-h-11 min-w-11 items-center justify-center rounded-full transition-colors hover:bg-muted/50 "
-            data-state="closed"
-            type="button"
+          <div
+            class="shrink-0 p-1.5 rounded-full text-white shadow-lg bg-success shadow-success/20"
           >
             <svg
-              class="lucide lucide-circle-help h-4 w-4 text-muted-foreground hover:text-primary transition-colors"
+              class="lucide lucide-target h-3 w-3"
               fill="none"
               height="24"
               stroke="currentColor"
@@ -379,132 +521,188 @@ exports[`DashboardHero > renders with wealth history and monthly budget (snapsho
                 cy="12"
                 r="10"
               />
-              <path
-                d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"
+              <circle
+                cx="12"
+                cy="12"
+                r="6"
               />
-              <path
-                d="M12 17h.01"
+              <circle
+                cx="12"
+                cy="12"
+                r="2"
               />
             </svg>
-          </button>
+          </div>
+          <div
+            class="min-w-0"
+          >
+            <p
+              class="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate"
+            >
+              Poupança
+            </p>
+            <p
+              class="text-sm font-bold truncate text-positive"
+            >
+              +63%
+            </p>
+          </div>
         </div>
-        <p
-          class="text-sm text-muted-foreground"
-        >
-          R$ 3000.00 de R$ 7000.00
-        </p>
       </div>
-      <p
-        class="text-sm font-semibold tabular-nums text-foreground"
-      >
-        42.9% utilizado
-      </p>
     </div>
     <div
-      aria-label="Uso do orçamento mensal"
-      aria-valuemax="100"
-      aria-valuemin="0"
-      aria-valuenow="42.9"
-      aria-valuetext="42.9% utilizado"
-      class="h-2 w-full overflow-hidden rounded-full bg-muted"
-      role="progressbar"
+      class="w-full lg:w-[280px] h-[90px] rounded-2xl border border-border/30 bg-card/10 backdrop-blur-sm p-3.5 relative overflow-hidden group/chart animate-pulse"
     >
       <div
-        class="h-full rounded-full bg-success"
+        class="w-1/2 h-3 bg-muted rounded mb-2"
+      />
+      <div
+        class="w-full h-full bg-muted/50 rounded-lg mt-2"
+      />
+    </div>
+  </div>
+  <div
+    class="mt-5 pt-4 border-t border-border/30"
+  >
+    <div
+      class="flex justify-between items-end mb-2"
+    >
+      <div
+        class="flex items-center gap-2"
+      >
+        <div
+          class="p-1.5 rounded-lg bg-warning/10"
+        >
+          <svg
+            class="lucide lucide-target h-4 w-4 text-warning"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <circle
+              cx="12"
+              cy="12"
+              r="10"
+            />
+            <circle
+              cx="12"
+              cy="12"
+              r="6"
+            />
+            <circle
+              cx="12"
+              cy="12"
+              r="2"
+            />
+          </svg>
+        </div>
+        <div>
+          <p
+            class="text-sm text-muted-foreground uppercase tracking-widest font-bold flex items-center gap-1"
+          >
+            Orçamento do Mês
+            <button
+              aria-label="Mais informações"
+              class="cursor-help inline-flex min-h-11 min-w-11 items-center justify-center rounded-full transition-colors hover:bg-muted/50 "
+              data-state="closed"
+              type="button"
+            >
+              <svg
+                class="lucide lucide-circle-help h-4 w-4 text-muted-foreground hover:text-primary transition-colors"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                />
+                <path
+                  d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"
+                />
+                <path
+                  d="M12 17h.01"
+                />
+              </svg>
+            </button>
+          </p>
+          <p
+            class="text-sm font-semibold text-foreground"
+          >
+            R$ 3000.00
+             
+            <span
+              class="text-muted-foreground font-normal"
+            >
+              / 
+              R$ 7000.00
+            </span>
+          </p>
+        </div>
+      </div>
+      <div
+        class="text-right"
+      >
+        <p
+          class="text-xs font-bold text-success"
+        >
+          42.9
+          % utilizado
+        </p>
+      </div>
+    </div>
+    <div
+      class="h-3 w-full bg-muted/50 rounded-full overflow-hidden"
+    >
+      <div
+        class="h-full rounded-full transition-all duration-1000 ease-out bg-success"
         style="width: 42.857142857142854%;"
       />
     </div>
   </div>
-</section>
+</div>
 `;
 
 exports[`DashboardHero > shows negative balance correctly (snapshot) 1`] = `
-<section
-  aria-labelledby="dashboard-balance-title"
-  class="overflow-hidden rounded-2xl border border-border bg-card"
+<div
+  class="relative group overflow-hidden p-5 md:p-6 rounded-4xl border border-border/50 bg-gradient-to-br from-card/80 via-card/50 to-muted/30 backdrop-blur-xl animate-fade-in-up"
 >
   <div
-    class="grid gap-6 p-5 md:p-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-end"
+    class="absolute top-0 right-0 -mr-12 -mt-12 w-64 h-64 bg-primary/5 rounded-full blur-[100px] group-hover:bg-primary/10 transition-colors duration-1000"
+  />
+  <div
+    class="absolute bottom-0 left-0 -ml-12 -mb-12 w-64 h-64 bg-accent/5 rounded-full blur-[100px] group-hover:bg-accent/10 transition-colors duration-1000"
+  />
+  <div
+    class="relative flex flex-col lg:flex-row lg:items-center justify-between gap-8"
   >
     <div
-      class="min-w-0"
+      class="space-y-4 flex-1"
     >
       <div
-        class="flex min-h-11 flex-wrap items-center justify-between gap-2"
+        class="flex flex-wrap items-center justify-between gap-2"
       >
         <div
-          class="flex items-center gap-1"
+          class="flex items-center gap-2"
         >
-          <p
-            class="text-sm font-medium text-muted-foreground"
-            id="dashboard-balance-title"
-          >
-            Saldo das contas em BRL
-          </p>
-          <button
-            aria-label="Mais informações"
-            class="cursor-help inline-flex min-h-11 min-w-11 items-center justify-center rounded-full transition-colors hover:bg-muted/50 "
-            data-state="closed"
-            type="button"
+          <div
+            class="p-1.5 rounded-lg bg-primary/10"
           >
             <svg
-              class="lucide lucide-circle-help h-4 w-4 text-muted-foreground hover:text-primary transition-colors"
-              fill="none"
-              height="24"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              width="24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <circle
-                cx="12"
-                cy="12"
-                r="10"
-              />
-              <path
-                d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"
-              />
-              <path
-                d="M12 17h.01"
-              />
-            </svg>
-          </button>
-        </div>
-      </div>
-      <h1
-        class="mt-1 font-display text-4xl font-semibold tracking-tight tabular-nums sm:text-5xl text-destructive"
-      >
-        R$ -200.00
-      </h1>
-      <dl
-        class="mt-6 grid grid-cols-2 border-t border-border sm:grid-cols-4"
-      >
-        <div
-          class="min-w-0 py-3 pr-3 sm:border-r sm:border-border"
-        >
-          <dt
-            class="text-sm text-muted-foreground"
-          >
-            Patrimônio
-          </dt>
-          <dd
-            class="mt-1 truncate text-sm font-semibold tabular-nums text-foreground"
-          >
-            R$ 0.00
-          </dd>
-        </div>
-        <div
-          class="min-w-0 border-l border-border py-3 pl-3 sm:border-l-0 sm:border-r sm:pr-3"
-        >
-          <dt
-            class="flex items-center gap-1 text-sm text-muted-foreground"
-          >
-            <svg
-              aria-hidden="true"
-              class="lucide lucide-trending-up h-4 w-4 text-success"
+              class="lucide lucide-trending-up h-4 w-4 text-primary"
               fill="none"
               height="24"
               stroke="currentColor"
@@ -522,23 +720,150 @@ exports[`DashboardHero > shows negative balance correctly (snapshot) 1`] = `
                 points="16 7 22 7 22 13"
               />
             </svg>
-            Entradas
-          </dt>
-          <dd
-            class="mt-1 truncate text-sm font-semibold tabular-nums text-positive"
+          </div>
+          <p
+            class="text-xs text-muted-foreground/70 uppercase tracking-[0.2em] font-semibold flex items-center gap-1"
           >
-            R$ 0.00
-          </dd>
+            Saldo das Contas (
+            BRL
+            )
+            <button
+              aria-label="Mais informações"
+              class="cursor-help inline-flex min-h-11 min-w-11 items-center justify-center rounded-full transition-colors hover:bg-muted/50 "
+              data-state="closed"
+              type="button"
+            >
+              <svg
+                class="lucide lucide-circle-help h-4 w-4 text-muted-foreground hover:text-primary transition-colors"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                />
+                <path
+                  d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"
+                />
+                <path
+                  d="M12 17h.01"
+                />
+              </svg>
+            </button>
+          </p>
         </div>
+      </div>
+      <h1
+        class="font-display font-black text-3xl sm:text-4xl md:text-5xl tracking-tighter transition-all duration-500 animate-fade-in-up text-destructive"
+      >
+        R$ -200.00
+      </h1>
+      <div
+        class="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3 w-full"
+      >
         <div
-          class="min-w-0 border-t border-border py-3 pr-3 sm:border-r sm:border-t-0"
+          class="animate-stagger stagger-1 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl bg-accent/10 border border-accent/20 group/patrimony transition-all hover:bg-accent/15 overflow-hidden"
         >
-          <dt
-            class="flex items-center gap-1 text-sm text-muted-foreground"
+          <div
+            class="shrink-0 p-1.5 rounded-full bg-accent text-accent-foreground shadow-lg shadow-accent/20 group-hover/patrimony:scale-110 transition-transform"
           >
             <svg
-              aria-hidden="true"
-              class="lucide lucide-trending-down h-4 w-4 text-destructive"
+              class="lucide lucide-globe h-3 w-3"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+              />
+              <path
+                d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"
+              />
+              <path
+                d="M2 12h20"
+              />
+            </svg>
+          </div>
+          <div
+            class="min-w-0"
+          >
+            <p
+              class="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate"
+            >
+              Patrimônio
+            </p>
+            <p
+              class="text-xs sm:text-sm font-bold text-foreground truncate"
+            >
+              R$ 0.00
+            </p>
+          </div>
+        </div>
+        <div
+          class="animate-stagger stagger-2 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl bg-positive/10 border border-positive/20 group/income transition-all hover:bg-positive/15 overflow-hidden"
+        >
+          <div
+            class="shrink-0 p-1.5 rounded-full bg-success text-white shadow-lg shadow-success/20 group-hover/income:scale-110 transition-transform"
+          >
+            <svg
+              class="lucide lucide-trending-up h-3 w-3"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <polyline
+                points="22 7 13.5 15.5 8.5 10.5 2 17"
+              />
+              <polyline
+                points="16 7 22 7 22 13"
+              />
+            </svg>
+          </div>
+          <div
+            class="min-w-0"
+          >
+            <p
+              class="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate"
+            >
+              Entradas
+            </p>
+            <p
+              class="text-xs sm:text-sm font-bold text-positive truncate"
+            >
+              R$ 0.00
+            </p>
+          </div>
+        </div>
+        <div
+          class="animate-stagger stagger-3 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl bg-negative/10 border border-negative/20 group/expense transition-all hover:bg-negative/15 overflow-hidden"
+        >
+          <div
+            class="shrink-0 p-1.5 rounded-full bg-destructive text-white shadow-lg shadow-destructive/20 group-hover/expense:scale-110 transition-transform"
+          >
+            <svg
+              class="lucide lucide-trending-down h-3 w-3"
               fill="none"
               height="24"
               stroke="currentColor"
@@ -556,30 +881,24 @@ exports[`DashboardHero > shows negative balance correctly (snapshot) 1`] = `
                 points="16 17 22 17 22 11"
               />
             </svg>
-            Saídas
-          </dt>
-          <dd
-            class="mt-1 truncate text-sm font-semibold tabular-nums text-negative"
+          </div>
+          <div
+            class="min-w-0"
           >
-            R$ 200.00
-          </dd>
+            <p
+              class="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate"
+            >
+              Saídas
+            </p>
+            <p
+              class="text-xs sm:text-sm font-bold text-negative truncate"
+            >
+              R$ 200.00
+            </p>
+          </div>
         </div>
-        <div
-          class="min-w-0 border-l border-t border-border py-3 pl-3 sm:border-l-0 sm:border-t-0"
-        >
-          <dt
-            class="text-sm text-muted-foreground"
-          >
-            Taxa de poupança
-          </dt>
-          <dd
-            class="mt-1 text-sm font-semibold tabular-nums text-muted-foreground"
-          >
-            Sem entradas
-          </dd>
-        </div>
-      </dl>
+      </div>
     </div>
   </div>
-</section>
+</div>
 `;

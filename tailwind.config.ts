@@ -8,17 +8,6 @@ export default {
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
   ],
-  safelist: [
-    "surface-calm",
-    "surface-calm-raised",
-    "surface-calm-dialog",
-    "shadow-calm-sm",
-    "shadow-calm",
-    "shadow-calm-lg",
-    "rounded-control",
-    "rounded-surface",
-    "rounded-dialog",
-  ],
   prefix: "",
   theme: {
     container: {

@@ -28,60 +28,60 @@ export const DashboardBillsDue = memo(function DashboardBillsDue() {
   };
 
   return (
-    <section className="border-t-2 border-warning" aria-labelledby="bills-due-title">
-      <div className="flex items-start gap-2.5 py-3">
-        <CalendarClock className="mt-0.5 h-5 w-5 shrink-0 text-warning" aria-hidden="true" />
+    <div className="rounded-2xl border border-border/60 bg-card overflow-hidden">
+      <div className="flex items-center gap-2.5 px-4 pt-4 pb-3 border-b border-border/40">
+        <div className="w-8 h-8 rounded-xl bg-warning/10 flex items-center justify-center shrink-0">
+          <CalendarClock className="w-4 h-4 text-warning" />
+        </div>
         <div>
-          <h2 id="bills-due-title" className="text-base font-semibold text-foreground">
-            A pagar esta semana
-          </h2>
-          <p className="text-sm text-muted-foreground">
+          <h3 className="font-bold text-sm">A pagar esta semana</h3>
+          <p className="text-xs text-muted-foreground">
             {bills.length} conta{bills.length !== 1 ? "s" : ""} vence{bills.length === 1 ? "" : "m"}{" "}
             nos próximos 7 dias
           </p>
         </div>
       </div>
 
-      <ul className="divide-y divide-border border-y border-border">
+      <div className="divide-y divide-border/40">
         {bills.map((bill) => {
           const { label, urgent } = dueDateLabel(bill.date);
           return (
-            <li key={bill.id} className="flex min-h-16 items-center gap-3 py-2">
-              <span className="shrink-0 text-lg" aria-hidden="true">
-                {bill.category?.icon || "📋"}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-foreground">{bill.description}</p>
-                <p className={cn("text-sm", urgent ? "text-warning" : "text-muted-foreground")}>
-                  {urgent && (
-                    <AlertCircle
-                      className="mr-1 inline h-3.5 w-3.5 -translate-y-px"
-                      aria-hidden="true"
-                    />
+            <div
+              key={bill.id}
+              className="flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors"
+            >
+              <span className="text-xl shrink-0">{bill.category?.icon || "📋"}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold truncate">{bill.description}</p>
+                <p
+                  className={cn(
+                    "text-xs font-medium",
+                    urgent ? "text-warning" : "text-muted-foreground"
                   )}
+                >
+                  {urgent && <AlertCircle className="w-3 h-3 inline mr-0.5 -mt-0.5" />}
                   {label} · {bill.account?.name || "Conta"}
                 </p>
               </div>
-              <div className="flex shrink-0 items-center gap-1">
-                <span className="text-sm font-semibold tabular-nums text-destructive">
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-sm font-bold text-destructive">
                   {moneyUtils.format(bill.amount, bill.currency || "BRL")}
                 </span>
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-11 w-11 rounded-lg hover:bg-success/10 hover:text-success"
+                  className="h-8 w-8 rounded-xl hover:bg-success/10 hover:text-success"
                   title="Marcar como pago"
-                  aria-label={`Marcar ${bill.description} como paga`}
                   onClick={() => handleMarkPaid(bill)}
                   disabled={updateTransaction.isPending}
                 >
                   <CheckCircle2 className="h-4 w-4" />
                 </Button>
               </div>
-            </li>
+            </div>
           );
         })}
-      </ul>
-    </section>
+      </div>
+    </div>
   );
 });

@@ -1,36 +1,6 @@
 # HANDOFF.md — Ponto de Continuidade
 
-> Última atualização: 2026-07-28
-
-## Handoff da sessão - 28/07/2026 - Direção de arte operacional
-
-### Ponto de restauração
-
-- O estado anterior ao redesign foi preservado e publicado em `codex/backup-before-art-direction-20260728`.
-- Commit exato do backup: `a386180695b08b60c1b4fe7d2a7fa939a56664fc`.
-- Se o usuário rejeitar a direção, restaurar a `main` a partir desse commit em uma operação Git explícita; não refazer manualmente os arquivos.
-
-### Entrega
-
-- Direção visual definida como cockpit financeiro calmo: dados primeiro, verde-petróleo como assinatura, personalidade nos detalhes e movimento somente quando comunica estado.
-- Navegação desktop mantém os 11 destinos diretamente visíveis, agrupados em Dia a dia, Planejamento, Vida compartilhada e Ferramentas. Mobile preserva destinos prioritários e sheet completo.
-- Dashboard ganhou saldo dominante, métricas contábeis em linha, orçamento com `progressbar`, atalhos sem cards circulares e listas semânticas para atividade, contas e faturas.
-- Cabeçalhos das dez principais áreas foram normalizados sem gradientes, glows, glassmorphism ou sombras pesadas; microcopy grandiosa foi substituída por instruções concretas.
-- `src/index.css` e `tailwind.config.ts` receberam tokens opt-in para superfície, raio e sombra calmos; efeitos globais e reduced motion foram revistos.
-- Nenhum cálculo financeiro, query, migration, rota ou contrato de dados foi alterado.
-
-### Verificação
-
-- [x] 288 testes aprovados, 19 ignorados.
-- [x] `npx tsc --noEmit`.
-- [x] ESLint com zero erros; warnings antigos permanecem.
-- [x] Build PWA de produção aprovado.
-- [x] `git diff --check`.
-- [ ] QA visual autenticado: o navegador automatizado não alcançou o preview local por isolamento de rede e não havia sessão de teste confirmada.
-
-### Próximo passo concreto
-
-Com uma sessão autenticada, abrir `/`, `/transacoes`, `/contas`, `/orcamentos`, `/metas`, `/viagens` e `/configuracoes` em 390, 768 e 1440 px, nos temas claro e escuro. Conferir especialmente a quebra dos quatro grupos da navegação desktop, a leitura do saldo no Dashboard, densidade das listas e foco por teclado. Se a direção for aprovada, migrar gradualmente os cards internos remanescentes para os tokens `surface-calm` sem nova mudança de hierarquia.
+> Última atualização: 2026-07-26
 
 ## Handoff da sessão - 26/07/2026 - Formulários distintos para lugares e paradas
 

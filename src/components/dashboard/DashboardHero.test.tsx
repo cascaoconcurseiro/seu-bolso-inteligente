@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { DashboardHero } from "./DashboardHero";
 
@@ -38,10 +38,6 @@ describe("DashboardHero", () => {
       />
     );
     expect(container.firstChild).toMatchSnapshot();
-    expect(screen.getByRole("progressbar", { name: "Uso do orçamento mensal" })).toHaveAttribute(
-      "aria-valuenow",
-      "42.9"
-    );
   });
 
   it("shows negative balance correctly (snapshot)", () => {

@@ -8,19 +8,32 @@ export function Calculators() {
   const [activeTab, setActiveTab] = useState("fixed-income");
 
   return (
-    <div className="space-y-6 pb-24">
-      <header className="border-b border-border pb-5 md:pb-6">
-        <p className="mb-1 flex items-center gap-2 text-sm font-medium text-primary">
-          <Calculator className="h-4 w-4" aria-hidden="true" />
-          Ferramentas de decisão
-        </p>
-        <h1 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
-          Simuladores
-        </h1>
-        <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-          Compare cenários de investimento e entenda o impacto da inflação no seu dinheiro.
-        </p>
-      </header>
+    <div className="space-y-6 pb-24 animate-fade-in">
+      {/* Header com Design System */}
+      <div className="relative overflow-hidden rounded-2xl p-4 md:p-8 transition-all duration-700 ease-out bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+
+        <div className="relative z-10 flex flex-col md:flex-row gap-6 md:items-center md:justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="p-2 bg-primary/10 rounded-xl">
+                <Calculator className="h-5 w-5 text-primary" />
+              </div>
+              <span className="text-xs font-bold uppercase tracking-widest text-primary">
+                Inteligência Financeira
+              </span>
+            </div>
+
+            <h1 className="text-2xl md:text-4xl font-display font-black tracking-tight">
+              Simuladores
+            </h1>
+            <p className="text-muted-foreground font-medium max-w-lg">
+              Projete o futuro do seu patrimônio usando dados reais do Banco Central. Simule
+              investimentos e o impacto da inflação.
+            </p>
+          </div>
+        </div>
+      </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <div className="overflow-x-auto pb-2 scrollbar-hide">

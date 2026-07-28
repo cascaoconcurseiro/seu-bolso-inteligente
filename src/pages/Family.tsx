@@ -106,22 +106,22 @@ export function Family() {
   };
 
   return (
-    <div className="space-y-8 pb-20">
-      <header className="border-b border-border pb-5 md:pb-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div className="space-y-8 animate-fade-in pb-20">
+      <div className="relative overflow-hidden rounded-2xl p-4 md:p-6 transition-all duration-700 ease-out bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <p className="mb-1 text-sm font-medium text-primary">Vida compartilhada</p>
-            <h1 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
+            <h1 className="font-display font-black text-2xl md:text-4xl tracking-tighter">
               {formatFamilyName(family?.name || "Família")}
             </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Pessoas, permissões e contas vinculadas ao grupo
+            <p className="text-muted-foreground mt-1 text-sm md:text-base font-medium">
+              Gerencie o núcleo familiar e as contas vinculadas
             </p>
           </div>
           {canInvite && (
             <Button
               size="default"
-              className="h-11 w-full gap-2 font-medium sm:w-auto"
+              className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 group h-12 w-full sm:w-auto font-bold"
               onClick={() => setShowInviteDialog(true)}
             >
               <UserPlus className="h-4 w-4 mr-2 transition-transform group-hover:scale-110" />
@@ -129,7 +129,7 @@ export function Family() {
             </Button>
           )}
         </div>
-      </header>
+      </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <div className="flex flex-col gap-1 p-4 rounded-2xl border border-border/50 bg-card/50">

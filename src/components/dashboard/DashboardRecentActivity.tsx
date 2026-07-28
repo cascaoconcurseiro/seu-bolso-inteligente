@@ -18,14 +18,14 @@ export const DashboardRecentActivity = memo(function DashboardRecentActivity({
   const { isPrivate } = usePrivacy();
 
   return (
-    <section className="space-y-3" aria-labelledby="recent-activity-title">
-      <div className="flex min-h-11 items-center justify-between">
-        <h2 id="recent-activity-title" className="text-base font-semibold text-foreground">
+    <div className="space-y-4 animate-fade-in-up">
+      <div className="flex items-center justify-between px-1">
+        <h2 className="text-sm uppercase tracking-[0.2em] text-muted-foreground font-bold">
           Atividade recente
         </h2>
         <Link
           to="/transacoes"
-          className="inline-flex min-h-11 items-center rounded-lg px-2 text-sm font-medium text-primary hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="text-sm uppercase tracking-wider font-bold text-primary hover:text-primary/80 transition-colors"
         >
           Ver todas
         </Link>
@@ -38,15 +38,12 @@ export const DashboardRecentActivity = memo(function DashboardRecentActivity({
           description="Você ainda não registrou nenhuma transação recente no seu controle financeiro."
         />
       ) : (
-        <ol
-          className="divide-y divide-border border-y border-border"
-          aria-label="Transações recentes"
-        >
-          {recentTransactions.map((tx) => {
+        <div className="space-y-2">
+          {recentTransactions.map((tx, index) => {
             let txDate: Date;
             try {
               txDate = tx.date ? parseDate(tx.date) : new Date();
-            } catch {
+            } catch (error) {
               txDate = new Date();
             }
 
@@ -66,16 +63,20 @@ export const DashboardRecentActivity = memo(function DashboardRecentActivity({
             const isTransfer = tx.type === "TRANSFER";
 
             return (
-              <li
+              <div
                 key={tx.id}
-                className="flex min-h-16 items-center justify-between gap-3 py-3 text-left"
+                style={{ animationDelay: `${index * 50}ms` }}
+                className={cn(
+                  "group flex items-center justify-between p-3 rounded-2xl border border-transparent hover:border-border/50 hover:bg-card/50 hover:shadow-sm transition-all duration-300 animate-fade-in-up text-left"
+                )}
               >
-                <div className="flex min-w-0 items-center gap-3">
+                <div className="flex items-center gap-4 min-w-0">
+                  {/* Category Icon Circle */}
                   <div
                     className={cn(
-                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base",
+                      "w-11 h-12 rounded-2xl flex items-center justify-center text-lg shadow-sm transition-transform group-hover:scale-110 duration-500",
                       isIncome
-                        ? "bg-success/10 text-success"
+                        ? "bg-success/12 text-success"
                         : isTransfer
                           ? "bg-accent/10 text-accent"
                           : "bg-muted text-muted-foreground"
@@ -86,33 +87,30 @@ export const DashboardRecentActivity = memo(function DashboardRecentActivity({
 
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="truncate text-sm font-semibold text-foreground md:text-base">
+                      <p className="font-bold text-sm md:text-base truncate tracking-tight text-foreground/90">
                         {tx.description}
                       </p>
                       {tx.is_shared && (
-                        <>
-                          <span
-                            className="h-2 w-2 shrink-0 rounded-full bg-accent"
-                            aria-hidden="true"
-                          />
-                          <span className="sr-only">Compartilhada</span>
-                        </>
+                        <div
+                          className="w-1.5 h-2 rounded-full bg-accent shadow-[0_0_8px_hsl(var(--accent)/0.5)]"
+                          title="Compartilhado"
+                        />
                       )}
                     </div>
-                    <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                       <span className="truncate">
                         {tx.category?.name || (isTransfer ? "Transferência" : "Geral")}
                       </span>
-                      <span aria-hidden="true">·</span>
+                      <span className="w-1 h-1 rounded-full bg-border" />
                       <span className="whitespace-nowrap">{dateLabel}</span>
                     </p>
                   </div>
                 </div>
 
-                <div className="shrink-0 text-right">
+                <div className="text-right shrink-0 ml-4">
                   <p
                     className={cn(
-                      "text-sm font-semibold tabular-nums md:text-base",
+                      "font-display font-black text-sm md:text-base tracking-tight",
                       isIncome ? "text-success" : isTransfer ? "text-accent" : "text-foreground",
                       isPrivate && "blur-md opacity-50 select-none"
                     )}
@@ -127,7 +125,7 @@ export const DashboardRecentActivity = memo(function DashboardRecentActivity({
                     (tx.currency || "BRL") !== tx.destination_currency && (
                       <p
                         className={cn(
-                          "mt-0.5 text-sm font-medium tabular-nums text-success",
+                          "text-xs font-display font-bold text-success tracking-tight mt-0.5",
                           isPrivate && "blur-md opacity-50 select-none"
                         )}
                         title="Valor convertido creditado"
@@ -137,22 +135,22 @@ export const DashboardRecentActivity = memo(function DashboardRecentActivity({
                           : `➔ ${formatCurrencyWithSymbol(Number(tx.destination_amount), tx.destination_currency)}`}
                       </p>
                     )}
-                  <p className="flex items-center justify-end gap-1 text-sm text-muted-foreground">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/50 flex items-center justify-end gap-1">
                     {isIncome ? (
-                      <ArrowDownLeft className="h-3.5 w-3.5" aria-hidden="true" />
+                      <ArrowDownLeft className="h-2 w-2" />
                     ) : isTransfer ? (
-                      <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
+                      <RefreshCw className="h-2 w-2" />
                     ) : (
-                      <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                      <ArrowUpRight className="h-2 w-2" />
                     )}
-                    {isIncome ? "Entrada" : isTransfer ? "Transferência" : "Saída"}
+                    {isIncome ? "Entrada" : isTransfer ? "Transfer" : "Saída"}
                   </p>
                 </div>
-              </li>
+              </div>
             );
           })}
-        </ol>
+        </div>
       )}
-    </section>
+    </div>
   );
 });
