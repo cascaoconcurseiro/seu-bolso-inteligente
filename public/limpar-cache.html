@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Atualizando o app…</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        background: #0b0b0d;
+        color: #e8e8ea;
+        display: grid;
+        place-items: center;
+        min-height: 100vh;
+        margin: 0;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p>Atualizando o app…</p>
+      <noscript><a href="/">Continuar</a></noscript>
+    </main>
+    <script>
+      // Esta página é servida com "Clear-Site-Data: cache" (vercel.json), o que limpa o cache HTTP
+      // do navegador. Aqui removemos também o service worker e o Cache Storage do app e voltamos.
+      (async function () {
+        try {
+          if (navigator.serviceWorker) {
+            var regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map(function (r) { return r.unregister(); }));
+          }
+          if (window.caches) {
+            var keys = await caches.keys();
+            await Promise.all(keys.map(function (k) { return caches.delete(k); }));
+          }
+        } catch (e) {}
+        location.replace("/?atualizado=" + Date.now());
+      })();
+    </script>
+  </body>
+</html>

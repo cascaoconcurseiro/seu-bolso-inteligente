@@ -43,7 +43,11 @@ cleanupOutdatedCaches();
 // SW de forma atômica (o SW novo só ativa depois de baixar tudo), então o
 // index.html servido sempre aponta para chunks que já estão em cache.
 // Deploys novos chegam em background via atualização do SW (autoUpdate).
-registerRoute(new NavigationRoute(createHandlerBoundToURL("index.html")));
+registerRoute(
+  new NavigationRoute(createHandlerBoundToURL("index.html"), {
+    denylist: [/^\/limpar-cache\.html/],
+  })
+);
 
 // Nunca cachear (nem servir) uma resposta HTML para um request de script/style.
 // Durante uma corrida de deploy, um asset com hash antigo pode 404 e a Vercel

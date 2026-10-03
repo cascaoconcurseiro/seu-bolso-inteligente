@@ -98,7 +98,7 @@ export default defineConfig(({ mode }) => {
           ],
           // Splash screens iOS são buscadas pelo SO no launch — não precachear.
           // version.json fica fora: precisa sempre vir fresco da rede.
-          globIgnores: ["splash/**", "**/*.map"],
+          globIgnores: ["splash/**", "**/*.map", "limpar-cache.html"],
         },
       }),
     ].filter(Boolean),

@@ -66,6 +66,16 @@ export class ErrorBoundary extends Component<Props, State> {
         window.location.reload();
         return;
       }
+
+      // Recarregar não resolveu: o navegador guardou HTML/404 para um arquivo do app
+      // (cache HTTP). A página abaixo limpa SW, caches e o cache HTTP (Clear-Site-Data) e volta.
+      const CLEAN_KEY = "chunk-clean-ts";
+      const lastClean = Number(sessionStorage.getItem(CLEAN_KEY) || 0);
+      if (Date.now() - lastClean > 60_000) {
+        sessionStorage.setItem(CLEAN_KEY, String(Date.now()));
+        window.location.replace("/limpar-cache.html");
+        return;
+      }
     }
 
     this.setState({
