@@ -1,5 +1,6 @@
 /// <reference lib="webworker" />
 import {
+  addPlugins,
   cleanupOutdatedCaches,
   createHandlerBoundToURL,
   precacheAndRoute,
@@ -14,6 +15,23 @@ declare const self: ServiceWorkerGlobalScope;
 // Ativa o novo SW imediatamente sem esperar as abas fecharem (fix para iOS Safari)
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (e) => e.waitUntil(self.clients.claim()));
+
+// Instalação do SW: se algum JS/CSS vier como HTML (a Vercel devolvia o index.html para asset
+// ainda não propagado durante um deploy), o pré-cache ficava envenenado e o app quebrava
+// ("Cannot read properties of undefined (reading 'PrivateAppShell')"). Lançar erro aqui
+// faz a instalação falhar e o SW anterior (que funciona) continua ativo; tenta de novo
+// na próxima verificação de atualização.
+addPlugins([
+  {
+    fetchDidSucceed: async ({ request, response }: { request: Request; response: Response }) => {
+      const contentType = response.headers.get("content-type") || "";
+      if (/\.(js|css)(\?|$)/.test(request.url) && contentType.includes("text/html")) {
+        throw new Error(`Pré-cache inválido: HTML no lugar de ${request.url}`);
+      }
+      return response;
+    },
+  },
+]);
 
 // Precache e rotas geradas pelo vite-plugin-pwa
 precacheAndRoute(self.__WB_MANIFEST);
