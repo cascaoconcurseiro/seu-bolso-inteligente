@@ -208,6 +208,9 @@ export function useTransactionForm({
 
   useEffect(() => {
     if (context?.accountId && context?.tripId === tripId) return;
+    // Ao editar, a conta vem do lançamento salvo; zerar aqui apagava a conta já definida
+    // sempre que o tripId do formulário mudava (ex.: editar despesa de viagem).
+    if (initialData?.id) return;
     store.setAccountId("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tripId, context?.accountId, context?.tripId]);
