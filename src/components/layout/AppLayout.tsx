@@ -312,17 +312,24 @@ export function AppLayout({ children }: AppLayoutProps) {
 
         {/* Month Selector - Below TopBar */}
         {/* Hide month selector on pages that don't use monthly context */}
-        {!["/cartoes", "/simuladores", "/configuracoes", "/familia", "/viagens"].includes(
-          location.pathname
-        ) &&
-          !location.pathname.startsWith("/cartoes/") &&
-          !location.pathname.startsWith("/viagens/") && (
-            <div className="border-t border-border bg-background shadow-sm">
+        {(() => {
+          // Em páginas sem contexto mensal só o seletor some; o botão "Nova transação" do
+          // desktop ficava escondido junto (Cartões, Família, Viagens...), sem alternativa.
+          const hideMonthSelector =
+            ["/cartoes", "/simuladores", "/configuracoes", "/familia", "/viagens"].includes(
+              location.pathname
+            ) ||
+            location.pathname.startsWith("/cartoes/") ||
+            location.pathname.startsWith("/viagens/");
+          return (
+            <div
+              className={`border-t border-border bg-background shadow-sm ${hideMonthSelector ? "hidden md:block" : ""}`}
+            >
               <div className="w-full px-4 md:px-6 lg:px-8 py-1.5 md:py-2 flex items-center justify-between gap-4">
                 <div className="flex-1 hidden md:block" />
 
                 <div className="flex items-center gap-2 flex-1 md:flex-initial justify-center md:justify-center">
-                  <MonthSelector />
+                  {!hideMonthSelector && <MonthSelector />}
                 </div>
 
                 <div className="hidden md:flex justify-end md:flex-1">
@@ -333,7 +340,8 @@ export function AppLayout({ children }: AppLayoutProps) {
                 </div>
               </div>
             </div>
-          )}
+          );
+        })()}
       </header>
 
       {/* Main Content */}
