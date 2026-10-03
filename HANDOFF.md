@@ -11,7 +11,10 @@
 - Transações: criar receita OK; excluir OK (com confirmação). Resumo agora coerente com a lista (R$ 0 de saídas com 0 registros).
 - Viagens, Simuladores, Configurações: só leitura; sem erro. Viagens sem estado vazio falso.
 
-### BUG ABERTO — editar RECEITA abre com "Receber em: Selecione a conta" vazio
+### CORRIGIDO E VERIFICADO AO VIVO — editar RECEITA abria com conta vazia (só na 1ª abertura após carregar a página)
+- Correções em `useTransactionForm.ts` (guard no efeito do tripId + restauração da conta salva) e `AccountSelector.tsx` (ignora onValueChange vazio). Verificado com build novo: abre com a conta e salva (10,00 -> 25,00).
+- ARMADILHA DE TESTE: o service worker serve o shell antigo; para testar um deploy é preciso desregistrar o SW e limpar os caches (senão o retest roda código velho). Usuários reais também podem ficar no build antigo até o SW atualizar; após o deploy apareceu uma vez "Cannot read properties of undefined (reading PrivateAppShell)" até recarregar (sugestão: ErrorBoundary recarregar sozinho em erro de chunk).
+- Histórico da investigação (resolvido):
 - Reproduzir: criar receita numa conta CHECKING, abrir pela lista > Editar > conta vazia; Salvar falha com "A conta de origem é obrigatória".
 - A conta vazia desde o 1º render da edição; `initialData` traz `account_id` (select `*`), payer/trip nulos. Causa NÃO identificada. Aplicada proteção em `useTransactionForm.ts` (efeito do tripId não zera a conta ao editar), mas não é a causa deste caso. Próximo passo: instrumentar `store.setAccountId` (useTransactionStore) com console.trace e abrir a edição de uma receita; checar também o ramo `isPaidByOther`/`membersLoading` e o efeito de `filteredAccounts` (linhas ~496-566).
 
