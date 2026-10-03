@@ -251,6 +251,15 @@ export function PayInvoiceDialog({
                         o próximo mês.
                       </p>
                     )}
+                    {currentAmountToPay > invoiceTotal + 0.005 && (
+                      <p
+                        role="alert"
+                        className="text-sm text-destructive font-medium bg-destructive/10 p-2 rounded-lg border border-destructive/20"
+                      >
+                        O valor não pode ser maior que o total da fatura (
+                        {formatCurrencyValue(invoiceTotal, cardCurrency)}).
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -258,7 +267,7 @@ export function PayInvoiceDialog({
                   <Button
                     onClick={nextStep}
                     className="w-full text-md font-semibold rounded-xl shadow-lg shadow-primary/20"
-                    disabled={currentAmountToPay <= 0}
+                    disabled={currentAmountToPay <= 0 || currentAmountToPay > invoiceTotal + 0.005}
                   >
                     Continuar <ChevronRight className="w-5 h-5 ml-1" />
                   </Button>
