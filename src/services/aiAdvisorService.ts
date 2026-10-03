@@ -447,7 +447,7 @@ export class AIAdvisorService {
     try {
       const placesResult = await this.fetchPlacesSuggestions(destination);
       if (placesResult.length > 0) return placesResult;
-    } catch (_e) {
+    } catch (e) {
       logger.warn("[AIAdvisorService] Google Places falhou, usando IA como fallback", e);
     }
 

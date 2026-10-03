@@ -48,7 +48,8 @@ export function getTripTabFromRoute(segment?: string): string {
 }
 
 export function isValidTripRouteTab(segment?: string): boolean {
-  return !segment || Object.hasOwn(TRIP_TAB_BY_ROUTE, segment);
+  // Object.hasOwn só existe no Safari/iOS >= 15.4; hasOwnProperty cobre aparelhos mais antigos
+  return !segment || Object.prototype.hasOwnProperty.call(TRIP_TAB_BY_ROUTE, segment);
 }
 
 export function getSettingsSection(value: string | null): SettingsSection {

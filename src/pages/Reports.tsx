@@ -110,14 +110,8 @@ export function Reports() {
 
   const handleExport = async (format: "csv" | "pdf", exportViewType: ReportViewType = viewType) => {
     const { exportToCSV, exportToPDF } = await import("@/utils/exportData");
-    if (format === "csv") exportToCSV(data.filteredTxList, `relatorio-${exportViewType}`);
-    else
-      exportToPDF(
-        data.filteredTxList,
-        data.totalIncome,
-        data.totalExpense,
-        `relatorio-${exportViewType}`
-      );
+    if (format === "csv") exportToCSV(data.filteredTxList, `relatorio-${exportViewType}.csv`);
+    else exportToPDF(data.filteredTxList, `relatorio-${exportViewType}.pdf`);
   };
 
   if (isLoading)

@@ -10,6 +10,12 @@
 - Compartilhados: "Tudo em dia!" / "Nenhum membro ativo" apareciam por ~0,4 s antes dos dados (estado vazio falso). Agora aguardam o carregamento.
 - `notificationGenerator`: removida a chamada do cliente a `send-bill-reminders` (sempre falhava: CORS + 401 por exigir CRON_SECRET). O push segue pelo cron.
 
+### Bugs reais corrigidos (varredura de tsc)
+- `aiAdvisorService.suggestTripItinerary`: `catch (_e)` usava `e` inexistente; se o Google Places falhasse, estourava ReferenceError em vez de cair no fallback de IA.
+- Relatórios: o PDF recebia o total de entradas como nome do arquivo (download com nome numérico) e o CSV saía sem extensão. Agora `relatorio-<visão>.pdf|.csv`.
+- `frontendFlows.isValidTripRouteTab`: `Object.hasOwn` quebra em Safari/iOS < 15.4; trocado por `hasOwnProperty`.
+- Restam 19 erros de tipo preexistentes (Export*/Trip* aceitam `undefined` mas recebem `null`; `TransactionSplit` x `SplitInput`; `useTransactionsQuery`). Afrouxar os tipos de export gerou erros novos em `tripExport.ts`; fazer junto com o commit das alterações de export que seguem sem commit.
+
 ### Auditoria estática (sem leitura de produção) — também corrigido
 - Datas UTC que gravavam dado financeiro: ajuste de saldo (`useAccounts.ts`; `competence_date` ia com a data inteira, violando o invariante dia 1), transferência, saque e despesas de viagem (`Trips.tsx`, `competence_date` pulava para o mês seguinte no último dia do mês após 21h). Agora `formatDateISO` (local).
 - `useGoals.deleteGoal`: ignorava o erro ao apagar os aportes e marcava a meta como excluída mesmo assim.
