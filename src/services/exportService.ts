@@ -17,7 +17,7 @@ const safeFormatDate = (dateVal: unknown): string => {
     const month = String(utcDate.getMonth() + 1).padStart(2, "0");
     const year = utcDate.getFullYear();
     return `${day}/${month}/${year}`;
-  } catch (_e) {
+  } catch {
     return "N/A";
   }
 };
@@ -54,8 +54,8 @@ export function downloadFile(content: string, filename: string, mimeType: string
   URL.revokeObjectURL(url);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function exportTransactions(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transactions: any[],
   format: "csv" | "json" | "pdf" = "csv"
 ) {
@@ -72,7 +72,7 @@ export async function exportTransactions(
 
   if (format === "pdf") {
     const { exportToPDF } = await import("@/utils/exportData");
-    exportToPDF(transactions, totalIncome, totalExpense, `transacoes_${date}.pdf`);
+    exportToPDF(transactions, `transacoes_${date}.pdf`);
   } else if (format === "csv") {
     // Formatação de Excel Premium em XML/HTML
     const balance = SafeFinancialCalculator.subtract(totalIncome, totalExpense).toNumber();

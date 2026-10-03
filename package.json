@@ -9,6 +9,7 @@
     "build": "node scripts/generate-version.js && vite build",
     "build:dev": "vite build --mode development",
     "db:baseline": "node scripts/generate-database-baseline.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "lint": "eslint .",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",

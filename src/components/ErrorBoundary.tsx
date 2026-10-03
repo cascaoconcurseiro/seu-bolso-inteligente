@@ -50,6 +50,24 @@ export class ErrorBoundary extends Component<Props, State> {
     logger.error("❌ [ErrorBoundary] Error message:", error.message);
     logger.error("❌ [ErrorBoundary] Full error:", JSON.stringify(error, null, 2));
 
+    const msg = error?.message || "";
+    const isChunkError =
+      msg.includes("Failed to load module script") ||
+      msg.includes("dynamically imported module") ||
+      msg.includes("text/html") ||
+      msg.includes("PrivateAppShell") ||
+      msg.includes("Loading chunk");
+
+    if (isChunkError) {
+      const KEY = "chunk-reload-ts";
+      const last = Number(sessionStorage.getItem(KEY) || 0);
+      if (Date.now() - last > 10_000) {
+        sessionStorage.setItem(KEY, String(Date.now()));
+        window.location.reload();
+        return;
+      }
+    }
+
     this.setState({
       error,
       errorInfo,

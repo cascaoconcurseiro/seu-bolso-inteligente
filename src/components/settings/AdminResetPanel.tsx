@@ -15,6 +15,7 @@ import {
 
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { OrphanTransactionsManager } from "./OrphanTransactionsManager";
 import {
   Table,
   TableBody,

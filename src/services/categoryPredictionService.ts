@@ -228,7 +228,7 @@ export class CategoryPredictionService {
       const categoryObj = bestMatch.categories as { name?: string };
 
       return {
-        categoryId: bestMatch.category_id,
+        categoryId: String(bestMatch.category_id),
         categoryName: categoryObj?.name || "Sem categoria",
         confidence: Math.min(Number(bestMatch.confidence), 1.0),
         reason: "Baseado no seu histórico",

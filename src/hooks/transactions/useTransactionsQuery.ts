@@ -90,7 +90,7 @@ export function useTransactions(filters?: TransactionFilters) {
       if (error) throw error;
 
       // Client-side sort como garantia — PostgREST .or() pode embaralhar com UNION
-      const sorted = (data || []).sort((a: Transaction, b: Transaction) => {
+      const sorted = ((data || []) as unknown as Transaction[]).sort((a, b) => {
         const dateDiff = b.date.localeCompare(a.date);
         if (dateDiff !== 0) return dateDiff;
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();

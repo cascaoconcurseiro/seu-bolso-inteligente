@@ -29,7 +29,7 @@ export class SafeFinancialCalculator {
       return new Decimal(parsed);
     }
     try {
-      return new Decimal(val);
+      return new Decimal(val as any);
     } catch {
       return defaultValue;
     }

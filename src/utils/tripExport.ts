@@ -8,12 +8,45 @@ import { logger } from "@/utils/logger";
 const BRAND_COLOR: [number, number, number] = [5, 150, 105]; // Esmeralda / Verde Premium
 const TEXT_COLOR: [number, number, number] = [31, 41, 55]; // Cinza Escuro
 
+interface TripRecord {
+  name?: string | null;
+  destination?: string | null;
+  currency?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  budget?: number | string | null;
+}
+
+interface TripParticipant {
+  user_id?: string | null;
+  member_id?: string | null;
+  name?: string | null;
+}
+
+interface TripTransaction {
+  type?: string;
+  amount?: number | string;
+  date?: string;
+  description?: string;
+  payer_id?: string | null;
+  is_shared?: boolean;
+  category?: { name?: string } | null;
+  account?: { name?: string } | null;
+}
+
+interface TripBalance {
+  name?: string;
+  balance?: number;
+  paid?: number;
+  owes?: number;
+}
+
 export interface TripExportData {
-  trip: Record<string, unknown>;
-  participants: Record<string, unknown>[];
-  tripTransactions: Record<string, unknown>[];
-  balances: Record<string, unknown>[];
-  user: Record<string, unknown>;
+  trip: TripRecord;
+  participants: TripParticipant[];
+  tripTransactions: TripTransaction[];
+  balances: TripBalance[];
+  user: { id?: string | null; email?: string | null };
 }
 
 // Helper para formatação de datas de forma ultra-segura
@@ -115,11 +148,12 @@ export const exportTripToPDF = (data: TripExportData) => {
     doc.text("2. Participantes e Balanços", 14, currentY);
 
     const participantRows = balances.map((b) => {
+      const bal = b.balance ?? 0;
       const owesText =
-        b.balance > 0
-          ? `Recebe ${formatCurrency(Math.abs(b.balance), trip.currency)}`
-          : b.balance < 0
-            ? `Deve ${formatCurrency(Math.abs(b.balance), trip.currency)}`
+        bal > 0
+          ? `Recebe ${formatCurrency(Math.abs(bal), trip.currency)}`
+          : bal < 0
+            ? `Deve ${formatCurrency(Math.abs(bal), trip.currency)}`
             : "Acertado";
 
       return [
@@ -178,7 +212,7 @@ export const exportTripToPDF = (data: TripExportData) => {
         t.category?.name || "Sem categoria",
         payerName,
         t.is_shared ? "Compartilhado" : "Individual",
-        formatCurrency(t.amount, trip.currency),
+        formatCurrency(Number(t.amount ?? 0), trip.currency),
       ];
     });
 
@@ -208,7 +242,7 @@ export const exportTripToPDF = (data: TripExportData) => {
     doc.text(`Gestão Financeira | Página ${i} de ${pageCount}`, 105, 290, { align: "center" });
   }
 
-  const filename = `relatorio_viagem_${trip.name.toLowerCase().replace(/\s+/g, "_")}_${today.replace(/\//g, "-")}.pdf`;
+  const filename = `relatorio_viagem_${(trip.name ?? trip.destination ?? "viagem").toLowerCase().replace(/\s+/g, "_")}_${today.replace(/\//g, "-")}.pdf`;
   doc.save(filename);
 };
 
@@ -312,14 +346,15 @@ export const exportTripToExcel = (data: TripExportData) => {
     `;
 
     balances.forEach((b, index) => {
+      const bal = b.balance ?? 0;
       const owesText =
-        b.balance > 0
-          ? `Recebe ${b.balance.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
-          : b.balance < 0
-            ? `Deve ${Math.abs(b.balance).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+        bal > 0
+          ? `Recebe ${bal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+          : bal < 0
+            ? `Deve ${Math.abs(bal).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
             : "Acertado";
 
-      const balanceClass = b.balance > 0 ? "green-text" : b.balance < 0 ? "red-text" : "";
+      const balanceClass = bal > 0 ? "green-text" : bal < 0 ? "red-text" : "";
       const zebraClass = index % 2 === 1 ? 'class="tr-zebra"' : "";
 
       html += `
@@ -388,7 +423,7 @@ export const exportTripToExcel = (data: TripExportData) => {
   const link = document.createElement("a");
   const url = URL.createObjectURL(blob);
 
-  const safeTripName = trip.name.toLowerCase().replace(/\s+/g, "_");
+  const safeTripName = (trip.name ?? trip.destination ?? "viagem").toLowerCase().replace(/\s+/g, "_");
   const todayFilename = today.replace(/\//g, "-");
 
   link.setAttribute("href", url);

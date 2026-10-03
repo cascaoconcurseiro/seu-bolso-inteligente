@@ -28,8 +28,8 @@ const safeCallAutoTable = (doc: jsPDF, options: Record<string, unknown>) => {
       autoTable(doc, options);
     } else if (autoTable && typeof (autoTable as Record<string, unknown>).default === "function") {
       ((autoTable as Record<string, unknown>).default as (...args: unknown[]) => unknown)(doc, options);
-    } else if (typeof (doc as Record<string, unknown>).autoTable === "function") {
-      ((doc as Record<string, unknown>).autoTable as (...args: unknown[]) => unknown)(options);
+    } else if (typeof (doc as unknown as Record<string, unknown>).autoTable === "function") {
+      ((doc as unknown as Record<string, unknown>).autoTable as (...args: unknown[]) => unknown)(options);
     } else {
       logger.warn("Metodo autoTable não encontrado no escopo global ou local do jsPDF.");
     }
@@ -39,7 +39,7 @@ const safeCallAutoTable = (doc: jsPDF, options: Record<string, unknown>) => {
 };
 
 const getNextStartY = (doc: jsPDF, fallbackY: number): number => {
-  const lastAutoTable = (doc as Record<string, unknown>).lastAutoTable as Record<string, unknown>;
+  const lastAutoTable = (doc as unknown as Record<string, unknown>).lastAutoTable as Record<string, unknown>;
   if (lastAutoTable && typeof lastAutoTable.finalY === "number") {
     return lastAutoTable.finalY + 12;
   }

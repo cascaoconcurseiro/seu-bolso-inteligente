@@ -462,13 +462,16 @@ export const exportSharedToPDF = (
 
   safeCallAutoTable(doc, {
     head: [["Moeda", "A Receber", "A Pagar", "Balanço", "Liquidado"]],
-    body: Object.entries(totalsByCurrency).map(([currency, totals]) => [
-      currency,
-      formatExportMoney(Number((totals as any).owedToMe || 0), currency),
-      formatExportMoney(Number((totals as any).iOwe || 0), currency),
-      formatExportMoney(Number((totals as any).balance || 0), currency),
-      formatExportMoney(Number((totals as any).settled || 0), currency),
-    ]),
+    body: Object.entries(totalsByCurrency).map(([currency, totals]) => {
+      const t = totals as { owedToMe?: number; iOwe?: number; balance?: number; settled?: number };
+      return [
+        currency,
+        formatExportMoney(Number(t.owedToMe || 0), currency),
+        formatExportMoney(Number(t.iOwe || 0), currency),
+        formatExportMoney(Number(t.balance || 0), currency),
+        formatExportMoney(Number(t.settled || 0), currency),
+      ];
+    }),
     startY: 52,
     theme: "striped",
     styles: { fontSize: 9.5, cellPadding: 2 },
@@ -501,7 +504,7 @@ export const exportSharedToPDF = (
     item.memberName || "Desconhecido",
     safeFormatDate(item.date),
     item.description || "Sem descrição",
-    item.category?.name || "Sem categoria",
+    (typeof item.category === "string" ? item.category : item.category?.name) || "Sem categoria",
     item.type === "CREDIT" ? "A Receber" : "A Pagar",
     item.isPaid ? "Acertado" : "Pendente",
     item.currency || "BRL",

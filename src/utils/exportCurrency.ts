@@ -7,9 +7,8 @@ export type CurrencyTotals = {
 export interface ExportAccount {
   id?: string;
   name?: string;
-  balance?: number;
-  currency?: string;
-  [key: string]: unknown;
+  balance?: number | string | null;
+  currency?: string | null;
 }
 
 export interface ExportTransaction {
@@ -18,25 +17,24 @@ export interface ExportTransaction {
   amount?: number | string;
   description?: string;
   date?: string | Date;
-  category?: { name: string };
+  category?: { name: string } | null;
   is_installment?: boolean;
-  current_installment?: number;
-  total_installments?: number;
-  currency?: string;
-  user_id?: string;
-  account_id?: string;
-  destination_account_id?: string;
-  account?: ExportAccount;
-  [key: string]: unknown;
+  current_installment?: number | null;
+  total_installments?: number | null;
+  currency?: string | null;
+  user_id?: string | null;
+  account_id?: string | null;
+  destination_account_id?: string | null;
+  account?: ExportAccount | null;
 }
 
 export interface ExportCard {
+  balance?: number | string | null;
   id?: string;
   name?: string;
-  credit_limit?: number | string;
+  credit_limit?: number | string | null;
   currency?: string;
   user_id?: string;
-  [key: string]: unknown;
 }
 
 export interface ExportInvoiceItem {
@@ -44,13 +42,12 @@ export interface ExportInvoiceItem {
   memberName?: string;
   date?: string | Date;
   description?: string;
-  category?: { name: string };
+  category?: { name: string } | string | null;
   type?: string;
   amount?: number | string;
   isPaid?: boolean;
-  tripId?: string;
-  currency?: string;
-  [key: string]: unknown;
+  tripId?: string | null;
+  currency?: string | null;
 }
 
 export const resolveItemCurrency = (item: Partial<ExportTransaction>, accounts: ExportAccount[] = []): string => {

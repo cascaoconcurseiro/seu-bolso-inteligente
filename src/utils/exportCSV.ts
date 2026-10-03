@@ -15,7 +15,7 @@ import {
 export const safeFormatDate = (dateVal: unknown): string => {
   if (!dateVal) return "N/A";
   try {
-    const d = new Date(dateVal);
+    const d = new Date(dateVal as string | number | Date);
     if (isNaN(d.getTime())) return "N/A";
     const utcDate = new Date(d.getTime() + d.getTimezoneOffset() * 60000);
     return format(utcDate, "dd/MM/yyyy");
@@ -476,7 +476,7 @@ export const exportSharedToCSV = (invoiceItems: ExportInvoiceItem[], periodLabel
         <td class="text-cell">${item.memberName || "Desconhecido"}</td>
         <td class="date-cell">${dateFormatted}</td>
         <td class="text-cell">${item.description || "Sem descrição"}</td>
-        <td class="text-cell">${item.category?.name || "Sem categoria"}</td>
+        <td class="text-cell">${(typeof item.category === "string" ? item.category : item.category?.name) || "Sem categoria"}</td>
         <td class="text-cell" style="color: ${item.type === "CREDIT" ? "#059669" : "#dc2626"}">${item.type === "CREDIT" ? "Você Recebe" : "Você Deve"}</td>
         <td class="text-cell" style="font-weight: bold; color: ${item.type === "CREDIT" ? "#059669" : "#dc2626"}">${formatExportMoney(amountVal, item.currency || "BRL")}</td>
         <td class="text-cell" style="font-weight: bold; color: ${item.isPaid ? "#059669" : "#d97706"}">${item.isPaid ? "Pago" : "Pendente"}</td>

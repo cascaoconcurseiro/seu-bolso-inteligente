@@ -8,7 +8,6 @@ import type { TransactionSplit } from "@/services/settlementValidation";
 export interface SplitInput {
   member_id: string;
   percentage: number;
-  [key: string]: unknown;
 }
 
 /**

@@ -38,6 +38,17 @@ const denyHtmlForAssets = {
     if (contentType.includes("text/html")) return null;
     return response.status === 0 || response.status === 200 ? response : null;
   },
+  fetchDidSucceed: async ({ response }: { response: Response }) => {
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.includes("text/html")) {
+      return new Response("Asset missing / deployment updated", {
+        status: 404,
+        statusText: "Not Found",
+        headers: { "Content-Type": "text/plain" },
+      });
+    }
+    return response;
+  },
 };
 
 // Scripts/styles fora do precache (caso raro — assets do build já estão todos

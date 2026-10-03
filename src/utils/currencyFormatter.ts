@@ -9,10 +9,10 @@
  * @param currency - The currency code (default: BRL)
  * @returns Formatted currency string
  */
-export const formatCurrency = (amount: number, currency: string = "BRL"): string => {
+export const formatCurrency = (amount: number, currency: string | null = "BRL"): string => {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
-    currency,
+    currency: currency || "BRL",
   }).format(amount);
 };
 
