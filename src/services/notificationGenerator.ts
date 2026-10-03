@@ -11,6 +11,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { formatDateISO } from "@/utils/dateUtils";
 import { logger } from "@/utils/logger";
 import {
   createWelcomeNotification,
@@ -214,9 +215,9 @@ async function generateInvoiceDueNotifications(
 
       logger.debug(`Notificação Fatura - Cartão: ${card.name}`);
       logger.debug(
-        `  Período: ${billingStart.toISOString().split("T")[0]} a ${billingEnd.toISOString().split("T")[0]}`
+        `  Período: ${formatDateISO(billingStart)} a ${formatDateISO(billingEnd)}`
       );
-      logger.debug(`  Vencimento: ${dueDate.toISOString().split("T")[0]} (${daysUntilDue} dias)`);
+      logger.debug(`  Vencimento: ${formatDateISO(dueDate)} (${daysUntilDue} dias)`);
 
       // Buscar transações da fatura FECHADA
       const { data: transactions } = await supabase
@@ -224,8 +225,8 @@ async function generateInvoiceDueNotifications(
         .select("amount, date, description")
         .eq("account_id", card.id)
         .eq("type", "EXPENSE")
-        .gte("date", billingStart.toISOString().split("T")[0])
-        .lte("date", billingEnd.toISOString().split("T")[0]);
+        .gte("date", formatDateISO(billingStart))
+        .lte("date", formatDateISO(billingEnd));
 
       const invoiceAmount = SafeFinancialCalculator.safeSum(
         ((transactions as TransactionData[]) || []).map((tx: TransactionData) => Number(tx.amount))
@@ -311,7 +312,7 @@ async function generateBudgetWarningNotifications(
       .select("amount, category_id, currency, type, is_refund, exchange_rate")
       .eq("user_id", userId)
       .or("type.eq.EXPENSE,and(type.eq.INCOME,is_refund.eq.true)")
-      .gte("competence_date", periodStart.toISOString().split("T")[0]);
+      .gte("competence_date", formatDateISO(periodStart));
 
     if (txError) return 0;
 
@@ -353,7 +354,7 @@ async function generateBudgetWarningNotifications(
       const percentage = (spent / budget.amount) * 100;
 
       // Verificar se já existe notificação para este orçamento NESTE MÊS
-      const periodStartStr = periodStart.toISOString().split("T")[0];
+      const periodStartStr = formatDateISO(periodStart);
       const { data: existingNotification } = await (supabase as any)
         .from("notifications")
         .select("id, created_at, metadata")
@@ -479,7 +480,7 @@ async function generateSharedPendingNotifications(userId: string): Promise<numbe
         // Verificar se já existe notificação não dispensada para este membro nos ÚLTIMOS 7 DIAS
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        const sevenDaysAgoStr = sevenDaysAgo.toISOString().split("T")[0];
+        const sevenDaysAgoStr = formatDateISO(sevenDaysAgo);
         const { data: existingNotification } = await (supabase as any)
           .from("notifications")
           .select("id, created_at, is_dismissed")
@@ -522,7 +523,7 @@ async function generateRecurringPendingNotifications(userId: string): Promise<nu
       // Verificar se já existe notificação nos ÚLTIMOS 7 DIAS
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      const sevenDaysAgoStr = sevenDaysAgo.toISOString().split("T")[0];
+      const sevenDaysAgoStr = formatDateISO(sevenDaysAgo);
       const { data: existingNotification } = await (supabase as any)
         .from("notifications")
         .select("id, created_at, is_dismissed")
@@ -615,7 +616,7 @@ async function generateLowBalanceNotifications(userId: string, threshold: number
         // Verificar se já existe nos ÚLTIMOS 7 DIAS
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        const sevenDaysAgoStr = sevenDaysAgo.toISOString().split("T")[0];
+        const sevenDaysAgoStr = formatDateISO(sevenDaysAgo);
         const { data: existing } = await (supabase as any)
           .from("notifications")
           .select("id")
@@ -666,7 +667,7 @@ async function generateCreditLimitNotifications(
         // Verificar se já existe nos ÚLTIMOS 7 DIAS
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        const sevenDaysAgoStr = sevenDaysAgo.toISOString().split("T")[0];
+        const sevenDaysAgoStr = formatDateISO(sevenDaysAgo);
         const { data: existing } = await (supabase as any)
           .from("notifications")
           .select("id")
@@ -745,7 +746,7 @@ async function generateWeeklySummaryNotification(userId: string): Promise<number
     // Só dispara às segundas (dia 1)
     if (today.getDay() !== 1) return 0;
 
-    const todayStr = today.toISOString().split("T")[0];
+    const todayStr = formatDateISO(today);
     const { data: existing } = await (supabase as any)
       .from("notifications")
       .select("id")
@@ -759,7 +760,7 @@ async function generateWeeklySummaryNotification(userId: string): Promise<number
     // Calcula receitas e despesas da semana passada
     const weekAgo = new Date(today);
     weekAgo.setDate(weekAgo.getDate() - 7);
-    const weekAgoStr = weekAgo.toISOString().split("T")[0];
+    const weekAgoStr = formatDateISO(weekAgo);
 
     const { data: txs } = await supabase
       .from("transactions")
@@ -822,8 +823,8 @@ async function generateUpcomingBillNotifications(
       .eq("user_id", userId)
       .eq("status", "PENDING")
       .is("deleted_at", null)
-      .gte("date", today.toISOString().split("T")[0])
-      .lte("date", maxDate.toISOString().split("T")[0]);
+      .gte("date", formatDateISO(today))
+      .lte("date", formatDateISO(maxDate));
 
     if (error || !bills) return 0;
 
