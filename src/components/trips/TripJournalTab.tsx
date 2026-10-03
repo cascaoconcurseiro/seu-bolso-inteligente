@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { formatDateISO } from "@/utils/dateUtils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,7 +30,7 @@ export function TripJournalTab() {
   const [entries, setEntries] = useState<JournalEntry[]>([
     {
       id: "1",
-      date: new Date().toISOString().split("T")[0],
+      date: formatDateISO(new Date()),
       title: "Chegada Inesquecível ao Destino!",
       content:
         "O voo foi super tranquilo. Logo após fazer check-in no hotel, fomos passear pelas ruas históricas do centro. A comida local superou todas as expectativas!",
@@ -43,7 +44,7 @@ export function TripJournalTab() {
   const [showDialog, setShowDialog] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState(formatDateISO(new Date()));
   const [mood, setMood] = useState("amazing");
   const [location, setLocation] = useState("");
   const [imageUrl, setImageUrl] = useState("");

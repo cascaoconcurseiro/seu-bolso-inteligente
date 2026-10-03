@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { formatDateISO } from "@/utils/dateUtils";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMonth } from "@/contexts/MonthContext";
@@ -52,7 +53,7 @@ export function Reports() {
     const today = new Date();
     return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-01`;
   });
-  const [customEndDate, setCustomEndDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [customEndDate, setCustomEndDate] = useState(() => formatDateISO(new Date()));
   const [editingTransaction, setEditingTransaction] = useState<Record<string, unknown> | null>(
     null
   );

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { formatDateISO } from "@/utils/dateUtils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,7 +35,7 @@ export function ExchangePurchaseDialog({
   const [foreignAmount, setForeignAmount] = useState("");
   const [localAmount, setLocalAmount] = useState("");
   const [description, setDescription] = useState("");
-  const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split("T")[0]);
+  const [purchaseDate, setPurchaseDate] = useState(formatDateISO(new Date()));
 
   const currencySymbol = getCurrencySymbol(currency);
   const isEditing = !!purchase;
@@ -50,7 +51,7 @@ export function ExchangePurchaseDialog({
       setForeignAmount("");
       setLocalAmount("");
       setDescription("");
-      setPurchaseDate(new Date().toISOString().split("T")[0]);
+      setPurchaseDate(formatDateISO(new Date()));
     }
   }, [purchase, open]);
 

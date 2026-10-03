@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
  
 import { useState } from "react";
+import { formatDateISO } from "@/utils/dateUtils";
 import {
   Dialog,
   DialogContent,
@@ -320,7 +321,7 @@ export function SharedSettleDialog({
                 value={settleDate}
                 onChange={(e) => setSettleDate(e.target.value)}
                 className="rounded-xl"
-                max={new Date().toISOString().split("T")[0]}
+                max={formatDateISO(new Date())}
               />
             </div>
 

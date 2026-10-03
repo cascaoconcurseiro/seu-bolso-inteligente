@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { formatDateISO } from "@/utils/dateUtils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Camera, Check, Heart, Loader2, MapPin, Star, Users } from "lucide-react";
 import { toast } from "sonner";
@@ -176,7 +177,7 @@ export function TripPlacesCommunityTab({ trip }: TripPlacesCommunityTabProps) {
           user_id: user.id,
           rating,
           comment: comment.trim() || null,
-          visited_on: new Date().toISOString().slice(0, 10),
+          visited_on: formatDateISO(new Date()),
         },
         { onConflict: "trip_id,place_id,user_id" }
       );

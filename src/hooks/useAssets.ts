@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { formatDateISO } from "@/utils/dateUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { Asset, AssetPerformance } from "@/types/database";
 import { toast } from "sonner";
@@ -52,7 +53,7 @@ export const useAssets = () => {
       // SE houver conta vinculada e valor investido, gerar transação automática
       if (assetData.account_id && asset.purchase_price && asset.quantity) {
         const totalAmount = asset.purchase_price * asset.quantity;
-        const purchaseDate = asset.purchase_date || new Date().toISOString().split("T")[0];
+        const purchaseDate = asset.purchase_date || formatDateISO(new Date());
         const competenceDate = `${purchaseDate.substring(0, 7)}-01`;
 
         // Buscar categoria de Investimentos ou usar uma padrão
