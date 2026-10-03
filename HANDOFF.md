@@ -2,6 +2,21 @@
 
 > Última atualização: 2026-10-03
 
+## Handoff da sessão - 03/10/2026 (noite 6) - Metas, tipos, PWA
+
+### Corrigido e verificado ao vivo
+- **Aporte em meta com conta vinculada falhava SEMPRE** (`column "date" is of type date but expression is of type text`): `contribute_to_goal` declarava `v_today`/`v_competence` como TEXT. Migration `20261003210000_fix_contribute_to_goal_date_types.sql` (APLICADA em produção): variáveis DATE e data em America/Sao_Paulo (antes `NOW()` UTC). Verificado: aporte R$ 1,00 debita a conta, data/competência corretas.
+- Excluir meta agora apaga os aportes por exclusão LÓGICA (`soft_delete_transaction`); verificado no banco (`deleted_at` preenchido, saldo da conta restaurado). Mesma troca em `useSharedExpensesActions` (excluir despesa compartilhada). Remover item de checklist de viagem pede confirmação.
+- **Zero erros de `tsc`** (era 19): interfaces de exportação (`tripExport`, `exportCurrency`) aceitam `null` e sem index signature; `SplitInput` sem index signature; `useTransactionsQuery` tipado. Script `npm run typecheck`. De brinde: exportação de Compartilhados em CSV/PDF sempre mostrava "Sem categoria" (`item.category` é texto, o código lia `.name`).
+- **PWA/deploy**: o pré-cache do service worker podia gravar HTML no lugar de JS/CSS durante a janela do deploy (tela "reading 'PrivateAppShell'", persistente até limpar cache). Defesas: `vercel.json` não reescreve `/assets/` nem arquivos com extensão para o index (agora 404), `sw.ts` recusa HTML em asset (runtime) e FALHA a instalação do SW se o pré-cache vier com HTML (`addPlugins`), `ErrorBoundary` recarrega sozinho em erro de chunk. Para testar um deploy neste painel: desregistrar SW e limpar caches.
+
+### UX anotado
+- Aporte em meta oferece cartão de crédito ("Azul infinite") como conta de débito.
+
+### Ainda aberto
+- Exclusão física: `useAssets.deleteAsset` (assets só tem coluna `deleted`; soft delete exige filtrar todas as leituras de ativos — não validado). 
+- Não testado ao vivo: Compartilhados com divisão, convite real por e-mail, OFX, backup/restore.
+
 ## Handoff da sessão - 03/10/2026 (noite 5) - Transferência, orçamento e família
 
 ### Corrigido e verificado ao vivo
