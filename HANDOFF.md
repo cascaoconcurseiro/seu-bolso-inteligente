@@ -13,11 +13,14 @@
 - `useCreateTransaction`: parcelas = primeira competência + N meses (`addMonthsToCompetence`).
 - Testes: `src/lib/invoiceCycle.test.ts`. Lista de revisão de dados antigos: `supabase/diagnostics/cartao_compras_dia_fechamento.sql`.
 
+### Aplicado e verificado (03/10/2026)
+
+- Migration aplicada no Supabase de produção (`vrrcagukyfnlhxuvnssp`).
+- Diagnóstico de dados: só 2 compras à vista no dia do fechamento (cartão Azul infinite, dia 28). A de 28/06 (R$ 76) é de fatura antiga e foi deixada como está; a de 28/08 (R$ 11,50) tem override de fechamento e já está correta. Nenhum dado alterado.
+
 ### Próximo passo concreto
 
-1. Aplicar a migration no Supabase (enquanto não aplicar, o banco ainda usa `>` e sobrescreve a competência de compra à vista).
-2. Rodar o SQL de diagnóstico, revisar a lista e decidir a correção dos dados antigos (nunca em fatura paga).
-3. Pendente do diagnóstico: S2/S3 (compartilhado calculado no JS; filtro de período com `new Date("YYYY-MM-DD")` em `useSharedFinances.ts:191`).
+Pendente do diagnóstico: S2/S3 (compartilhado calculado no JS; filtro de período com `new Date("YYYY-MM-DD")` em `useSharedFinances.ts:191`).
 
 ## Handoff da sessão - 28/07/2026 - Restauração visual e checklist pré-viagem
 
