@@ -2,6 +2,20 @@
 
 > Última atualização: 2026-10-03
 
+## Handoff da sessão - 03/10/2026 (noite 5) - Transferência, orçamento e família
+
+### Corrigido e verificado ao vivo
+- **Transferência pelo botão "Transferir" da conta** gravava uma DESPESA + uma RECEITA comuns (RPC `transfer_between_accounts`), inflando Entradas/Saídas, relatórios e orçamento. `useTransfer` agora cria um único lançamento `TRANSFER` (mesmo caminho do formulário "Transf." e do pagamento de fatura) para transferências na mesma moeda; com câmbio ainda usa a RPC (não testável com segurança). Sem transferências antigas no histórico do usuário.
+- **Orçamento contava dívida importada**: migration `20261003200000_budget_ignore_accountless_expenses.sql` (APLICADA em produção) faz `get_user_budgets_progress` ignorar despesas sem conta (`account_id IS NULL`). Só as 5 parcelas "Airbnb (n/5)" (R$ 910,38, Jhonatan deve 100%, dívida importada) tinham conta nula em todo o banco. Orçamento global agora mostra só o gasto real. RISCO CONHECIDO: uma futura "despesa paga por outro" (conta nula) também ficará fora do orçamento; se quiser contar a parte do usuário, precisa de regra por split.
+- Extrato rotula transferências como "Transferência" (antes "Outros").
+- Contato de despesa: só o nome é obrigatório; e-mail opcional, mas validado quando informado. Excluir contato pede confirmação (`window.confirm`).
+- Mensagem de excluir viagem corrigida (é exclusão lógica). Orçamento: modal de confirmar exclusão verificado.
+
+### Ainda aberto
+- Checklist de viagem remove item sem confirmação (baixo risco).
+- ~19 erros de tipo antigos (exportações/Trips) e exclusão física de transações/ativos (useGoals, useSharedExpensesActions, useAssets).
+- Compartilhados com divisão, convite real por e-mail, OFX, backup/restore, meta com aporte: não testados ao vivo.
+
 ## Handoff da sessão - 03/10/2026 (noite 4) - Despesa, transferência, fatura, viagens, família
 
 ### Corrigido e verificado ao vivo
