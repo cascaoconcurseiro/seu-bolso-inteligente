@@ -69,7 +69,7 @@ export function AccountDetail() {
 
   const groupedTransactions = transactions.reduce(
     (groups, tx) => {
-      const date = dateFns.startOfDay(new Date(tx.date)).toISOString();
+      const date = dateFns.startOfDay(dateFns.parseISO(String(tx.date))).toISOString();
       if (!groups[date]) groups[date] = [];
       groups[date].push(tx);
       return groups;
@@ -92,7 +92,8 @@ export function AccountDetail() {
   const accountCurrency = account?.currency || "BRL";
 
   const getDateLabel = (dateStr: string) => {
-    const date = new Date(dateStr);
+    // parseISO trata "YYYY-MM-DD" como data local; new Date() a lê como UTC e recuava um dia
+    const date = dateFns.parseISO(dateStr);
     if (dateFns.isToday(date)) return "Hoje";
     if (dateFns.isYesterday(date)) return "Ontem";
     return dateFns.format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });

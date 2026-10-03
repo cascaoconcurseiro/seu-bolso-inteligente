@@ -39,7 +39,9 @@ export function AccountStatement({
 }: AccountStatementProps) {
   const { isPrivate } = usePrivacy();
 
-  const fmt = (v: number) => (isPrivate ? "•••••" : formatCurrency(v, accountCurrency));
+  // formatCurrency da página usa valor absoluto; o sinal do saldo precisa ser reposto aqui
+  const fmt = (v: number) =>
+    isPrivate ? "•••••" : `${v < 0 ? "-" : ""}${formatCurrency(v, accountCurrency)}`;
 
   return (
     <div className="space-y-4">
@@ -87,7 +89,7 @@ export function AccountStatement({
                 <div className="rounded-xl border border-border overflow-hidden">
                   {dayTransactions.map((tx, idx) => {
                     const isIncome = tx.isIncoming;
-                    const txDate = new Date(tx.date);
+                    const txDate = dateFns.parseISO(String(tx.date));
                     const isInitialBalance = tx.isInitialBalance;
 
                     const description = tx.description;

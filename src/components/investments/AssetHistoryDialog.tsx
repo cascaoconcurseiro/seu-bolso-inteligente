@@ -85,7 +85,7 @@ export function AssetHistoryDialog({ isOpen, onClose, asset }: AssetHistoryDialo
                       {tx.type.startsWith("DIVIDEND") && "Rendimento"}
                     </p>
                     <p className="text-sm text-muted-foreground uppercase font-medium">
-                      {dateFns.format(new Date(tx.date), "dd 'de' MMMM, yyyy", { locale: ptBR })}
+                      {dateFns.format(dateFns.parseISO(String(tx.date)), "dd 'de' MMMM, yyyy", { locale: ptBR })}
                     </p>
                   </div>
                 </div>

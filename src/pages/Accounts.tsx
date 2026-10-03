@@ -138,7 +138,7 @@ export function Accounts() {
         const startOfM = dateFns.startOfMonth(currentDate);
         const endOfM = dateFns.endOfMonth(currentDate);
         filteredTxs = exportTransactions.filter((t) => {
-          const d = new Date(t.date);
+          const d = dateFns.parseISO(String(t.date));
           return d >= startOfM && d <= endOfM;
         });
         const monthNames = [
