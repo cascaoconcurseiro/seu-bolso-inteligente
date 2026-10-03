@@ -263,6 +263,21 @@ export function CreditCards() {
       </div>
     );
 
+  // Antes o modal só existia na lista; "Arquivar Cartão" no menu do detalhe não fazia nada.
+  const handleConfirmArchiveCard = async () => {
+    if (!selectedCard) return;
+    try {
+      await archiveAccountMutation.mutateAsync(selectedCard.id);
+    } catch {
+      return; /* onError do hook já trata; sem falso "arquivado com sucesso" */
+    }
+    toast.success("Cartão arquivado com sucesso!");
+    setShowArchiveConfirmModal(false);
+    setView("list");
+    setSelectedCard(null);
+    navigate("/cartoes");
+  };
+
   if (view === "detail" && selectedCard && invoiceData) {
     return (
       <>
@@ -403,6 +418,14 @@ export function CreditCards() {
           onClose={() => setDeleteConfirm({ isOpen: false, transaction: null })}
           onConfirm={handleDeleteTransaction}
           transaction={deleteConfirm.transaction}
+        />
+
+        <ArchiveConfirmModal
+          isOpen={showArchiveConfirmModal}
+          onClose={() => setShowArchiveConfirmModal(false)}
+          onConfirm={handleConfirmArchiveCard}
+          itemName={selectedCard.name}
+          isArchiving={archiveAccountMutation.isPending}
         />
 
         <Dialog open={showEditCardDialog} onOpenChange={setShowEditCardDialog}>
@@ -773,17 +796,7 @@ export function CreditCards() {
         <ArchiveConfirmModal
           isOpen={showArchiveConfirmModal}
           onClose={() => setShowArchiveConfirmModal(false)}
-          onConfirm={async () => {
-            try {
-              await archiveAccountMutation.mutateAsync(selectedCard.id);
-            } catch {
-              /* onError do hook já trata */
-            }
-            toast.success("Cartão arquivado com sucesso!");
-            setShowArchiveConfirmModal(false);
-            setView("list");
-            setSelectedCard(null);
-          }}
+          onConfirm={handleConfirmArchiveCard}
           itemName={selectedCard.name}
           isArchiving={archiveAccountMutation.isPending}
         />
