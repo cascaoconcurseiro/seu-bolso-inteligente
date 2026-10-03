@@ -88,6 +88,17 @@ export function PayInvoiceDialog({
     }
   }, [invoiceTotal, isOpen, step]);
 
+  // O diálogo fica montado ao fechar: sem este reset ele reabria no passo 2 com o valor
+  // digitado antes (inclusive inválido) e escondido, e o pagamento podia ser confirmado às cegas.
+  React.useEffect(() => {
+    if (!isOpen) {
+      setStep(1);
+      setSelectedAccountId("");
+      setExchangeRate("");
+      setAmountToPay(invoiceTotal.toString());
+    }
+  }, [isOpen, invoiceTotal]);
+
   const cardCurrency = card.currency || "BRL";
   const isInternationalCard = card.is_international || cardCurrency !== "BRL";
 
