@@ -15,6 +15,7 @@ export const useAssets = () => {
       const { data, error } = await supabase
         .from("assets")
         .select("*")
+        .or("deleted.is.null,deleted.eq.false")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -173,15 +174,25 @@ export const useAssets = () => {
 
       if (fetchError || !asset) throw fetchError || new Error("Investimento não encontrado");
 
-      // 2. Delete auto-generated transactions (Efeito Cascata via ON DELETE CASCADE no banco)
-      // O banco cuidará da exclusão na tabela transactions via FK asset_id ON DELETE CASCADE
-      // e na asset_transactions via FK asset_id ON DELETE CASCADE (se aplicável, mas já temos manual abaixo para garantir).
+      // 2. Exclusão LÓGICA (como no resto do app): antes o ativo e o histórico eram apagados de
+      // vez (DELETE físico com cascata nas transações financeiras). As transações ligadas ao
+      // ativo saem pela função de exclusão lógica, que mantém os saldos consistentes.
+      const { data: assetTxs, error: txListError } = await supabase
+        .from("transactions")
+        .select("id")
+        .eq("asset_id", id)
+        .is("deleted_at", null);
+      if (txListError) throw txListError;
+      for (const tx of assetTxs ?? []) {
+        const { error: delTxError } = await supabase.rpc("soft_delete_transaction", {
+          p_transaction_id: tx.id,
+          p_cascade: "NONE",
+        });
+        if (delTxError) throw delTxError;
+      }
 
-      // 3. Delete from asset_transactions (Efeito Cascata)
-      await supabase.from("asset_transactions").delete().eq("asset_id", id);
-
-      // 4. Finally, delete the asset
-      const { error } = await supabase.from("assets").delete().eq("id", id);
+      // 3. Marca o ativo como excluído (o histórico em asset_transactions fica preservado)
+      const { error } = await supabase.from("assets").update({ deleted: true }).eq("id", id);
 
       if (error) throw error;
     },

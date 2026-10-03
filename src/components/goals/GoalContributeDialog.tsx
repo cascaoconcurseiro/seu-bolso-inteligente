@@ -42,8 +42,9 @@ export function GoalContributeDialog({ isOpen, onClose, goal }: GoalContributeDi
   const linkedAccount = accounts?.find((a) => a.id === goal.linked_account_id);
   const goalCurrency = linkedAccount?.currency || "BRL";
 
-  // Filtrar contas que tenham a mesma moeda da meta
-  const filteredAccounts = accounts?.filter((acc) => acc.currency === goalCurrency) || [];
+  // Contas da mesma moeda da meta; cartão de crédito não serve para guardar dinheiro numa meta
+  const filteredAccounts =
+    accounts?.filter((acc) => acc.currency === goalCurrency && acc.type !== "CREDIT_CARD") || [];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
