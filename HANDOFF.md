@@ -13,7 +13,8 @@
 - `CreditCardsList` mostra skeleton enquanto carrega.
 
 ### Pendências
-- QA visual autenticado de Contas/Cartões/Dashboard na abertura a frio (390 px).
+- [x] QA ao vivo em produção (03/10, aberturas a frio): Cartões = esqueleto ~0,5 s e valores finais uma vez; Contas = valores finais uma vez; Dashboard = 4 totais estáveis, blocos de faturas/família entram ~200 ms depois (sem trocar valor).
+- BUG NOVO: edge function `send-bill-reminders` bloqueada por CORS (preflight sem Access-Control-Allow-Origin) no console de produção. Investigar `supabase/functions/send-bill-reminders`.
 - `tsc` acusa 2 erros em `useCreditCardsDashboard.ts` (384/386, `Transaction[]` x `ExportTransaction[]`) vindos das alterações de export ainda sem commit.
 - Efeito colateral aceito: sem rede, saldos não aparecem mais do cache offline.
 - S2 (fatura compartilhada em RPC) segue pendente.
