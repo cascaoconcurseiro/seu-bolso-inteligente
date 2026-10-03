@@ -109,7 +109,7 @@ export function AccountSelector({
     return (
       <div className="space-y-2">
         <Label>{customLabel || getAccountLabel()}</Label>
-        <Select value={accountId} onValueChange={setAccountId}>
+        <Select value={accountId} onValueChange={(v) => v && setAccountId(v)}>
           <SelectTrigger>
             <SelectValue placeholder={customPlaceholder || "Selecione a conta"} />
           </SelectTrigger>
@@ -155,7 +155,7 @@ export function AccountSelector({
     <>
       <div className="space-y-2">
         <Label>Sai de (Origem)</Label>
-        <Select value={accountId} onValueChange={setAccountId}>
+        <Select value={accountId} onValueChange={(v) => v && setAccountId(v)}>
           <SelectTrigger>
             <SelectValue placeholder="De onde sai" />
           </SelectTrigger>
@@ -203,7 +203,10 @@ export function AccountSelector({
           )}
         </div>
 
-        <Select value={destinationAccountId} onValueChange={setDestinationAccountId}>
+        <Select
+          value={destinationAccountId}
+          onValueChange={(v) => v && setDestinationAccountId(v)}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Para onde vai" />
           </SelectTrigger>
