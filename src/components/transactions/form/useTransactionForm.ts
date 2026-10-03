@@ -568,6 +568,20 @@ export function useTransactionForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredAccounts, accountId]);
 
+  // Ao editar, a conta do lançamento chegava vazia ao formulário (receita aberta com
+  // "Selecione a conta" e o Salvar falhando com "conta de origem obrigatória"). Restaura
+  // uma única vez por lançamento a conta salva, se ela for válida para a aba atual.
+  const restoredAccountForRef = useRef<string | null>(null);
+  useEffect(() => {
+    const savedAccountId = initialData?.account_id;
+    if (!initialData?.id || !savedAccountId || accountId) return;
+    if (restoredAccountForRef.current === initialData.id) return;
+    if (!filteredAccounts.some((acc) => acc.id === savedAccountId)) return;
+    restoredAccountForRef.current = initialData.id;
+    store.setAccountId(savedAccountId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialData?.id, initialData?.account_id, accountId, filteredAccounts]);
+
   const getCurrencySymbol = (currency: string) => {
     const symbols: Record<string, string> = {
       BRL: "R$",
