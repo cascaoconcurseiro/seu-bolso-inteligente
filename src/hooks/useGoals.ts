@@ -219,7 +219,10 @@ export const useGoals = () => {
     },
     mutationFn: async (id: string) => {
       // CRIT-06: Deleção por goal_id FK (substitui LIKE '%meta%' frágil)
-      await supabase.from("transactions").delete().eq("goal_id", id);
+      const { error: txError } = await supabase.from("transactions").delete().eq("goal_id", id);
+      // Sem checar o erro, a meta era marcada como excluída mesmo quando os aportes
+      // continuavam no banco (ex.: RLS/rede), deixando saldo e meta inconsistentes.
+      if (txError) throw txError;
 
       // Soft delete the goal
       const { error } = await supabase.from("goals").update({ deleted: true }).eq("id", id);

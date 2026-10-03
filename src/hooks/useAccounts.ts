@@ -5,6 +5,7 @@ import { invalidateAccountQueries } from "@/utils/queryInvalidation";
 import { accountToasts } from "@/utils/toastMessages";
 import { defaultQueryConfig } from "@/utils/queryConfig";
 import { logger } from "@/utils/logger";
+import { formatDateISO } from "@/utils/dateUtils";
 import { callRPCWithRetry } from "@/utils/supabaseHelpers";
 import { Database } from "@/integrations/supabase/types";
 
@@ -303,8 +304,8 @@ export function useUpdateAccount() {
             amount: Math.abs(difference),
             description: `Ajuste de saldo - ${currentAccount.name}`,
             category_id: categoryData?.id || null,
-            date: new Date().toISOString().split("T")[0],
-            competence_date: new Date().toISOString().split("T")[0],
+            date: formatDateISO(new Date()),
+            competence_date: `${formatDateISO(new Date()).slice(0, 7)}-01`,
             domain: "PERSONAL",
             is_shared: false,
             is_installment: false,

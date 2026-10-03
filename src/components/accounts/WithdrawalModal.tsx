@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { formatDateISO } from "@/utils/dateUtils";
 import {
   Dialog,
   DialogContent,
@@ -59,7 +60,7 @@ export function WithdrawalModal({
       accountId,
       amount: numericAmount,
       description,
-      date: new Date().toISOString().split("T")[0],
+      date: formatDateISO(new Date()),
     });
 
     // Reset form

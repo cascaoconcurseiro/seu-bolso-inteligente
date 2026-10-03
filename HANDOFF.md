@@ -10,6 +10,15 @@
 - Compartilhados: "Tudo em dia!" / "Nenhum membro ativo" apareciam por ~0,4 s antes dos dados (estado vazio falso). Agora aguardam o carregamento.
 - `notificationGenerator`: removida a chamada do cliente a `send-bill-reminders` (sempre falhava: CORS + 401 por exigir CRON_SECRET). O push segue pelo cron.
 
+### Auditoria estática (sem leitura de produção) — também corrigido
+- Datas UTC que gravavam dado financeiro: ajuste de saldo (`useAccounts.ts`; `competence_date` ia com a data inteira, violando o invariante dia 1), transferência, saque e despesas de viagem (`Trips.tsx`, `competence_date` pulava para o mês seguinte no último dia do mês após 21h). Agora `formatDateISO` (local).
+- `useGoals.deleteGoal`: ignorava o erro ao apagar os aportes e marcava a meta como excluída mesmo assim.
+
+### Achados NÃO corrigidos (decisão pendente)
+- Mesmo padrão `toISOString().split("T")` ainda em `notificationGenerator.ts` (~15 pontos), `useAssets.ts:55`, `SharedSettleDialog.tsx:323`, `TripJournalTab`, `ExchangePurchaseDialog`, `Reports.tsx:55`.
+- Exclusão física (`.delete()`) de transações em `useGoals.ts` e `useSharedExpensesActions.ts:330`, e de `assets` em `useAssets.ts:183`, contra o invariante de soft delete do blueprint. Confirmar no banco se há trigger/RLS antes de migrar.
+- ~12 erros de `tsc` preexistentes (Accounts, CreditCards, Reports:118, SharedExpenses:205/207, Trips:388, useTransactionsQuery, useCreateTransaction); o build não roda `tsc`.
+
 ### Não testado (bloqueado pelo classificador de permissões ao ler produção)
 - Contas, Relatórios, Orçamentos, Metas, Simuladores, Configurações, Viagens e todos os fluxos de criar/editar/excluir. Dashboard x Transações: conferir se Saídas de outubro batem depois da correção.
 

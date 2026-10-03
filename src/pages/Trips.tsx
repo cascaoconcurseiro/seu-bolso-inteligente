@@ -1,3 +1,4 @@
+import { formatDateISO } from "@/utils/dateUtils";
 import { TripFormDialog } from "@/components/trips/form/TripFormDialog";
 import type { TripFormValues } from "@/components/trips/form/tripFormSchema";
 import { Button } from "@/components/ui/button";
@@ -187,8 +188,8 @@ export function Trips() {
         amount: Math.abs(balanceVal),
         type: balanceVal < 0 ? "INCOME" : "EXPENSE",
         description: `Acerto de Contas - Remoção de ${removingParticipant.name}`,
-        date: new Date().toISOString().split("T")[0],
-        competence_date: new Date().toISOString().slice(0, 7) + "-01",
+        date: formatDateISO(new Date()),
+        competence_date: `${formatDateISO(new Date()).slice(0, 7)}-01`,
         domain: "TRAVEL",
         trip_id: selectedTripId,
         is_shared: false,
@@ -240,8 +241,8 @@ export function Trips() {
         amount: Math.abs(balanceVal),
         type: balanceVal < 0 ? "EXPENSE" : "INCOME",
         description: `Ajuste Contábil (Perdão de Dívida) - Remoção de ${removingParticipant.name}`,
-        date: new Date().toISOString().split("T")[0],
-        competence_date: new Date().toISOString().slice(0, 7) + "-01",
+        date: formatDateISO(new Date()),
+        competence_date: `${formatDateISO(new Date()).slice(0, 7)}-01`,
         domain: "TRAVEL",
         trip_id: selectedTripId,
         is_shared: true,

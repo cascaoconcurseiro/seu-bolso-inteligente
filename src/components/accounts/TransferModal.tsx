@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { formatDateISO } from "@/utils/dateUtils";
 import {
   Dialog,
   DialogContent,
@@ -124,7 +125,7 @@ export function TransferModal({
       toAccountId,
       amount: numericAmount,
       description,
-      date: new Date().toISOString().split("T")[0],
+      date: formatDateISO(new Date()),
       exchangeRate: rate,
       destinationAmount: destAmount,
     });
