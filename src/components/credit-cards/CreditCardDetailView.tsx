@@ -204,8 +204,13 @@ export function CreditCardDetailView({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon" className="rounded-xl border-border shrink-0">
-              <Settings className="h-4 w-4" />
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label="Opções do cartão"
+              className="rounded-xl border-border shrink-0"
+            >
+              <Settings className="h-4 w-4" aria-hidden="true" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">

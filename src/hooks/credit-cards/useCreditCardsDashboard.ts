@@ -117,6 +117,18 @@ export function useCreditCardsDashboard() {
     [accounts]
   );
 
+  // O cartão aberto no detalhe é uma cópia em estado; sem isto, nome, dias e limite editados
+  // só apareciam depois de recarregar a página.
+  useEffect(() => {
+    if (!selectedCard) return;
+    const fresh = creditCards.find((c) => c.id === selectedCard.id);
+    if (!fresh) return;
+    const changed = (
+      ["name", "bank_id", "credit_limit", "closing_day", "due_day", "balance"] as const
+    ).some((k) => fresh[k] !== selectedCard[k]);
+    if (changed) setSelectedCard({ ...selectedCard, ...fresh });
+  }, [creditCards, selectedCard]);
+
   const ownedCardIds = useMemo(
     () => creditCards.filter((c) => !c.is_shared_with_me).map((c) => c.id),
     [creditCards]
