@@ -188,9 +188,10 @@ export const useSharedFinances = ({
             // Apenas transações no período
             if (!member.scope_start_date && !member.scope_end_date) return true;
             if (!item.date) return false;
-            const itemDate = new Date(item.date);
-            const startDate = member.scope_start_date ? new Date(member.scope_start_date) : null;
-            const endDate = member.scope_end_date ? new Date(member.scope_end_date) : null;
+            // Comparar como YYYY-MM-DD: new Date("YYYY-MM-DD") é UTC e deslocaria o dia no Brasil.
+            const itemDate = String(item.date).slice(0, 10);
+            const startDate = member.scope_start_date ? member.scope_start_date.slice(0, 10) : null;
+            const endDate = member.scope_end_date ? member.scope_end_date.slice(0, 10) : null;
 
             if (startDate && itemDate < startDate) return false;
             if (endDate && itemDate > endDate) return false;

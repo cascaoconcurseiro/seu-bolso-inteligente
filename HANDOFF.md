@@ -20,7 +20,7 @@
 
 ### Próximo passo concreto
 
-Pendente do diagnóstico: S2/S3 (compartilhado calculado no JS; filtro de período com `new Date("YYYY-MM-DD")` em `useSharedFinances.ts:191`).
+S3 corrigido (filtro de período compara strings YYYY-MM-DD). Pendente apenas S2: fatura da pessoa no compartilhado é montada no JS (`generateInvoices`); mover para RPC é um refactor próprio, não um bug.
 
 ## Handoff da sessão - 28/07/2026 - Restauração visual e checklist pré-viagem
 
