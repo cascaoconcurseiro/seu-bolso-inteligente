@@ -270,8 +270,13 @@ export function Budgets() {
             <p className="text-sm sm:text-sm text-muted-foreground uppercase font-semibold tracking-widest truncate">
               Disponível Total
             </p>
-            <p className="text-base sm:text-3xl font-display font-black truncate text-positive">
-              {moneyUtils.format(Math.max(0, totalBudgeted - totalSpent), "BRL")}
+            <p
+              className={cn(
+                "text-base sm:text-3xl font-display font-black truncate",
+                totalBudgeted - totalSpent < 0 ? "text-destructive" : "text-positive"
+              )}
+            >
+              {moneyUtils.format(totalBudgeted - totalSpent, "BRL")}
             </p>
           </div>
         </div>
