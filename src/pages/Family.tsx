@@ -334,6 +334,13 @@ export function Family() {
                       className="rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                       aria-label={`Excluir contato ${c.name}`}
                       onClick={async () => {
+                        // Exclusão sem desfazer: pedir confirmação (o histórico é preservado)
+                        if (
+                          !window.confirm(
+                            `Excluir o contato "${c.name}"? O histórico de despesas dele será preservado.`
+                          )
+                        )
+                          return;
                         try {
                           await removeMember.mutateAsync(c.id);
                           toast.success("Contato excluído");

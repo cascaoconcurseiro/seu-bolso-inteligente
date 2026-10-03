@@ -473,9 +473,18 @@ export function InviteMemberDialog({
             <Button
               className="flex-1 rounded-xl h-12 font-bold"
               onClick={handleSubmit}
-              disabled={
-                !email.trim() || !name.trim() || (tab === "family" ? isPending : isContactPending)
-              }
+              disabled={(() => {
+                const trimmed = email.trim();
+                const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+                // Convite exige e-mail válido; contato só exige nome (e-mail opcional, mas
+                // válido se informado). Antes o contato também bloqueava sem e-mail.
+                const emailBlocks = tab === "family" ? !emailOk : trimmed !== "" && !emailOk;
+                return (
+                  !name.trim() ||
+                  emailBlocks ||
+                  (tab === "family" ? isPending : isContactPending)
+                );
+              })()}
             >
               {(tab === "family" ? isPending : isContactPending) ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />

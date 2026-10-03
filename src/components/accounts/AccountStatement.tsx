@@ -151,10 +151,13 @@ export function AccountStatement({
                             </div>
                             <p className="text-sm text-muted-foreground flex items-center gap-1 flex-wrap mt-0.5">
                               <span>{dateFns.format(txDate, "dd/MM/yyyy", { locale: ptBR })}</span>
-                              {tx.category?.name && (
+                              {(tx.type === "TRANSFER" || tx.category?.name) && (
                                 <>
                                   <span>•</span>
-                                  <span>{tx.category.name}</span>
+                                  <span>
+                                    {/* Transferências usam a categoria "Outros" por padrão, o que confundia */}
+                                    {tx.type === "TRANSFER" ? "Transferência" : tx.category?.name}
+                                  </span>
                                 </>
                               )}
                               {tx.is_installment &&

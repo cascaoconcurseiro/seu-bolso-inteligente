@@ -341,8 +341,8 @@ export function Trips() {
         <AlertDialogHeader>
           <AlertDialogTitle>Excluir viagem?</AlertDialogTitle>
           <AlertDialogDescription>
-            Esta ação é irreversível. A viagem e todos os seus dados associados serão removidos
-            permanentemente.
+            A viagem deixará de aparecer na sua lista. Os lançamentos já feitos nela continuam no
+            seu histórico financeiro.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
