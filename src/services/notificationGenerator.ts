@@ -147,12 +147,9 @@ export async function generateAllNotifications(userId: string): Promise<Generati
       result.upcomingBills +
       result.weeklySummary;
 
-    // Disparar push para o dispositivo com as novas notificações
-    if (result.total > 0) {
-      supabase.functions
-        .invoke("send-bill-reminders", { body: { user_id: userId } })
-        .catch(() => {});
-    }
+    // O push é enviado pelo cron (pg_cron) via send-bill-reminders. A chamada daqui nunca
+    // funcionou: a função exige o CRON_SECRET (o JWT do usuário dá 401) e não responde ao
+    // preflight CORS, gerando erro no console a cada geração de notificações.
 
     return result;
   } catch (error) {

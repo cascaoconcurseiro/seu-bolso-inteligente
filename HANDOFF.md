@@ -2,6 +2,21 @@
 
 > Última atualização: 2026-10-03
 
+## Handoff da sessão - 03/10/2026 (noite) - Varredura de bugs
+
+### Corrigido
+- Transações: resumo (Entradas/Saídas) somava lançamentos futuros e a lista "Lançadas" não ("0 registros" com Saídas R$ 17,32). Agora a aba Lançadas soma o mesmo conjunto exibido.
+- Transações: "hoje" usava `toISOString()` (UTC); após 21h em SP um lançamento de amanhã aparecia como lançado. Agora data local.
+- Compartilhados: "Tudo em dia!" / "Nenhum membro ativo" apareciam por ~0,4 s antes dos dados (estado vazio falso). Agora aguardam o carregamento.
+- `notificationGenerator`: removida a chamada do cliente a `send-bill-reminders` (sempre falhava: CORS + 401 por exigir CRON_SECRET). O push segue pelo cron.
+
+### Não testado (bloqueado pelo classificador de permissões ao ler produção)
+- Contas, Relatórios, Orçamentos, Metas, Simuladores, Configurações, Viagens e todos os fluxos de criar/editar/excluir. Dashboard x Transações: conferir se Saídas de outubro batem depois da correção.
+
+### Pendências
+- Dashboard mostrava Saídas R$ 0,00 no mesmo mês em que Transações mostrava R$ 17,32; reconferir após o deploy.
+- Erros de tsc preexistentes: `useCreditCardsDashboard.ts` (384/386) e `useCreateTransaction.ts` (295).
+
 ## Handoff da sessão - 03/10/2026 (tarde) - Valores que "pulavam" em Contas e Cartões
 
 ### Causa

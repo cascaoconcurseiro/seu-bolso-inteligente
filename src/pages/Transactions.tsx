@@ -3,6 +3,7 @@ import { PullToRefresh } from "@/components/ui/PullToRefresh";
 import { showActionFeedback } from "@/components/ui/ActionFeedback";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import { useLocation } from "react-router-dom";
+import { format } from "date-fns";
 import { Clock, CalendarClock, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTransactions, useDeleteTransaction, Transaction } from "@/hooks/useTransactions";
@@ -183,7 +184,7 @@ export function Transactions() {
     const base = isSearchingHistory ? filteredAnnualTransactions : filteredTransactions;
     // Na aba "Lançadas", excluir transações com data futura (vão para "Próximas")
     if (activeTab === "lancadas") {
-      const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+      const today = format(new Date(), "yyyy-MM-dd"); // data local, não UTC
       return base.filter((t) => t.date <= today);
     }
     return base;
@@ -221,11 +222,14 @@ export function Transactions() {
     () => groupTransactionsByDay(displayTransactionsForUtilities),
     [displayTransactionsForUtilities]
   );
+  // Na aba "Lançadas" o resumo soma o mesmo conjunto que a lista exibe; antes somava
+  // também os lançamentos futuros e mostrava, por exemplo, "0 registros" com Saídas > 0.
+  const summaryTransactions = activeTab === "lancadas" ? displayTransactions : filteredTransactions;
   const totalIncome = SafeFinancialCalculator.safeSum(
-    filteredTransactions.filter((t) => t.type === "INCOME").map((t) => Number(t.amount))
+    summaryTransactions.filter((t) => t.type === "INCOME").map((t) => Number(t.amount))
   ).toNumber();
   const totalExpense = SafeFinancialCalculator.safeSum(
-    filteredTransactions.filter((t) => t.type === "EXPENSE").map((t) => Number(t.amount))
+    summaryTransactions.filter((t) => t.type === "EXPENSE").map((t) => Number(t.amount))
   ).toNumber();
 
   const currencySummaries = useMemo(() => {

@@ -369,7 +369,7 @@ export function SharedExpenses() {
         </TabsList>
 
         <TabsContent value={activeTab}>
-          {members.length === 0 ? (
+          {!membersLoading && members.length === 0 ? (
             <EmptyState
               icon={Users}
               title="Nenhum membro ativo"
@@ -442,7 +442,9 @@ export function SharedExpenses() {
                   }
                 />
               )}
-              {(activeTab === "TRAVEL"
+              {!sharedLoading &&
+                !membersLoading &&
+                (activeTab === "TRAVEL"
                 ? trips.filter((t) =>
                     members.some((m) => getFilteredInvoice(m.id).some((i) => i.tripId === t.id))
                   ).length === 0
