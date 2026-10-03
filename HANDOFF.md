@@ -2,6 +2,21 @@
 
 > Última atualização: 2026-10-03
 
+## Handoff da sessão - 03/10/2026 (noite 3) - Cartões e Orçamentos
+
+### Corrigido e verificado ao vivo (cartão ZZ_TESTE criado/editado/arquivado)
+- "Arquivar Cartão" no menu do DETALHE não fazia nada: `ArchiveConfirmModal` só existia no ramo da lista de `CreditCards.tsx`. Agora existe nos dois, com `handleConfirmArchiveCard` (sem falso "arquivado com sucesso" em erro).
+- Editar cartão: o detalhe ficava com o nome/dias antigos até recarregar (cópia em estado). `useCreditCardsDashboard` agora sincroniza `selectedCard` com `accounts`.
+- Dias de fechamento/vencimento fora de 1-31 eram ajustados em silêncio pelo banco (45 -> 31, 0 -> 1). Agora há validação com mensagem (criar e editar).
+- Botão de opções do cartão sem nome acessível: `aria-label="Opções do cartão"`.
+- Orçamentos: exclusão pede confirmação; "Disponível total" mostra negativo em vermelho quando estoura.
+
+### Resíduos no banco do usuário (itens de teste, arquivados)
+- Conta "ZZ_TESTE renomeada" e cartão "ZZ_TESTE cartao editado". Exclusão permanente fica com o usuário.
+
+### Ainda não testado ao vivo
+- Despesa/transferência (criação), Família, Compartilhados e Viagens com escrita; pagamento de fatura.
+
 ## Handoff da sessão - 03/10/2026 (noite 2) - Testes ao vivo em produção (autorizados pelo usuário)
 
 ### Resultado dos fluxos (só itens "ZZ_TESTE", sem compartilhado/convite/e-mail)
