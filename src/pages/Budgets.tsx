@@ -42,6 +42,16 @@ import { useMonth } from "@/contexts/MonthContext";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { BudgetCard } from "@/components/budgets/BudgetCard";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { logger } from "@/utils/logger";
 import type { Budget } from "@/types/database";
 
@@ -69,6 +79,7 @@ export function Budgets() {
 
   const [showNewBudgetDialog, setShowNewBudgetDialog] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
+  const [budgetToDelete, setBudgetToDelete] = useState<{ id: string; name: string } | null>(null);
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
   const [currency, setCurrency] = useState("BRL");
@@ -328,10 +339,7 @@ export function Budgets() {
                     setCurrency(budget.currency);
                   }
                 }}
-                onDelete={(id) => {
-                  showActionFeedback("error");
-                  deleteBudget(id);
-                }}
+                onDelete={(id) => setBudgetToDelete({ id, name: b.budget_name || "este orçamento" })}
               />
             ))}
           </div>
@@ -500,6 +508,33 @@ export function Budgets() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!budgetToDelete} onOpenChange={(o) => !o && setBudgetToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir orçamento?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir "{budgetToDelete?.name}"? Esta ação não pode ser
+              desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (budgetToDelete) {
+                  showActionFeedback("error");
+                  deleteBudget(budgetToDelete.id);
+                }
+                setBudgetToDelete(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
