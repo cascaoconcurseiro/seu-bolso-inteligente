@@ -402,6 +402,7 @@ export function TripChecklist({ trip }: TripChecklistProps) {
                         size="icon"
                         disabled={deleteItem.isPending && deleteItem.variables === item.id}
                         onClick={async () => {
+                          if (!window.confirm(`Remover "${item.item}" do checklist?`)) return;
                           try {
                             await deleteItem.mutateAsync(item.id);
                           } catch (error: unknown) {

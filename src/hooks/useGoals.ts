@@ -219,10 +219,22 @@ export const useGoals = () => {
     },
     mutationFn: async (id: string) => {
       // CRIT-06: Deleção por goal_id FK (substitui LIKE '%meta%' frágil)
-      const { error: txError } = await supabase.from("transactions").delete().eq("goal_id", id);
-      // Sem checar o erro, a meta era marcada como excluída mesmo quando os aportes
-      // continuavam no banco (ex.: RLS/rede), deixando saldo e meta inconsistentes.
+      // Aportes saem por exclusão LÓGICA (soft_delete_transaction), como no resto do app, em vez
+      // de DELETE físico de dados financeiros. Erros interrompem: sem checar, a meta era marcada
+      // como excluída com os aportes ainda no banco, deixando saldo e meta inconsistentes.
+      const { data: goalTxs, error: txError } = await supabase
+        .from("transactions")
+        .select("id")
+        .eq("goal_id", id)
+        .is("deleted_at", null);
       if (txError) throw txError;
+      for (const tx of goalTxs ?? []) {
+        const { error: delError } = await supabase.rpc("soft_delete_transaction", {
+          p_transaction_id: tx.id,
+          p_cascade: "NONE",
+        });
+        if (delError) throw delError;
+      }
 
       // Soft delete the goal
       const { error } = await supabase.from("goals").update({ deleted: true }).eq("id", id);

@@ -327,7 +327,11 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
         return;
       }
 
-      const { error } = await supabase.from("transactions").delete().eq("id", item.originalTxId);
+      // Exclusão lógica com validação no servidor (permissão, acerto, espelhos), como no resto do app
+      const { error } = await supabase.rpc("soft_delete_transaction", {
+        p_transaction_id: item.originalTxId,
+        p_cascade: "NONE",
+      });
 
       if (error) throw error;
 
