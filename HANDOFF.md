@@ -2,6 +2,26 @@
 
 > Última atualização: 2026-10-03
 
+## Handoff da sessão - 03/10/2026 (noite 2) - Testes ao vivo em produção (autorizados pelo usuário)
+
+### Resultado dos fluxos (só itens "ZZ_TESTE", sem compartilhado/convite/e-mail)
+- Orçamentos: criar, editar (1,00 -> 2,00) e excluir OK; exclusão é imediata, SEM confirmação nem desfazer (sugestão: confirmar/undo).
+- Metas: criar, editar e excluir OK (excluir pede confirmação). Valores e "aportar/mês" conferem.
+- Contas: criar (banco "Outro"), renomear e arquivar OK; saldo vai a R$ 10,00 ao lançar receita e volta a R$ 0,00 ao excluir (gatilho OK em INSERT e DELETE).
+- Transações: criar receita OK; excluir OK (com confirmação). Resumo agora coerente com a lista (R$ 0 de saídas com 0 registros).
+- Viagens, Simuladores, Configurações: só leitura; sem erro. Viagens sem estado vazio falso.
+
+### BUG ABERTO — editar RECEITA abre com "Receber em: Selecione a conta" vazio
+- Reproduzir: criar receita numa conta CHECKING, abrir pela lista > Editar > conta vazia; Salvar falha com "A conta de origem é obrigatória".
+- A conta vazia desde o 1º render da edição; `initialData` traz `account_id` (select `*`), payer/trip nulos. Causa NÃO identificada. Aplicada proteção em `useTransactionForm.ts` (efeito do tripId não zera a conta ao editar), mas não é a causa deste caso. Próximo passo: instrumentar `store.setAccountId` (useTransactionStore) com console.trace e abrir a edição de uma receita; checar também o ramo `isPaidByOther`/`membersLoading` e o efeito de `filteredAccounts` (linhas ~496-566).
+
+### DIVERGÊNCIA DE REGRA (banco) — Orçamento conta o valor INTEIRO de despesa compartilhada paga por outro
+- `get_user_budgets_progress` (função só no banco) soma `transactions.amount` por competência, sem considerar `payer_id`/splits. As parcelas "Airbnb (n/5)" (SHARED, sem conta, R$ 910,38) entram no orçamento global (consumido R$ 910,38) e NÃO aparecem em Transações/Dashboard/Relatórios.
+- Decisão de produto pendente: contar só a parte do usuário (transaction_splits), ou excluir despesas pagas por outros. Requer migration (a função não está nos arquivos de migration).
+
+### Resíduos no banco do usuário
+- Conta arquivada "ZZ_TESTE renomeada" (sem transações). A exclusão permanente fica com o usuário.
+
 ## Handoff da sessão - 03/10/2026 (noite) - Varredura de bugs
 
 ### Corrigido
