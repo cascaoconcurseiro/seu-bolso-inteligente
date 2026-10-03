@@ -22,6 +22,13 @@ import { validatePayerId } from "./helpers";
 import { useRef, useEffect } from "react";
 import type { Json } from "@/integrations/supabase/types";
 
+/** Soma meses a uma competência YYYY-MM-01 sem passar por Date (evita deslocamento de fuso). */
+export const addMonthsToCompetence = (competence: string, months: number): string => {
+  const [y, m] = competence.split("-").map(Number);
+  const total = y * 12 + (m - 1) + months;
+  return `${Math.floor(total / 12)}-${String((total % 12) + 1).padStart(2, "0")}-01`;
+};
+
 export function useCreateTransaction() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -261,6 +268,7 @@ export function useCreateTransaction() {
           }
         }
 
+        const firstInstallmentCompetence = calculateCompetence(dateUtils.formatDate(baseDate));
         const transactionsForRpc = [];
         let allocatedAmount = SafeFinancialCalculator.ZERO;
 
@@ -268,7 +276,8 @@ export function useCreateTransaction() {
           const currentInstNum = startingInstallment + i;
           const installmentDate = dateUtils.addMonthsToDate(baseDate, i);
           const formattedDate = dateUtils.formatDate(installmentDate);
-          const competenceDate = calculateCompetence(formattedDate);
+          // Primeira fatura calculada uma vez; as demais são +i meses (nunca recalcula de data deslocada).
+          const competenceDate = addMonthsToCompetence(firstInstallmentCompetence, i);
           const isSharedNow = (finalSplits && finalSplits.length > 0) || input.domain === "SHARED";
 
           let currentAmount = installmentAmount;

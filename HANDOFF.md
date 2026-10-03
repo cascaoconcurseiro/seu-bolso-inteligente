@@ -1,6 +1,23 @@
 # HANDOFF.md — Ponto de Continuidade
 
-> Última atualização: 2026-07-28
+> Última atualização: 2026-10-03
+
+## Handoff da sessão - 03/10/2026 - Regra única de fatura do cartão
+
+### Entrega
+
+- Regra decidida: compra no dia do fechamento vai para a próxima fatura (`>=`); mudar o dia de fechamento vale só para frente.
+- Migration `20261003150000_card_invoice_single_rule.sql` (trigger com `>=`, trava de competência, parcelas pela âncora da série). **NÃO aplicada no banco.**
+- `invoiceUtils`: fim da mistura UTC/local, `>=`, período `10/09 a 09/10`, `closing_date_override` só no mês dele.
+- `useAccounts`: removido o recálculo em massa ao mudar `closing_day`.
+- `useCreateTransaction`: parcelas = primeira competência + N meses (`addMonthsToCompetence`).
+- Testes: `src/lib/invoiceCycle.test.ts`. Lista de revisão de dados antigos: `supabase/diagnostics/cartao_compras_dia_fechamento.sql`.
+
+### Próximo passo concreto
+
+1. Aplicar a migration no Supabase (enquanto não aplicar, o banco ainda usa `>` e sobrescreve a competência de compra à vista).
+2. Rodar o SQL de diagnóstico, revisar a lista e decidir a correção dos dados antigos (nunca em fatura paga).
+3. Pendente do diagnóstico: S2/S3 (compartilhado calculado no JS; filtro de período com `new Date("YYYY-MM-DD")` em `useSharedFinances.ts:191`).
 
 ## Handoff da sessão - 28/07/2026 - Restauração visual e checklist pré-viagem
 

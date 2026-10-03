@@ -24,7 +24,11 @@ export const getActualClosingDate = (
   mode: ClosingDayMode = "FIXED_DAY",
   overrideDate?: string | null
 ): Date => {
-  if (overrideDate) return parseDate(overrideDate);
+  if (overrideDate) {
+    // closing_date_override é uma data única: só vale para o mês a que pertence.
+    const override = parseDate(overrideDate);
+    if (override.getUTCFullYear() === year && override.getUTCMonth() === month) return override;
+  }
 
   switch (mode) {
     case "LAST_DAY": {
@@ -61,9 +65,11 @@ export const getTargetDate = (
 
   const actualClosing = getActualClosingDate(date.getFullYear(), date.getMonth(), closingDay, mode);
   const currentDay = date.getDate();
-  const closingDateDay = actualClosing.getDate();
+  // actualClosing é UTC; ler com getUTCDate evita deslocar o dia no fuso de Brasília.
+  const closingDateDay = actualClosing.getUTCDate();
 
-  if (currentDay > closingDateDay) {
+  // Regra única: compra feita NO dia do fechamento já pertence à próxima fatura.
+  if (currentDay >= closingDateDay) {
     return addMonthsToDate(date, 1);
   }
 
@@ -110,11 +116,11 @@ export const getInvoiceData = (
     account.closing_date_override
   );
 
-  // Start date: dia seguinte ao fechamento do mês ANTERIOR
-  // Ex: fecha dia 10 → ciclo começa dia 11 do mês anterior
-  const prevMonthClosing = addMonthsToDate(closingDate, -1);
-  const startDate = new Date(prevMonthClosing);
-  startDate.setDate(startDate.getDate() + 1);
+  // Start date: o próprio dia de fechamento do mês ANTERIOR (compra nesse dia cai nesta fatura)
+  // Ex: fecha dia 10 → ciclo vai de 10/mês anterior até 09/mês atual
+  const prevMonthYear = month === 0 ? year - 1 : year;
+  const prevMonth = month === 0 ? 11 : month - 1;
+  const startDate = getActualClosingDate(prevMonthYear, prevMonth, closingDay, mode);
 
   // Due date: vencimento para pagamento
   const dueDateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(dueDay).padStart(2, "0")}`;
@@ -212,7 +218,9 @@ export const getInvoiceData = (
  */
 export const formatCycleRange = (startDate: Date, closingDate: Date): string => {
   const formatDay = (d: Date) => {
-    return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
+    return `${String(d.getUTCDate()).padStart(2, "0")}/${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
   };
-  return `${formatDay(startDate)} a ${formatDay(closingDate)}`;
+  // O dia de fechamento já pertence à próxima fatura, então o ciclo termina um dia antes.
+  const lastDay = new Date(closingDate.getTime() - 24 * 3600 * 1000);
+  return `${formatDay(startDate)} a ${formatDay(lastDay)}`;
 };
