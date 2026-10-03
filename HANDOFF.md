@@ -2,6 +2,28 @@
 
 > Última atualização: 2026-10-03
 
+## Handoff da sessão - 03/10/2026 (noite 4) - Despesa, transferência, fatura, viagens, família
+
+### Corrigido e verificado ao vivo
+- **Criar viagem estava quebrado em produção** ("new row violates row-level security policy for table trips"): `INSERT ... RETURNING` falha porque `private.can_view_trip` (STABLE, consulta `public.trips`) não enxerga a linha criada no mesmo comando. `useCreateTrip` agora gera o id no cliente, insere sem RETURNING e lê depois. Tabelas filhas (places, reservations, journal) não sofrem disso. Provável quebra desde a migration de RLS de 26/07.
+- "Excluir viagem" no detalhe não abria a confirmação (dialog só existia na lista). Extraído para `deleteTripDialog` e renderizado nos dois ramos.
+- Extrato da conta mostrava o dia anterior ("Ontem") por `new Date("YYYY-MM-DD")` (UTC) e saldo negativo sem sinal (`Math.abs`). Corrigido em `AccountDetail`, `AccountStatement`, `Accounts`, `AssetHistoryDialog`.
+- Botão "Nova transação" do desktop sumia em Cartões/Família/Viagens/Simuladores/Configurações (estava dentro da barra do seletor de mês). `AppLayout` agora esconde só o seletor.
+- Pagar fatura: aceitava valor acima do total e reabria no passo 2 com o valor antigo escondido. Agora bloqueia e reseta ao fechar.
+
+### Fluxos testados ao vivo (itens ZZ_TESTE, todos arquivados/removidos)
+- Despesa (aviso de saldo negativo OK), receita, transferência entre contas (bloqueio "Saldo insuficiente" OK), compra no cartão + pagamento da fatura, viagem (criar/editar/checklist/excluir), contato de despesa em Família (criar com e-mail `.invalid`/excluir).
+- NÃO testado: Compartilhados com divisão (exige UI de split e geraria dados visíveis a terceiros), convite real por e-mail, importação OFX, backup/restore, metas com aporte.
+
+### UX anotado (não corrigido)
+- Excluir contato de Família e excluir item de checklist não pedem confirmação.
+- Mensagem de excluir viagem diz "removidos permanentemente", mas é exclusão lógica (`deleted_at`).
+- Extrato rotula transferências com categoria "Outros".
+- Campo e-mail do contato parece opcional, mas "Salvar Contato" só habilita com e-mail; e-mail inválido não é rejeitado antes de salvar.
+
+### Resíduos no banco do usuário
+- Contas "ZZ_TESTE renomeada" e "ZZ_TESTE B" e cartão "ZZ_TESTE cartao editado" arquivados (com transações de teste preservadas). Exclusão permanente fica com o usuário.
+
 ## Handoff da sessão - 03/10/2026 (noite 3) - Cartões e Orçamentos
 
 ### Corrigido e verificado ao vivo (cartão ZZ_TESTE criado/editado/arquivado)

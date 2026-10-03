@@ -353,7 +353,6 @@ export function Trips() {
               if (tripToDelete) {
                 try {
                   await deleteTrip.mutateAsync(tripToDelete);
-                  toast.success("Viagem excluída com sucesso");
                   navigate("/viagens");
                   setShowDeleteConfirm(false);
                 } catch (err: any) {
