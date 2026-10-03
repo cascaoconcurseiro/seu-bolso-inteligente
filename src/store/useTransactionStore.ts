@@ -118,7 +118,11 @@ export const useTransactionStore = create<TransactionFormState>((set) => ({
     });
   },
   setDate: (date) => set({ date }),
-  setAccountId: (id) => set({ accountId: id }),
+  setAccountId: (id) => {
+    // TEMP-DEBUG: rastrear quem zera a conta na primeira abertura da edição
+    if (!id) console.warn("[dbg-setAccountId-empty]", new Error().stack);
+    set({ accountId: id });
+  },
   setDestinationAccountId: (id) => set({ destinationAccountId: id }),
   setCategoryId: (id) => set({ categoryId: id }),
   setTripId: (id) => set({ tripId: id }),
