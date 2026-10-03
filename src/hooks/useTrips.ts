@@ -203,18 +203,28 @@ export function useCreateTrip() {
         }
       }
 
-      const { data, error } = await supabase
-        .from("trips")
-        .insert({
-          owner_id: user.id,
-          creator_user_id: user.id,
-          ...tripData,
-          cover_image: coverImage,
-        })
-        .select()
-        .single();
+      // O id é gerado aqui e o INSERT não usa RETURNING: a política de leitura
+      // (private.can_view_trip, função STABLE que consulta public.trips) não enxerga a linha
+      // criada no mesmo comando, o que fazia "INSERT ... RETURNING" falhar com
+      // "new row violates row-level security policy" e impedia criar qualquer viagem.
+      const tripId = crypto.randomUUID();
+      const { error } = await supabase.from("trips").insert({
+        id: tripId,
+        owner_id: user.id,
+        creator_user_id: user.id,
+        ...tripData,
+        cover_image: coverImage,
+      });
 
       if (error) throw error;
+
+      const { data, error: fetchError } = await supabase
+        .from("trips")
+        .select()
+        .eq("id", tripId)
+        .single();
+
+      if (fetchError) throw fetchError;
 
       // Owner é adicionado automaticamente via trigger add_trip_owner()
 
