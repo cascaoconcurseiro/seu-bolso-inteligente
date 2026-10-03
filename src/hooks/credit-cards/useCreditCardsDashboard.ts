@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMonth } from "@/contexts/MonthContext";
+import { Database } from "@/integrations/supabase/types";
 import {
   useAccounts,
   useCreateAccount,
@@ -32,6 +33,17 @@ import { CascadeDeleteType } from "@/components/modals/DeleteTransactionModal";
 import { toast } from "sonner";
 
 export type CardView = "list" | "detail";
+
+// O banco ajustava em silêncio dias fora da faixa (45 -> 31, 0 -> 1); validar antes de salvar.
+function findInvalidCardDay(closingDay: string, dueDay: string): string | null {
+  const isValid = (v: string) => {
+    const n = Number(v);
+    return v === "" || (Number.isInteger(n) && n >= 1 && n <= 31);
+  };
+  if (!isValid(closingDay)) return "fechamento";
+  if (!isValid(dueDay)) return "vencimento";
+  return null;
+}
 
 export interface CreditCardAccount {
   id: string;
@@ -261,6 +273,11 @@ export function useCreditCardsDashboard() {
       toast.error("O nome do cartão é obrigatório");
       return;
     }
+    const invalidDay = findInvalidCardDay(newClosingDay, newDueDay);
+    if (invalidDay) {
+      toast.error(`O dia de ${invalidDay} deve ser um número de 1 a 31`);
+      return;
+    }
     const isCustom =
       newBankId === "default" || newBankId === "default_international" || newBankId === "other";
     const finalBankId =
@@ -324,6 +341,11 @@ export function useCreditCardsDashboard() {
 
   const handleEditCard = async () => {
     if (!selectedCard) return;
+    const invalidDay = findInvalidCardDay(editClosingDay, editDueDay);
+    if (invalidDay) {
+      toast.error(`O dia de ${invalidDay} deve ser um número de 1 a 31`);
+      return;
+    }
     const isCustom = editBankId === "default" || editBankId === "other";
     const finalBankId =
       isCustom && editCustomBankName.trim() ? `custom:${editCustomBankName.trim()}` : editBankId;
@@ -443,7 +465,7 @@ export function useCreditCardsDashboard() {
       queryClient.invalidateQueries({ queryKey: ["dashboard-data"] });
       return true;
     } catch (err: unknown) {
-      const msg = err?.message || "Erro desconhecido";
+      const msg = (err as Error)?.message || "Erro desconhecido";
       toast.error(`Erro ao processar pagamento: ${msg}`);
       return false;
     }
