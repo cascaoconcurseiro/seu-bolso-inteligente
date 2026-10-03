@@ -20,12 +20,35 @@ const asyncStoragePersister = createAsyncStoragePersister({
   storage: createEncryptedForageStorage(localforage),
 });
 
+// Só dados sem valores monetários são persistidos. Saldos, faturas e totais sempre vêm
+// da rede: restaurar do IndexedDB mostrava o valor antigo e trocava segundos depois.
+const PERSISTED_QUERY_ROOTS = new Set([
+  "categories",
+  "user-profile",
+  "family-members",
+  "family",
+  "notification-preferences",
+  "auto-share-rules",
+]);
+
+// Mudar este valor descarta o cache antigo (que ainda contém saldos) no aparelho do usuário.
+const PERSIST_BUSTER = "no-money-cache-v1";
+
 export function PrivateAppShell() {
   return (
     <ProtectedRoute>
       <PersistQueryClientProvider
         client={queryClient}
-        persistOptions={{ persister: asyncStoragePersister, maxAge: 1000 * 60 * 60 * 24 }}
+        persistOptions={{
+          persister: asyncStoragePersister,
+          maxAge: 1000 * 60 * 60 * 24,
+          buster: PERSIST_BUSTER,
+          dehydrateOptions: {
+            shouldDehydrateQuery: (query) =>
+              query.state.status === "success" &&
+              PERSISTED_QUERY_ROOTS.has(String(query.queryKey[0])),
+          },
+        }}
       >
         <MonthProvider>
           <TransactionModalProvider>

@@ -2,6 +2,22 @@
 
 > Última atualização: 2026-10-03
 
+## Handoff da sessão - 03/10/2026 (tarde) - Valores que "pulavam" em Contas e Cartões
+
+### Causa
+- `PrivateAppShell` persistia TODO o cache do React Query (24h) no IndexedDB: ao abrir, saldos/faturas antigos apareciam e a rede os trocava segundos depois.
+- `CreditCardsList` recebia `isLoading` e ignorava: faturas eram calculadas com `transactions = []` e depois saltavam para o valor real.
+
+### Entrega
+- Persistência só de dados sem valor monetário (whitelist `PERSISTED_QUERY_ROOTS`) + `buster` para descartar o cache antigo nos aparelhos.
+- `CreditCardsList` mostra skeleton enquanto carrega.
+
+### Pendências
+- QA visual autenticado de Contas/Cartões/Dashboard na abertura a frio (390 px).
+- `tsc` acusa 2 erros em `useCreditCardsDashboard.ts` (384/386, `Transaction[]` x `ExportTransaction[]`) vindos das alterações de export ainda sem commit.
+- Efeito colateral aceito: sem rede, saldos não aparecem mais do cache offline.
+- S2 (fatura compartilhada em RPC) segue pendente.
+
 ## Handoff da sessão - 03/10/2026 - Regra única de fatura do cartão
 
 ### Entrega
