@@ -334,6 +334,48 @@ export function Trips() {
     );
   }
 
+  // Renderizado na lista E no detalhe: antes só existia na lista e "Excluir viagem" do detalhe não abria nada.
+  const deleteTripDialog = (
+    <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+      <AlertDialogContent className="border-border w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+        <AlertDialogHeader>
+          <AlertDialogTitle>Excluir viagem?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Esta ação é irreversível. A viagem e todos os seus dados associados serão removidos
+            permanentemente.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={async (e) => {
+              e.preventDefault();
+              if (tripToDelete) {
+                try {
+                  await deleteTrip.mutateAsync(tripToDelete);
+                  toast.success("Viagem excluída com sucesso");
+                  navigate("/viagens");
+                  setShowDeleteConfirm(false);
+                } catch (err: any) {
+                  toast.error(err.message || "Erro ao excluir viagem");
+                }
+              }
+            }}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 min-w-[120px]"
+            disabled={deleteTrip.isPending}
+          >
+            {deleteTrip.isPending ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Trash2 className="h-4 w-4 mr-2" />
+            )}
+            {deleteTrip.isPending ? "Excluindo..." : "Excluir"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+
   if (selectedTripId && selectedTrip && selectedTripFormValues) {
     return (
       <div className="animate-fade-in space-y-6">
@@ -410,6 +452,8 @@ export function Trips() {
           pendingInvitations={pendingInvitations}
           onCancelInvitation={cancelInvitation.mutate}
         />
+
+        {deleteTripDialog}
 
         <RemoveParticipantDialog
           open={showRemoveDialog}
@@ -618,44 +662,7 @@ export function Trips() {
           }
         }}
       />
-      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-        <AlertDialogContent className="border-border w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir viagem?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta ação é irreversível. A viagem e todos os seus dados associados serão removidos
-              permanentemente.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={async (e) => {
-                e.preventDefault();
-                if (tripToDelete) {
-                  try {
-                    await deleteTrip.mutateAsync(tripToDelete);
-                    toast.success("Viagem excluída com sucesso");
-                    navigate("/viagens");
-                    setShowDeleteConfirm(false);
-                  } catch (err: any) {
-                    toast.error(err.message || "Erro ao excluir viagem");
-                  }
-                }
-              }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 min-w-[120px]"
-              disabled={deleteTrip.isPending}
-            >
-              {deleteTrip.isPending ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Trash2 className="h-4 w-4 mr-2" />
-              )}
-              {deleteTrip.isPending ? "Excluindo..." : "Excluir"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {deleteTripDialog}
     </div>
   );
 }
