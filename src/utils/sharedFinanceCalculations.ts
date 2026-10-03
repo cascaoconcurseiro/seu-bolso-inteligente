@@ -124,16 +124,10 @@ export const calculateSharedDisplayDate = (
   const account = accounts.find((a) => a.id === accountId);
   if (!account) return competenceDate;
 
+  // Só cartão tem fatura com vencimento em outro mês; despesa de conta comum fica no mês dela
+  // (antes era empurrada para o mês seguinte e sumia da tela do mês em que foi lançada).
   if (account.type !== "CREDIT_CARD") {
-    const closingMonth = dateUtils.parseDate(competenceDate);
-    let dueMonth = closingMonth.getMonth() + 1;
-    let dueYear = closingMonth.getFullYear();
-    if (dueMonth > 11) {
-      dueMonth = 0;
-      dueYear++;
-    }
-    const dueDate = new Date(Date.UTC(dueYear, dueMonth, 1));
-    return dateUtils.getCompetenceDate(dueDate);
+    return competenceDate;
   }
 
   const closingDay = account.closing_day || 1;

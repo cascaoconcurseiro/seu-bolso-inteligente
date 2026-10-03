@@ -2,6 +2,24 @@
 
 > Última atualização: 2026-10-03
 
+## Handoff da sessão - 03/10/2026 (noite 7) - Compartilhados, ativos, limpeza
+
+### Corrigido e verificado ao vivo
+- **Divisão de despesa de conta comum sumia do mês**: `calculateSharedDisplayDate` empurrava para o mês SEGUINTE qualquer despesa de conta que não fosse cartão (R$ 10 do dia 03/10 só aparecia em NOV/26). Agora só cartão desloca para o vencimento da fatura; conta comum fica no mês da competência. Itens antigos de conta corrente passam a aparecer no mês certo (podem "mudar de mês" na tela). Sem teste unitário dessa função.
+- Excluir ativo: exclusão LÓGICA (`assets.deleted=true`, transações ligadas saem por `soft_delete_transaction`); a lista de ativos filtra `deleted`. Aporte em meta não oferece mais cartão de crédito. Texto do diálogo de excluir despesa compartilhada corrigido (não é permanente).
+- Contato de despesa só com nome (sem e-mail) salva; e-mail inválido bloqueia. Excluir contato pede confirmação. Recuperação `/limpar-cache.html` verificada.
+- Compartilhado com divisão testado ao vivo (contato fictício, 50/50): 2 splits corretos, nenhuma notificação enviada, exclusão restaura o saldo.
+
+### Achados / UX
+- O diálogo "Dividir" já abre com a pessoa vinculada (Fran, usuário real) pré-selecionada; quem salva sem reparar divide e notifica uma pessoa real. Sugestão: abrir sem ninguém selecionado.
+- Avisos de saldo negativo (diálogo "Atenção") exigem "Continuar"; sair da tela sem confirmar descarta a transação sem aviso.
+
+### Limpeza dos dados de teste
+- Contato `ZZ_TESTE contato2` excluído; despesa `ZZ_TESTE compartilhada` excluída (lógica). Contas `ZZ_TESTE renomeada`, `ZZ_TESTE B` e cartão `ZZ_TESTE cartao editado` arquivados; exclusão definitiva fica com o usuário.
+
+### Não testado ao vivo
+- Convite real por e-mail, importação OFX, backup/restore (restaurar grava em massa nos dados reais).
+
 ## Handoff da sessão - 03/10/2026 (noite 6) - Metas, tipos, PWA
 
 ### Corrigido e verificado ao vivo

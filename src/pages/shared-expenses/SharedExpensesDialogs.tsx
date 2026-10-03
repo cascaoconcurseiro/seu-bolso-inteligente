@@ -70,8 +70,8 @@ export function SharedExpensesDialogs({
           <AlertDialogHeader className="px-5 pt-5 pb-2 sm:px-6 sm:pt-6">
             <AlertDialogTitle>Excluir Transação</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta transação será removida permanentemente. Os splits associados também serão
-              excluídos.
+              Esta transação deixará de aparecer e o saldo da conta será ajustado. A divisão com os
+              participantes também deixa de valer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="px-5 pb-5 pt-2 sm:px-6 sm:pb-6">
