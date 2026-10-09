@@ -112,6 +112,10 @@ export function useAcceptInvitation() {
       });
 
       if (error) throw error;
+      const result = data as { success?: boolean; error?: string } | null;
+      if (!result?.success) {
+        throw new Error(result?.error || "Não foi possível aceitar o convite");
+      }
       return data;
     },
     onSuccess: () => {
@@ -138,6 +142,10 @@ export function useRejectInvitation() {
       });
 
       if (error) throw error;
+      const result = data as { success?: boolean; error?: string } | null;
+      if (!result?.success) {
+        throw new Error(result?.error || "Não foi possível rejeitar o convite");
+      }
       return data;
     },
     onSuccess: () => {
