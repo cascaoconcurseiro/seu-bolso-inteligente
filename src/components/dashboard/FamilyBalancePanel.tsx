@@ -16,13 +16,18 @@ export const FamilyBalancePanel = memo(function FamilyBalancePanel() {
   const { isPrivate } = usePrivacy();
   const { currentDate } = useMonth();
   const { data: members = [], isLoading: membersLoading } = useFamilyMembers(true);
+  const startDate = dateFns.format(dateFns.startOfMonth(currentDate), "yyyy-MM-dd");
+  const endDate = dateFns.format(dateFns.endOfMonth(currentDate), "yyyy-MM-dd");
 
   const { data: sharedBalances, isLoading: balancesLoading } = useQuery({
-    queryKey: ["shared-balances", user?.id],
+    queryKey: ["shared-balances", user?.id, startDate, endDate],
     queryFn: async () => {
       if (!user) return [];
       try {
-        const data = await rpcWithRetry("get_current_shared_debts_v2", {});
+        const data = await rpcWithRetry("get_current_shared_debts_v2", {
+          p_start_date: startDate,
+          p_end_date: endDate,
+        });
         return data as Array<{
           member_id: string;
           currency: string;
