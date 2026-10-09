@@ -82,7 +82,11 @@ export function CreditCardSummary({
               nextDueDate <= 3 ? "text-warning dark:text-warning" : "text-foreground"
             )}
           >
-            {nextDueDate > 0 ? `${nextDueDate} ${nextDueDate === 1 ? "dia" : "dias"}` : "Hoje"}
+            {nextDueDate < 0
+              ? `${Math.abs(nextDueDate)} ${Math.abs(nextDueDate) === 1 ? "dia" : "dias"} atrasado`
+              : nextDueDate > 0
+                ? `${nextDueDate} ${nextDueDate === 1 ? "dia" : "dias"}`
+                : "Hoje"}
           </p>
         </div>
       </div>

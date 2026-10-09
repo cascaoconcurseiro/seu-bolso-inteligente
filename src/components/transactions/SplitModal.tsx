@@ -78,16 +78,6 @@ export function SplitModal({
         lastSetSplitRef.current = null;
       }
 
-      // Auto-inicializar 50/50 com o primeiro membro disponível se splits estiver vazio
-      const otherMembersList = (familyMembers || []).filter((m) => m.id !== currentUserMemberId);
-      if (payerId === "me" && splits.length === 0 && otherMembersList.length > 0) {
-        const memberId = otherMembersList[0].id;
-        const totalPeople = 2; // eu + 1 parceiro
-        const splitAmounts = moneyUtils.splitSafely(activeAmount, totalPeople);
-        const newSplit = { memberId, percentage: 50, amount: splitAmounts[1] };
-        lastSetSplitRef.current = newSplit;
-        setSplits([newSplit]);
-      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, payerId]);
@@ -421,11 +411,14 @@ export function SplitModal({
                       const split = splits.find((s) => s.memberId === member.id);
                       const isSelected = !!split;
                       return (
-                        <div
+                        <button
+                          type="button"
                           key={member.id}
                           onClick={() => toggleSplitMember(member.id)}
+                          aria-label={`${isSelected ? "Remover" : "Selecionar"} ${member.name}`}
+                          aria-pressed={isSelected}
                           className={cn(
-                            "p-4 flex items-center justify-between cursor-pointer rounded-xl border transition-all",
+                            "w-full p-4 flex items-center justify-between cursor-pointer rounded-xl border transition-all text-left",
                             isSelected
                               ? "border-primary bg-primary/5"
                               : "border-border hover:border-primary/50"
@@ -443,7 +436,7 @@ export function SplitModal({
                             </div>
                           </div>
                           {isSelected && <Check className="h-6 w-6 text-primary" />}
-                        </div>
+                        </button>
                       );
                     })}
                   </div>
