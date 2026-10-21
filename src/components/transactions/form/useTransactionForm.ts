@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAccounts, type Account as AppAccount } from "@/hooks/useAccounts";
 import { useAIPrediction } from "@/hooks/useAIPrediction";
 import { useCategoriesHierarchical, useCreateDefaultCategories } from "@/hooks/useCategories";
-import { useFamilyMembers, useSharedContacts } from "@/hooks/useFamily";
+import { useFamily, useFamilyMembers, useSharedContacts } from "@/hooks/useFamily";
 import { useAutoShareRules, matchAutoShareRule } from "@/hooks/useAutoShareRules";
 import { useGoals } from "@/hooks/useGoals";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
@@ -36,6 +36,7 @@ import { showActionFeedback } from "@/components/ui/ActionFeedback";
 import { moneyUtils } from "@/utils/money";
 import type { Transaction } from "@/hooks/transactions/types";
 import { useTransactionDuplicates } from "./useTransactionDuplicates";
+import { getConfiguredSplitMembers, getTripSplitMembers } from "./splitMembers";
 
 interface TransactionFormProps {
   onSuccess?: () => void;
@@ -75,13 +76,19 @@ export function useTransactionForm({
   const { data: profile } = useUserProfile();
   const { data: categories, isLoading: categoriesLoading } = useCategoriesHierarchical();
   const { data: trips } = useTrips();
-  const { data: rawFamilyMembers = [], isLoading: membersLoading } = useFamilyMembers();
-  const { data: contacts = [] } = useSharedContacts();
-
+  const familyQuery = useFamily();
+  const {
+    data: rawFamilyMembers = [],
+    isLoading: membersLoading,
+    isError: membersError,
+  } = useFamilyMembers();
+  const {
+    data: contacts = [],
+    isLoading: contactsLoading,
+    isError: contactsError,
+  } = useSharedContacts();
   const familyMembers = useMemo(() => {
-    const existingIds = new Set(rawFamilyMembers.map((m) => m.id));
-    const activeContacts = contacts.filter((c) => c.active_in_form && !existingIds.has(c.id));
-    return [...rawFamilyMembers, ...activeContacts];
+    return getConfiguredSplitMembers(rawFamilyMembers, contacts);
   }, [rawFamilyMembers, contacts]);
   const myMemberRecord = useMemo(() => {
     return (familyMembers || []).find((m) => m.linked_user_id === user?.id);
@@ -123,6 +130,7 @@ export function useTransactionForm({
   const saveAsPending = store.saveAsPending;
 
   const [rippleState, setRippleState] = useState<"success" | "error" | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const lastAppliedCategoryIdRef = useRef<string | null>(null);
   // Refs anti-loop para effects que chamam setters derivados de variáveis compostas
@@ -196,7 +204,6 @@ export function useTransactionForm({
         store.setHasUserSelectedCategoryManually(false);
       }
     }
-     
   }, [predictedCategoryId, store.hasUserSelectedCategoryManually, categoryId, store]);
 
   const handleCategoryChange = (val: string) => {
@@ -204,7 +211,15 @@ export function useTransactionForm({
     store.setHasUserSelectedCategoryManually(true);
   };
 
-  const { data: tripMembers = [] } = useTripMembers(tripId || null);
+  const tripMembersQuery = useTripMembers(tripId || null);
+  const tripMembers = tripMembersQuery.data ?? [];
+  const splitMembersLoading =
+    familyQuery.isLoading ||
+    membersLoading ||
+    contactsLoading ||
+    (!!tripId && tripMembersQuery.isLoading);
+  const splitMembersError =
+    familyQuery.isError || membersError || contactsError || (!!tripId && tripMembersQuery.isError);
 
   useEffect(() => {
     if (context?.accountId && context?.tripId === tripId) return;
@@ -316,6 +331,7 @@ export function useTransactionForm({
     date,
     activeTab,
     accountId: store.accountId,
+    isSubmitting,
     initialData,
   });
 
@@ -336,13 +352,8 @@ export function useTransactionForm({
         family_id: "",
         user_id: tm.user_id,
         linked_user_id: tm.user_id as string,
-        name:
-          tm.display_name ||
-          tm.guest_name ||
-          tm.profiles?.full_name ||
-          tm.profiles?.email ||
-          "Participante",
-        email: tm.profiles?.email || null,
+        name: tm.display_name || tm.guest_name || tm.profiles?.full_name || "Participante",
+        email: null,
         role: "viewer" as const,
         avatar_url: null,
         avatar_color: null,
@@ -388,36 +399,10 @@ export function useTransactionForm({
     return [...(familyMembers || []), ...tripOnlyMembers, ...guestMembers];
   }, [tripId, tripMembers, familyMembers]);
 
-  // Available Members logic
-  const availableMembers = useMemo(() => {
-    const membersList = effectiveFamilyMembers;
-
-    // If it's a trip, prefer trip members (exclude guests with null user_id)
-    if (tripId && tripMembers && tripMembers.length > 0) {
-      const payerUserId = payerId === "me" ? user?.id : payerId;
-      // Inclui tanto user_id (usuários registrados) quanto trip_members.id (guests)
-      const tripAllIds = new Set([
-        ...tripMembers.map((tm) => tm.user_id).filter(Boolean),
-        ...tripMembers.filter((tm) => !tm.user_id).map((tm) => tm.id),
-      ] as string[]);
-      return membersList.filter(
-        (m) => m.linked_user_id !== payerUserId && tripAllIds.has(m.linked_user_id as string)
-      );
-    }
-
-    // If it's family
-    const payerMemberId = payerId === "me" ? myMemberRecord?.id : payerId;
-    return membersList.filter((m) => m.id !== payerMemberId);
-  }, [tripId, tripMembers, effectiveFamilyMembers, user?.id, payerId, myMemberRecord?.id]);
-
   const tripFilteredMembers = useMemo(() => {
-    if (!tripId || !tripMembers || tripMembers.length === 0) return effectiveFamilyMembers;
-    const tripAllIds = new Set([
-      ...tripMembers.map((tm) => tm.user_id).filter(Boolean),
-      ...tripMembers.filter((tm) => !tm.user_id).map((tm) => tm.id),
-    ] as string[]);
-    return effectiveFamilyMembers.filter((m) => tripAllIds.has(m.linked_user_id as string));
-  }, [tripId, tripMembers, effectiveFamilyMembers]);
+    if (!tripId) return effectiveFamilyMembers;
+    return getTripSplitMembers(familyMembers || [], tripMembers);
+  }, [tripId, tripMembers, familyMembers, effectiveFamilyMembers]);
 
   // A limpeza automática de splits (setSplits([])) quando o payerId mudava
   // foi removida pois apagava os splits recém-carregados na edição. O UX no modal
@@ -596,6 +581,7 @@ export function useTransactionForm({
   };
 
   const performSubmit = async (transactionData: CreateTransactionInput) => {
+    setIsSubmitting(true);
     try {
       haptics.success();
       if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
@@ -625,6 +611,7 @@ export function useTransactionForm({
 
       setTimeout(() => setRippleState(null), 300);
     } catch (error: any) {
+      setIsSubmitting(false);
       logger.error("Erro ao salvar transação:", error);
       setRippleState("error");
       showActionFeedback("error");
@@ -837,6 +824,8 @@ export function useTransactionForm({
     trips,
     familyMembers,
     effectiveFamilyMembers,
+    splitMembersLoading,
+    splitMembersError,
     myMemberRecord,
     allTransactions,
     createTransaction,
@@ -858,7 +847,6 @@ export function useTransactionForm({
     isPredicting,
     predictedCategoryId,
 
-    availableMembers,
     tripFilteredMembers,
     creditCards,
     transferAccounts,

@@ -22,6 +22,7 @@ interface FamilyMember {
 interface FamilyMemberCardProps {
   member: FamilyMember & { member_type?: string };
   isSelf: boolean;
+  canManage: boolean;
   roleLabels: Record<string, { label: string; description: string }>;
   getInitials: (name: string) => string;
   onUpdateRole: (id: string, role: FamilyRole) => void;
@@ -32,6 +33,7 @@ interface FamilyMemberCardProps {
 export function FamilyMemberCard({
   member,
   isSelf,
+  canManage,
   roleLabels,
   getInitials,
   onUpdateRole,
@@ -84,7 +86,7 @@ export function FamilyMemberCard({
           >
             {roleLabels[member.role]?.label}
           </span>
-          {!isSelf && (
+          {canManage && !isSelf && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button

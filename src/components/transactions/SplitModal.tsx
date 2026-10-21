@@ -29,6 +29,8 @@ interface SplitModalProps {
   splits: TransactionSplitData[];
   setSplits: (splits: TransactionSplitData[]) => void;
   familyMembers: FamilyMember[];
+  isLoadingMembers?: boolean;
+  hasMembersLoadError?: boolean;
   activeAmount: number;
   onNavigateToFamily?: () => void;
   isInstallment?: boolean;
@@ -48,6 +50,8 @@ export function SplitModal({
   splits,
   setSplits,
   familyMembers,
+  isLoadingMembers = false,
+  hasMembersLoadError = false,
   activeAmount,
   onNavigateToFamily,
   isInstallment = false,
@@ -77,7 +81,6 @@ export function SplitModal({
         setMySplitPercentage(50);
         lastSetSplitRef.current = null;
       }
-
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, payerId]);
@@ -118,6 +121,7 @@ export function SplitModal({
   const otherMembers = useMemo(() => {
     return (familyMembers || []).filter((m) => m.id !== currentUserMemberId);
   }, [familyMembers, currentUserMemberId]);
+  const isResolvedPayer = payerId === "me" || otherMembers.some((member) => member.id === payerId);
 
   // Filtro de quem divide a conta (exclui a pessoa que pagou)
   const checklistMembers = useMemo(() => {
@@ -190,7 +194,10 @@ export function SplitModal({
               </button>
               <button
                 type="button"
-                onClick={() => setPayerId(otherMembers.length > 0 ? otherMembers[0].id : "other")}
+                onClick={() => {
+                  if (otherMembers.length > 0) setPayerId(otherMembers[0].id);
+                }}
+                disabled={isLoadingMembers || otherMembers.length === 0}
                 className={cn(
                   "flex-1 py-3 text-sm font-medium rounded-xl transition-all",
                   payerId !== "me"
@@ -204,7 +211,19 @@ export function SplitModal({
 
             {payerId !== "me" && (
               <div className="space-y-4">
-                {otherMembers.length === 0 ? (
+                {isLoadingMembers ? (
+                  <div
+                    role="status"
+                    aria-label="Carregando pagadores"
+                    className="skeleton h-14 rounded-xl"
+                  />
+                ) : hasMembersLoadError && otherMembers.length === 0 ? (
+                  <div role="alert" className="text-center py-4">
+                    <p className="text-sm text-muted-foreground">
+                      Não foi possível carregar os pagadores. Feche e abra a divisão novamente.
+                    </p>
+                  </div>
+                ) : otherMembers.length === 0 ? (
                   <div className="text-center py-4">
                     <p className="text-sm text-muted-foreground">
                       Nenhum outro membro cadastrado na família.
@@ -224,17 +243,24 @@ export function SplitModal({
                     )}
                   </div>
                 ) : (
-                  <select
-                    value={payerId}
-                    onChange={(e) => setPayerId(e.target.value)}
-                    className="w-full p-4 rounded-2xl border border-border bg-background font-medium"
-                  >
-                    {otherMembers.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.name}
-                      </option>
-                    ))}
-                  </select>
+                  <>
+                    {hasMembersLoadError && (
+                      <p role="status" className="text-sm text-muted-foreground">
+                        Não foi possível atualizar a lista; usando os participantes já carregados.
+                      </p>
+                    )}
+                    <select
+                      value={payerId}
+                      onChange={(e) => setPayerId(e.target.value)}
+                      className="w-full p-4 rounded-2xl border border-border bg-background font-medium"
+                    >
+                      {otherMembers.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.name}
+                        </option>
+                      ))}
+                    </select>
+                  </>
                 )}
 
                 {/* PARCELAMENTO quando Outro Pagou */}
@@ -385,7 +411,26 @@ export function SplitModal({
                 <Label className="text-sm uppercase tracking-widest text-muted-foreground">
                   Dividir com quem?
                 </Label>
-                {checklistMembers.length === 0 ? (
+                {isLoadingMembers ? (
+                  <div
+                    role="status"
+                    aria-label="Carregando participantes"
+                    className="space-y-3 rounded-2xl border border-border p-4"
+                  >
+                    {[1, 2].map((item) => (
+                      <div key={item} className="skeleton h-14 rounded-xl" />
+                    ))}
+                  </div>
+                ) : hasMembersLoadError && checklistMembers.length === 0 ? (
+                  <div
+                    role="alert"
+                    className="text-center py-10 border border-dashed border-border rounded-2xl"
+                  >
+                    <p className="text-sm text-muted-foreground">
+                      Não foi possível carregar os participantes. Feche e abra a divisão novamente.
+                    </p>
+                  </div>
+                ) : checklistMembers.length === 0 ? (
                   <div className="text-center py-10 border border-dashed border-border rounded-2xl">
                     <User className="h-10 w-10 mx-auto mb-4 text-muted-foreground" />
                     <p className="text-sm text-muted-foreground">
@@ -407,6 +452,11 @@ export function SplitModal({
                   </div>
                 ) : (
                   <div className="space-y-4">
+                    {hasMembersLoadError && (
+                      <p role="status" className="text-sm text-muted-foreground">
+                        Não foi possível atualizar a lista; usando os participantes já carregados.
+                      </p>
+                    )}
                     {checklistMembers.map((member) => {
                       const split = splits.find((s) => s.memberId === member.id);
                       const isSelected = !!split;
@@ -525,6 +575,11 @@ export function SplitModal({
             Cancelar
           </Button>
           <Button
+            disabled={
+              isLoadingMembers ||
+              !isResolvedPayer ||
+              (hasMembersLoadError && familyMembers.length === 0)
+            }
             onClick={() => {
               onConfirm(splits);
             }}

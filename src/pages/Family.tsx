@@ -31,10 +31,16 @@ const roleLabels: Record<FamilyRole, { label: string; description: string }> = {
 
 export function Family() {
   const { user } = useAuth();
-  const { data: family, isLoading: familyLoading } = useFamily();
-  const { data: members = [], isLoading: membersLoading } = useFamilyMembers();
-  const { data: contacts = [] } = useSharedContacts();
-  const { data: invitations = [] } = useFamilyInvitations();
+  const familyQuery = useFamily();
+  const membersQuery = useFamilyMembers();
+  const contactsQuery = useSharedContacts();
+  const invitationsQuery = useFamilyInvitations();
+  const family = familyQuery.data;
+  const members = membersQuery.data ?? [];
+  const contacts = contactsQuery.data ?? [];
+  const invitations = invitationsQuery.data ?? [];
+  const familyLoading = familyQuery.isLoading;
+  const membersLoading = membersQuery.isLoading;
   const inviteMember = useInviteFamilyMember();
   const updateMember = useUpdateFamilyMember();
   const removeMember = useRemoveFamilyMember();
@@ -45,6 +51,18 @@ export function Family() {
   const addContact = useAddSharedContact();
 
   const [showInviteDialog, setShowInviteDialog] = useState(false);
+
+  const hasFamilyData = familyQuery.data !== undefined;
+  const hasMembersData = membersQuery.data !== undefined;
+
+  if ((familyQuery.isError && !hasFamilyData) || (membersQuery.isError && !hasMembersData)) {
+    return (
+      <div role="alert" className="rounded-xl border border-destructive/30 bg-destructive/5 p-6">
+        Não foi possível carregar os dados da família. Atualize a página para tentar novamente.
+      </div>
+    );
+  }
+
   const isOwner = family?.owner_id === user?.id;
   const canInvite = !family || isOwner;
 
@@ -107,6 +125,15 @@ export function Family() {
 
   return (
     <div className="space-y-8 animate-fade-in pb-20">
+      {(familyQuery.isError ||
+        membersQuery.isError ||
+        contactsQuery.isError ||
+        invitationsQuery.isError) && (
+        <div role="status" className="rounded-xl border border-warning/30 bg-warning/5 p-4">
+          Não foi possível atualizar todos os dados. Os dados já carregados continuam visíveis;
+          atualize a página para tentar novamente.
+        </div>
+      )}
       <div className="relative overflow-hidden rounded-2xl p-4 md:p-6 transition-all duration-700 ease-out bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -180,6 +207,7 @@ export function Family() {
                 key={m.id}
                 member={m}
                 isSelf={m.linked_user_id === user?.id}
+                canManage={isOwner}
                 roleLabels={roleLabels}
                 getInitials={getInitials}
                 onUpdateRole={async (id, r) => {
@@ -231,27 +259,29 @@ export function Family() {
                     <p className="text-xs text-muted-foreground">Convite pendente</p>
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label={`Cancelar convite de ${i.member_name || i.name}`}
-                  className="text-destructive hover:bg-destructive/10 transition-colors"
-                  disabled={cancelInvitation.isPending || removeMember.isPending}
-                  onClick={async () => {
-                    try {
-                      if (i.member_name) {
-                        await cancelInvitation.mutateAsync(i.id);
-                      } else {
-                        await removeMember.mutateAsync(i.id);
+                {canInvite && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Cancelar convite de ${i.member_name || i.name}`}
+                    className="text-destructive hover:bg-destructive/10 transition-colors"
+                    disabled={cancelInvitation.isPending || removeMember.isPending}
+                    onClick={async () => {
+                      try {
+                        if (i.member_name) {
+                          await cancelInvitation.mutateAsync(i.id);
+                        } else {
+                          await removeMember.mutateAsync(i.id);
+                        }
+                        toast.success("Convite cancelado");
+                      } catch (e: any) {
+                        toast.error(e.message || "Erro ao cancelar convite");
                       }
-                      toast.success("Convite cancelado");
-                    } catch (e: any) {
-                      toast.error(e.message || "Erro ao cancelar convite");
-                    }
-                  }}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             ))}
           </div>
@@ -263,7 +293,7 @@ export function Family() {
           <div className="flex items-center gap-2">
             <UserCircle2 className="h-4 w-4 text-muted-foreground" />
             <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
-              Contatos de Despesa ({contacts.length})
+              Contatos de Despesa ({contactsQuery.isLoading ? "carregando…" : contacts.length})
             </h2>
           </div>
           {isOwner && (
@@ -283,7 +313,11 @@ export function Family() {
           painéis de saldo familiar.
         </p>
 
-        {contacts.length > 0 && (
+        {contactsQuery.isLoading ? (
+          <div role="status" aria-label="Carregando contatos de despesa" className="space-y-2">
+            <div className="skeleton h-16 rounded-xl" />
+          </div>
+        ) : contacts.length > 0 ? (
           <div className="space-y-2">
             {contacts.map((c) => (
               <div
@@ -358,7 +392,11 @@ export function Family() {
               </div>
             ))}
           </div>
-        )}
+        ) : !contactsQuery.isError ? (
+          <p className="rounded-xl border border-border/50 bg-muted/20 p-4 text-sm text-muted-foreground">
+            Nenhum contato de despesa cadastrado.
+          </p>
+        ) : null}
       </div>
 
       <div className="p-6 rounded-xl border bg-muted/30">

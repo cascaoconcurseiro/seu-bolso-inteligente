@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
- 
+
 import { useState, useMemo } from "react";
 import {
   Loader2,
@@ -403,7 +403,6 @@ export function TransactionForm(props: TransactionFormProps) {
           numericAmount={moneyUtils.parse(form.amount) || 0}
           trips={form.trips || []}
           hasSharing={form.hasSharing}
-          availableMembers={form.availableMembers}
         />
 
         {/* Toggle "Agendar": aparece quando a data é futura e não é recorrente */}
@@ -521,6 +520,8 @@ export function TransactionForm(props: TransactionFormProps) {
         splits={form.splits}
         setSplits={form.setSplits}
         familyMembers={form.tripId ? form.tripFilteredMembers : form.effectiveFamilyMembers}
+        isLoadingMembers={form.splitMembersLoading}
+        hasMembersLoadError={form.splitMembersError}
         activeAmount={moneyUtils.parse(form.amount) || 0}
         onNavigateToFamily={() => form.navigate("/familia")}
         isInstallment={form.isInstallment}
