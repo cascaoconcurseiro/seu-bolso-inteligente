@@ -17,6 +17,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -26,7 +28,9 @@ jobs:
       # Backlog zerado em 2026-07-13: typecheck agora é bloqueante.
       - run: npx tsc --noEmit -p tsconfig.app.json
       - run: npm run lint
-      - run: npm run format:check
+      - run: node scripts/check-changed-format.mjs
+        env:
+          GITHUB_EVENT_BEFORE: ${{ github.event.before }}
 
   test:
     name: Test (Vitest)
@@ -70,9 +74,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run test:secrets
-      # Bloqueante: vulnerabilidades high/critical em deps de produção impedem o merge.
-      # (--omit=dev: a cadeia vite/esbuild só afeta o dev server e exige major bump)
-      - run: npm audit --audit-level=high --omit=dev
+      # npm audit lê o lockfile completo, mesmo com --omit=dev. O verificador
+      # abaixo cruza os avisos com a árvore efetivamente instalável em produção.
+      - run: node scripts/check-production-audit.mjs
 
   database-security:
     name: Database Security Contract

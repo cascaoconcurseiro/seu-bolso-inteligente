@@ -48,6 +48,7 @@ async function mockAuthSession(page: Page) {
   await page.addInitScript(
     ({ key, session }: { key: string; session: object }) => {
       localStorage.setItem(key, JSON.stringify(session));
+      sessionStorage.setItem("ONBOARDING_COMPLETED", "true");
     },
     { key: storageKey, session: fakeSession }
   );
@@ -59,6 +60,17 @@ async function mockAuthSession(page: Page) {
       status: 200,
       contentType: "application/json",
       body: JSON.stringify(fakeSession),
+    });
+  });
+
+  // Keep E2E tests independent from production and the intentionally fake JWT.
+  // Individual route mocks registered below take precedence for auth/profile.
+  await page.route(`${SUPABASE_URL}/rest/v1/**`, async (route) => {
+    const method = route.request().method();
+    await route.fulfill({
+      status: method === "POST" ? 201 : 200,
+      contentType: "application/json",
+      body: "[]",
     });
   });
 
@@ -88,6 +100,28 @@ async function mockAuthSession(page: Page) {
     } else {
       await route.continue();
     }
+  });
+
+  // The profile bootstrap now uses the private-field-safe RPC rather than a
+  // direct SELECT from profiles. Keep authenticated E2E pages deterministic
+  // and avoid sending the intentionally fake JWT to the live Supabase project.
+  await page.route(`${SUPABASE_URL}/rest/v1/rpc/get_my_profile_v2*`, async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        id: FAKE_USER_ID,
+        email: FAKE_EMAIL,
+        full_name: "Test User",
+        avatar_url: null,
+        avatar_color: null,
+        avatar_icon: null,
+        require_pin_on_open: false,
+        has_pin: false,
+        created_at: "2024-01-01T00:00:00.000Z",
+        updated_at: "2024-01-01T00:00:00.000Z",
+      }),
+    });
   });
 }
 
