@@ -47,23 +47,27 @@ export function useFamily() {
       if (!user) return null;
 
       // Primeiro, tentar buscar família onde sou o DONO
-      const { data: ownedFamily } = await supabase
+      const { data: ownedFamily, error: ownedFamilyError } = await supabase
         .from("families")
-        .select("*, owner:profiles!families_owner_id_fkey(id, full_name, email)")
+        .select("*")
         .eq("owner_id", user.id)
         .maybeSingle();
 
+      if (ownedFamilyError) throw ownedFamilyError;
+
       if (ownedFamily) {
-        return ownedFamily as Family & { owner?: { id: string; full_name: string; email: string } };
+        return ownedFamily as Family & { owner?: { id: string; full_name: string | null } };
       }
 
       // Se não sou dono, buscar família onde sou MEMBRO ativo
-      const { data: memberRecord } = await supabase
+      const { data: memberRecord, error: memberRecordError } = await supabase
         .from("family_members")
         .select("family_id")
         .eq("linked_user_id", user.id)
         .eq("status", "active")
         .maybeSingle();
+
+      if (memberRecordError) throw memberRecordError;
 
       if (!memberRecord) {
         return null; // Não pertence a nenhuma família
@@ -72,16 +76,25 @@ export function useFamily() {
       // Buscar dados da família com owner
       const { data: family, error } = await supabase
         .from("families")
-        .select("*, owner:profiles!families_owner_id_fkey(id, full_name, email)")
+        .select("*")
         .eq("id", memberRecord.family_id)
         .single();
 
       if (error) throw error;
 
-      return family as Family & { owner?: { id: string; full_name: string; email: string } };
+      return family as Family;
     },
     enabled: !!user,
-    retry: false,
+    // Uma falha transitória não deve deixar Família e Contatos indisponíveis
+    // já na primeira tentativa de rede.
+    retry: (failureCount, error) => {
+      const details = error as { code?: string; status?: number };
+      const transient =
+        details.status === 429 ||
+        (typeof details.status === "number" && details.status >= 500) ||
+        !details.code;
+      return failureCount < 1 && transient;
+    },
     staleTime: 60 * 1000,
     refetchOnWindowFocus: false,
   });
@@ -112,7 +125,7 @@ export function useFamilyMembers(includeContacts = false) {
 
       const membersList = (data || []) as FamilyMember[];
       const familyWithOwner = family as Family & {
-        owner?: { id: string; full_name?: string; email?: string };
+        owner?: { id: string; full_name?: string | null };
       };
 
       // Coletar todos os linked_user_ids (membros + owner)
@@ -135,12 +148,14 @@ export function useFamilyMembers(includeContacts = false) {
         }
       > = {};
       if (linkedUserIds.length > 0) {
-        const { data: profiles } = await supabase
+        const { data: profiles, error: profilesError } = await supabase
           .from("profiles")
           .select("id, avatar_url, avatar_color, avatar_icon, full_name")
           .in("id", linkedUserIds);
 
-        (profiles || []).forEach((p) => {
+        // Perfis só enriquecem nome/avatar. Uma falha nessa consulta secundária
+        // não pode descartar os vínculos carregados de family_members.
+        (profilesError ? [] : profiles || []).forEach((p) => {
           profileMap[p.id] = {
             avatar_url: p.avatar_url,
             avatar_color: p.avatar_color,
@@ -185,7 +200,7 @@ export function useFamilyMembers(includeContacts = false) {
           family_id: family.id,
           user_id: familyWithOwner.owner.id,
           name: ownerProfile.full_name || familyWithOwner.owner.full_name || "Dono da Família",
-          email: familyWithOwner.owner.email ?? null,
+          email: null,
           role: "admin",
           status: "active",
           member_type: "family",
@@ -208,6 +223,42 @@ export function useFamilyMembers(includeContacts = false) {
           (m) => m.linked_user_id === familyWithOwner.owner?.id
         );
         if (!alreadyExists) {
+          return [ownerAsMember, ...filteredMembers];
+        }
+      }
+
+      // O owner_id vem da própria família e não depende de uma consulta a
+      // profiles para exibir o registro virtual do dono.
+      if (!familyWithOwner?.owner && family.owner_id) {
+        const ownerAlreadyExists = filteredMembers.some(
+          (m) => m.linked_user_id === family.owner_id
+        );
+        if (!ownerAlreadyExists) {
+          const ownerAsMember: FamilyMember = {
+            id: `owner-${family.owner_id}`,
+            family_id: family.id,
+            user_id: family.owner_id,
+            linked_user_id: family.owner_id,
+            name:
+              family.owner_id === user.id
+                ? user.user_metadata?.full_name || user.user_metadata?.name || "Você"
+                : "Dono da Família",
+            email: null,
+            role: "admin",
+            status: "active",
+            member_type: "family",
+            invited_by: null,
+            sharing_scope: "all",
+            scope_start_date: null,
+            scope_end_date: null,
+            scope_trip_id: null,
+            active_in_form: true,
+            avatar_url: null,
+            avatar_color: null,
+            avatar_icon: null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
           return [ownerAsMember, ...filteredMembers];
         }
       }
