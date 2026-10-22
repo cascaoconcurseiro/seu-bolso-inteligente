@@ -10,6 +10,7 @@ export interface TripMember {
   user_id: string | null; // null para participantes sem conta (guests)
   guest_name?: string | null; // nome do convidado externo
   role: "owner" | "member";
+  status: "active" | "inactive" | "pending";
   can_edit_details: boolean;
   can_manage_expenses: boolean;
   personal_budget: number | null;
@@ -17,7 +18,6 @@ export interface TripMember {
   updated_at: string;
   profiles?: {
     full_name: string | null;
-    email: string;
   };
   // Campo computado: nome de exibição (perfil ou guest_name)
   display_name?: string;
@@ -35,7 +35,7 @@ export function useTripMembers(tripId: string | null) {
       const { data, error } = await supabase
         .from("trip_members")
         .select(
-          "id, trip_id, user_id, guest_name, role, can_edit_details, can_manage_expenses, personal_budget, created_at, updated_at"
+          "id, trip_id, user_id, guest_name, role, status, can_edit_details, can_manage_expenses, personal_budget, created_at, updated_at"
         )
         .eq("trip_id", tripId)
         .order("created_at");
@@ -47,20 +47,19 @@ export function useTripMembers(tripId: string | null) {
       if (data && data.length > 0) {
         // Só buscar profiles para membros com user_id
         const userIds = [...new Set(data.map((m) => m.user_id).filter(Boolean))] as string[];
-        const profilesMap = new Map<string, { full_name: string | null; email: string }>();
+        const profilesMap = new Map<string, { full_name: string | null }>();
 
         if (userIds.length > 0) {
           const { data: profiles } = await supabase
             .from("profiles")
-            .select("id, full_name, email")
+            .select("id, full_name")
             .in("id", userIds);
           profiles?.forEach((p) => profilesMap.set(p.id, p));
         }
 
         const enrichedData = data.map((member) => {
           const profile = member.user_id ? profilesMap.get(member.user_id) : undefined;
-          const display_name =
-            profile?.full_name || profile?.email || member.guest_name || "Convidado";
+          const display_name = profile?.full_name || member.guest_name || "Convidado";
           return {
             ...member,
             profiles: profile,

@@ -11,6 +11,7 @@ interface UseTransactionDuplicatesProps {
   date: Date;
   activeTab: string;
   accountId: string;
+  isSubmitting?: boolean;
   initialData?: Partial<Transaction>;
 }
 
@@ -21,11 +22,16 @@ export function useTransactionDuplicates({
   date,
   activeTab,
   accountId,
+  isSubmitting = false,
   initialData,
 }: UseTransactionDuplicatesProps) {
   const [duplicateWarning, setDuplicateWarning] = useState(false);
 
   useEffect(() => {
+    if (isSubmitting) {
+      setDuplicateWarning(false);
+      return;
+    }
     if (!allTransactions || allTransactions.length === 0) {
       setDuplicateWarning(false);
       return;
@@ -63,7 +69,7 @@ export function useTransactionDuplicates({
       setDuplicateWarning(hasDuplicate);
     }, 500);
     return () => clearTimeout(handler);
-  }, [amount, description, date, activeTab, allTransactions, initialData, accountId]);
+  }, [amount, description, date, activeTab, allTransactions, initialData, accountId, isSubmitting]);
 
-  return duplicateWarning;
+  return isSubmitting ? false : duplicateWarning;
 }
