@@ -2,32 +2,27 @@
 
 > Última atualização: 2026-10-24
 
-## Estado atual
+## Estado confirmado
 
-- Release anterior: commit `0556074d` enviado em fast-forward para `main`; Vercel marcou deployment como `Ready` em `https://meupedemeia.vercel.app`.
-- Supabase: quatro migrations aplicadas e conferidas em `schema_migrations`; `db push --linked --dry-run` retornou `upToDate=true`. O cron `daily-balance-reconciliation` está ativo em `0 4 * * *` e teve execução live confirmada em 24/10/2026 às 04:00 UTC.
-- Família ao vivo: Fran aparece como membro, Jhonatan como contato; sem escrita nesta validação. O topo horizontal também foi confirmado na produção.
-- Testes no release: Playwright 114/115 (um skip esperado em cinco projetos); Vitest 332 passaram/19 ignorados; typecheck e build passaram.
-- Segurança de dependências: nesta revisão local, Vite 5.4.21 era divergência com o checklist e tinha finding alto. Atualizei Vite para 7.3.7 e Vitest/UI/coverage para 4.1.12. `npm audit` agora: zero altos/críticos e cinco moderados em Tailwind/PostCSS e React Router. A atualização ainda não foi commitada/publicada.
-- Gate local após o update: typecheck e build passaram; Playwright passou 114/115, um skip esperado, em Chromium, Firefox, WebKit, Mobile Chrome e Mobile Safari. Vitest passou 332 testes/19 ignorados em 51 arquivos; a primeira execução concorrente teve um timeout transitório, mas o caso passou isolado e a repetição completa passou.
-- A revisão independente do diff de dependências não encontrou incompatibilidade; Vite 7 requer Node `^20.19.0` ou `>=22.12.0`. O CI solicita Node 20 via `actions/setup-node`; confirmar a versão efetiva e o resultado do CI depois do push.
-- `test:secrets` passou. O harness `test:db-security` não foi executado nesta continuação porque o worktree não tem DSN e CA de TLS estrito configurados; não habilitar TLS inseguro para contornar isso.
+- `0e9f8431` está em `main`. Vercel deployment `dpl_3hU5dZ6REkNHrNNEgbhRryBg1eSU` está `Ready`, ligado ao mesmo SHA; o alias `https://meupedemeia.vercel.app/version.json` serve `buildTimestamp=1792881708678`.
+- Revisão semântica de 55 RPCs `SECURITY DEFINER` autenticadas reconciliou corpos e callers por domínio (catálogo: 131 definers, zero grants `anon`, zero sem `search_path`). Quatro achados comprovados foram corrigidos em migrations aplicadas: saldo de viagem/notificações de convite; integridade e remoção lógica de parcelas; membership/admin/resumo compartilhado; projeção mensal e saldo histórico. O ledger remoto contém as quatro e `db push --linked --dry-run` reporta up-to-date. Fixtures sintéticas foram exercitadas em `BEGIN/ROLLBACK`; nenhum fixture permaneceu.
+- Benchmark live de `/configuracoes`: mediana de 3 navegações com cache/service worker desativados, load 363 ms, TTFB 43 ms, DOMContentLoaded 331 ms, FCP 324 ms, 397.079 bytes. Load histórico era 535,6 ms, mas as condições não são idênticas. Imagens iniciais caíram de 30 para 2 (94% menos bytes codificados na captura); restante carrega sob demanda.
+- Dependências: Vite 7.3.7, Vitest/UI/coverage 4.1.12. `npm ci`, Vitest 332/19 ignorados, Playwright cross-browser 114/115 (1 skip esperado), typecheck, build e `test:secrets` passaram. `npm audit`: zero altos/críticos, cinco moderados em Tailwind/PostCSS e React Router. Revisão independente do diff não encontrou incompatibilidade.
+- CI #40139639302: Build Check, Lint & Type Check, Vitest, Security Audit e E2E Chromium passaram. `Database Security Contract` falhou porque `SUPABASE_DB_URL` não está configurada; o gate de isolamento live foi pulado. Não inserir secret no GitHub sem decisão/autorização própria; harnesses locais devem continuar com TLS estrito.
+- Cron `daily-balance-reconciliation` está ativo `0 4 * * *`; execução live confirmada em 24/10/2026 às 04:00 UTC.
 
-## Pendências que mantêm a auditoria aberta
+## Bloqueio e pendências do objetivo
 
-1. Concluir repetição da suíte Vitest completa sem concorrência e validar `npm ci` a partir do lockfile atualizado.
-2. Revisar o resultado de CI/Node e publicar o patch de dependências no fluxo autorizado; conferir deployment e `version.json` live.
-3. Aceite ao vivo do upload OFX sintético: o parser corrigido está no release anterior, mas falta a permissão manual temporária de acesso a arquivos locais para a extensão Codex no Brave. Não enviar arquivo até ela estar habilitada.
-4. Export/restore: export ainda não prova snapshot consistente; restauração permanece desativada até contrato de escopo compartilhado, staging/rollback transacional e cobertura integral em banco isolado.
-5. Completar a matriz de CRUDs/fluxos de alto impacto ao vivo, bem como cobertura dos cálculos financeiros prioritários.
-6. Resolver os cinco findings moderados restantes e os avisos de `db lint`/drift sem remover funções históricas antes de confirmar consumidores SQL externos.
-7. Repetir o harness DB seguro com DSN não-poolado e CA oficial, cobrindo a matriz histórica de 39 cenários e pós-condições sem fixtures.
-8. A checklist ainda contém itens históricos de dashboard, reset administrativo, registros antigos de teste e eventual reconciliação de parcelas; tratar cada item conforme sua evidência/risco, sem mudar dados financeiros sem autorização específica.
+1. **OFX live:** Wesley confirmou que “Permitir acesso a URLs de arquivo” está habilitado no Brave. Não foi enviado arquivo. Computer Use não conseguiu determinar a URL atual da janela com confiança suficiente e encerrou a automação; não tentar contornar essa barreira com outra interface. Repetir quando a ferramenta conseguir validar a origem do site. A suíte local do parser/modal passou 13/13.
+2. **Contrato DB live:** falta `SUPABASE_DB_URL` seguro no CI e DSN/CA oficial no worktree para o harness estrito. O job #40139639302 não provou o isolamento live.
+3. **Dependências:** cinco findings moderados restantes; decidir/migrar Tailwind 4 e React Router 7 com compatibilidade e regressões cobertas.
+4. **Backup:** export não garante snapshot consistente; restore permanece desabilitado até cobrir dados compartilhados, staging transacional, rollback e testes abrangentes em banco isolado.
+5. **Escopo amplo da auditoria:** ainda há aceites de CRUDs live, cobertura dos cálculos financeiros prioritários, avisos de db lint/migration drift e itens antigos de dashboard/reset/admin a reconciliar. Nenhum dado financeiro deve ser alterado sem autorização específica.
 
 ## Próximo passo concreto
 
-Executar `npm ci` a partir do lockfile atualizado e repetir typecheck/build/testes; então revisar os diffs de `package.json`, `package-lock.json`, `CHECKLIST.md` e este handoff, commitar e enviar o fast-forward para `main` conforme a autorização já dada. Após isso acompanhar o CI e Vercel e validar a versão publicada.
+Manter a pendência OFX visível e, numa sessão com URL do Brave reconhecida pela ferramenta Computer Use, observar a rota atual, confirmar o domínio `meupedemeia.vercel.app`, anexar somente o arquivo OFX sintético, validar prévia/duplicidade/importação e remover pelo próprio app todo registro sintético, conferindo saldo/lista ao baseline. Se a ferramenta continuar sem reconhecer a URL, parar sem upload. Em paralelo, obter o resultado de harness DB com credenciais e CA via mecanismo aprovado, sem TLS inseguro.
 
 ## Progresso
 
-`CHECKLIST.md`: 361/396 caixas concluídas (35 abertas; 8,8%). Grupo `AUDIT`: 186/210 concluídas (24 abertas; 11,4%). São percentuais de caixas, não estimativas de esforço ou medida completa de cobertura. Goal continua ativo; não declarar auditoria completa enquanto pendências acima estiverem abertas.
+`CHECKLIST.md`: 361/396 caixas concluídas (35 abertas; 8,8% abertas). Grupo `AUDIT`: 186/210 (24 abertas; 11,4% abertas). Percentuais contam caixas, não esforço ou cobertura. O goal permanece ativo enquanto OFX e lacunas acima não estiverem encerrados.
