@@ -7,12 +7,15 @@ test.describe("Core: Transações", () => {
     await expect(page.locator('h1, [data-testid="page-title"]').first()).toBeVisible({
       timeout: 10000,
     });
-    const newBtn = page.locator('button:has-text("Nova Transação"), button:has-text("Adicionar")');
-    if (await newBtn.isVisible()) {
-      await newBtn.click();
-      await expect(page.locator('text="Valor"').first()).toBeVisible();
-      await expect(page.locator('text="Categoria"').first()).toBeVisible();
-    }
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page
+      .getByRole("navigation", { name: "Navegação móvel" })
+      .getByRole("button", { name: "Nova transação" })
+      .click();
+    const dialog = page.getByRole("dialog", { name: "Nova Transação" });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("heading", { name: "Nenhuma conta encontrada" })).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "Criar Conta" })).toBeVisible();
   });
 
   test("Acessibilidade: sem violações críticas", async ({ authenticatedPage: page }) => {

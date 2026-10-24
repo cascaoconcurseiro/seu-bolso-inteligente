@@ -1,15 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable unused-imports/no-unused-vars */
 import { useState, useRef, useMemo } from "react";
 import { sheetDialogCn } from "@/lib/dialog-variants";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { FileUp, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
-import { XMLParser } from "fast-xml-parser";
 import { useAccounts } from "@/hooks/useAccounts";
-import { useTransactions } from "@/hooks/useTransactions";
+import { supabase } from "@/integrations/supabase/client";
 import { insertRecords } from "@/utils/supabaseHelpers";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -20,21 +24,26 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useQueryClient } from "@tanstack/react-query";
-import { format, parseISO } from "date-fns";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { logger } from "@/utils/logger";
-import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
+import {
+  ofxBatchDuplicateKey,
+  ofxContentDuplicateKey,
+  ofxTransactionDuplicateBaseKey,
+  parseOfxTransactions,
+} from "@/utils/ofxParser";
 
 interface OFXImportModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+const OFX_DUPLICATE_PAGE_SIZE = 1000;
+
 export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { data: accounts } = useAccounts();
-  const { data: existingTransactions } = useTransactions();
   const [selectedAccountId, setSelectedAccountId] = useState<string>("");
 
   const [isUploading, setIsUploading] = useState(false);
@@ -46,28 +55,6 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
     return accounts?.filter((acc) => acc.is_active !== false) || [];
   }, [accounts]);
 
-  const parseOFXDate = (dateStr: string): string => {
-    // OFX Date format: YYYYMMDDHHMMSS or YYYYMMDD
-    if (!dateStr || dateStr.length < 8) {
-      // Retorna ontem como fallback seguro em vez de hoje para evitar datas futuras
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      return format(yesterday, "yyyy-MM-dd");
-    }
-    const year = dateStr.substring(0, 4);
-    const month = dateStr.substring(4, 6);
-    const day = dateStr.substring(6, 8);
-    const iso = `${year}-${month}-${day}`;
-    // Valida que a data é real antes de retornar
-    try {
-      const parsed = parseISO(iso);
-      if (isNaN(parsed.getTime())) throw new Error();
-      return iso;
-    } catch {
-      return format(new Date(), "yyyy-MM-dd");
-    }
-  };
-
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!selectedAccountId) {
       toast.error("Por favor, selecione uma conta de destino primeiro.");
@@ -78,8 +65,9 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.name.toLowerCase().endsWith(".ofx") && !file.name.toLowerCase().endsWith(".csv")) {
-      toast.error("Formato inválido. Envie um arquivo .OFX ou .CSV");
+    if (!file.name.toLowerCase().endsWith(".ofx")) {
+      toast.error("Formato inválido. Envie um arquivo .OFX");
+      if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
 
@@ -92,32 +80,13 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
     }
 
     setIsUploading(true);
+    let failurePhase: "read" | "duplicates" | "save" = "read";
 
     try {
+      if (!user) throw new Error("Não autenticado");
+
       const text = await file.text();
-      let importedTx: any[] = [];
-
-      if (file.name.toLowerCase().endsWith(".ofx")) {
-        const xmlContent = text.substring(text.indexOf("<OFX>"));
-        const parser = new XMLParser();
-        const jsonObj = parser.parse(xmlContent);
-
-        const transactions = extractTransactionsFromOFX(jsonObj);
-
-        importedTx = transactions.map((tx) => {
-          const amt = parseFloat(tx.TRNAMT || "0");
-          return {
-            amount: Math.abs(amt),
-            type: amt < 0 ? "EXPENSE" : "INCOME",
-            description: tx.MEMO || tx.NAME || "Transação Importada",
-            date: parseOFXDate(tx.DTPOSTED),
-            external_id: tx.FITID,
-          };
-        });
-      } else {
-        // Fallback to minimal CSV logic or throw
-        throw new Error("Suporte apenas para OFX no momento para precisão.");
-      }
+      const importedTx = parseOfxTransactions(text);
 
       if (importedTx.length === 0) {
         toast.error("Nenhuma transação encontrada no arquivo.");
@@ -125,23 +94,68 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
         return;
       }
 
-      // Filtrar duplicados: compara data, valor e conta.
-      // Em um cenário mais robusto, external_id (FITID) salvaria.
+      // A consulta cobre todo o intervalo do arquivo, não apenas o mês selecionado na tela.
+      failurePhase = "duplicates";
+      const importedDates = importedTx.map((transaction) => transaction.date);
+      const minDate = importedDates.reduce((min, date) => (date < min ? date : min));
+      const maxDate = importedDates.reduce((max, date) => (date > max ? date : max));
+      const existingTransactions: Array<{
+        account_id: string | null;
+        amount: number | string;
+        type: string;
+        date: string;
+        external_id: string | null;
+        description: string;
+      }> = [];
+
+      for (let offset = 0; ; offset += OFX_DUPLICATE_PAGE_SIZE) {
+        const { data, error } = await supabase
+          .from("transactions")
+          .select("account_id, amount, type, date, external_id, description")
+          .eq("user_id", user.id)
+          .eq("account_id", selectedAccountId)
+          .is("deleted_at", null)
+          .or("status.neq.PENDING,status.is.null")
+          .gte("date", minDate)
+          .lte("date", maxDate)
+          .order("id", { ascending: true })
+          .range(offset, offset + OFX_DUPLICATE_PAGE_SIZE - 1);
+
+        if (error) throw error;
+        const rows = data ?? [];
+        existingTransactions.push(...rows);
+        if (rows.length < OFX_DUPLICATE_PAGE_SIZE) break;
+      }
+
+      const existingFitIds = new Set<string>();
+      const existingContentKeys = new Set<string>();
+      const existingWithoutFitIdContentKeys = new Set<string>();
+      for (const existing of existingTransactions) {
+        const contentKey = ofxContentDuplicateKey(existing, selectedAccountId);
+        const baseKey = ofxTransactionDuplicateBaseKey(existing, selectedAccountId);
+        existingContentKeys.add(contentKey);
+        if (existing.external_id?.trim())
+          existingFitIds.add(`${baseKey}:fitid:${existing.external_id.trim()}`);
+        else existingWithoutFitIdContentKeys.add(contentKey);
+      }
+
       const newTransactions: any[] = [];
       let duplicateCounter = 0;
+      const seenInFile = new Set<string>();
+      failurePhase = "save";
 
       for (const tx of importedTx) {
-        const isDuplicate = existingTransactions?.some(
-          (et) =>
-            et.account_id === selectedAccountId &&
-            et.type === tx.type &&
-            et.date === tx.date &&
-            SafeFinancialCalculator.toSafeNumber(et.amount) ===
-              SafeFinancialCalculator.toSafeNumber(tx.amount) &&
-            // Compara pelo FITID se já tivermos salvo
-            (et.external_id === tx.external_id ||
-              et.description.toLowerCase() === tx.description.toLowerCase())
-        );
+        const batchKey = ofxBatchDuplicateKey(tx, selectedAccountId);
+        const contentKey = ofxContentDuplicateKey(tx, selectedAccountId);
+        const baseKey = ofxTransactionDuplicateBaseKey(tx, selectedAccountId);
+        const fitId = tx.external_id?.trim();
+        const isDuplicate =
+          seenInFile.has(batchKey) ||
+          (fitId
+            ? existingFitIds.has(`${baseKey}:fitid:${fitId}`) ||
+              existingWithoutFitIdContentKeys.has(contentKey)
+            : existingContentKeys.has(contentKey));
+        seenInFile.add(batchKey);
 
         if (isDuplicate) {
           duplicateCounter++;
@@ -195,35 +209,31 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
       setDuplicatesCount(duplicateCounter);
 
       if (insertedCount > 0) {
-        toast.success(`${insertedCount} transações salvas com sucesso!`);
+        toast.success(
+          insertedCount === 1
+            ? "1 transação salva com sucesso!"
+            : `${insertedCount} transações salvas com sucesso!`
+        );
       } else {
-        toast.info(`Nenhuma transação nova. ${duplicateCounter} duplicadas ignoradas.`);
+        toast.info(
+          duplicateCounter === 1
+            ? "Nenhuma transação nova. 1 duplicada ignorada."
+            : `Nenhuma transação nova. ${duplicateCounter} duplicadas ignoradas.`
+        );
       }
     } catch (error) {
-      logger.error(String(error));
-      toast.error("Erro ao ler arquivo. Verifique o formato.");
+      logger.error("Falha na importação OFX", error);
+      if (failurePhase === "read") {
+        toast.error("Erro ao ler arquivo. Verifique o formato.");
+      } else if (failurePhase === "duplicates") {
+        toast.error("Não foi possível verificar duplicatas. Nenhuma transação foi importada.");
+      } else {
+        toast.error("Não foi possível salvar as transações. Tente novamente.");
+      }
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
-  };
-
-  const extractTransactionsFromOFX = (obj: any): any[] => {
-    let results: any[] = [];
-    if (typeof obj !== "object" || obj === null) return results;
-
-    if (obj.STMTTRN) {
-      if (Array.isArray(obj.STMTTRN)) {
-        results = [...results, ...obj.STMTTRN];
-      } else {
-        results.push(obj.STMTTRN);
-      }
-    } else {
-      for (const key in obj) {
-        results = [...results, ...extractTransactionsFromOFX(obj[key])];
-      }
-    }
-    return results;
   };
 
   const resetState = () => {
@@ -245,9 +255,9 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
         </div>
         <DialogHeader className="px-6 pt-2 pb-0">
           <DialogTitle>Importar Extrato (OFX)</DialogTitle>
-          <p className="text-sm text-muted-foreground">
+          <DialogDescription>
             Importe seu extrato bancário. O sistema filtrará duplicatas automaticamente.
-          </p>
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 overflow-y-auto flex-1 px-6 pb-6 pt-4">
@@ -259,11 +269,15 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
               <div className="text-center">
                 <h3 className="font-medium text-sm text-foreground">Importação Concluída</h3>
                 <p className="text-xs text-muted-foreground">
-                  {successCount} novas transações adicionadas
+                  {successCount === 1
+                    ? "1 nova transação adicionada"
+                    : `${successCount} novas transações adicionadas`}
                 </p>
                 {duplicatesCount > 0 && (
                   <p className="text-xs text-warning mt-1">
-                    {duplicatesCount} transações duplicadas ignoradas.
+                    {duplicatesCount === 1
+                      ? "1 transação duplicada ignorada."
+                      : `${duplicatesCount} transações duplicadas ignoradas.`}
                   </p>
                 )}
               </div>

@@ -46,7 +46,7 @@ export function PendingTripInvitationsAlert() {
         const destination = invitation.trips?.destination;
         const startDate = invitation.trips?.start_date;
         const endDate = invitation.trips?.end_date;
-        const inviterName = invitation.inviter?.full_name || invitation.inviter?.email || "Alguém";
+        const inviterName = invitation.inviter?.full_name || "Alguém";
 
         return (
           <Alert key={invitation.id} className="border-primary/50 bg-primary/5">

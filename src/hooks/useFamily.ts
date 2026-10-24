@@ -321,59 +321,21 @@ export function useInviteFamilyMember() {
         throw new Error("Você não pode se adicionar como membro da família");
       }
 
-      // Verificar se o email já está cadastrado no app (busca case-insensitive)
-      const { data: existingProfile } = await supabase
-        .from("profiles")
-        .select("id, email, full_name")
-        .ilike("email", email)
-        .maybeSingle();
-
-      // Verificar se é o próprio usuário pelo ID
-      if (existingProfile?.id === user.id) {
+      const normalizedEmail = email.trim().toLowerCase();
+      if (normalizedEmail === user.email?.trim().toLowerCase()) {
         throw new Error("Você não pode se adicionar como membro da família");
       }
 
-      // Se usuário existe, criar solicitação
-      if (existingProfile) {
-        const { data, error } = await supabase
-          .from("family_invitations")
-          .insert({
-            from_user_id: user.id,
-            to_user_id: existingProfile.id,
-            family_id: familyId,
-            member_name: name,
-            role,
-            status: "pending",
-            sharing_scope: sharingScope || "all",
-            scope_start_date: scopeStartDate || null,
-            scope_end_date: scopeEndDate || null,
-            scope_trip_id: scopeTripId || null,
-          })
-          .select()
-          .single();
-
-        if (error) {
-          if (error.code === "23505") {
-            // duplicate key
-            throw new Error("Solicitação já enviada para este usuário");
-          }
-          throw error;
-        }
-        return { type: "invitation", data };
-      }
-
-      // Se usuário não existe, criar membro local
       const { data, error } = await supabase
-        .from("family_members")
+        .from("family_invitations")
         .insert({
+          from_user_id: user.id,
+          to_user_id: null,
+          to_email: normalizedEmail,
           family_id: familyId,
-          user_id: null,
-          linked_user_id: null,
-          name,
-          email: email.toLowerCase(),
+          member_name: name,
           role,
           status: "pending",
-          invited_by: user.id,
           sharing_scope: sharingScope || "all",
           scope_start_date: scopeStartDate || null,
           scope_end_date: scopeEndDate || null,
@@ -382,19 +344,22 @@ export function useInviteFamilyMember() {
         .select()
         .single();
 
-      if (error) throw error;
-      return { type: "local", data };
+      if (error) {
+        if (error.code === "23505") {
+          throw new Error("Solicitação já enviada para este usuário");
+        }
+        throw error;
+      }
+      return { type: "invitation", data };
     },
-    onSuccess: (result) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["family-members"] });
       queryClient.invalidateQueries({ queryKey: ["family-invitations"] });
       queryClient.invalidateQueries({ queryKey: ["family"] });
 
-      if (result.type === "invitation") {
-        toast.success("Solicitação enviada! Aguardando aceitação.");
-      } else {
-        toast.success("Membro adicionado localmente!");
-      }
+      toast.success(
+        "Convite enviado. Ele ficará disponível quando a pessoa entrar com este e-mail."
+      );
     },
     onError: (error) => {
       if (error.message.includes("duplicate") || error.message.includes("já enviada")) {
@@ -499,39 +464,12 @@ export function useAddSharedContact() {
         queryClient.invalidateQueries({ queryKey: ["family"] });
       }
 
-      // Tentar encontrar usuário registrado pelo email ou nome
-      let linkedUserId: string | null = null;
       const trimmedEmail = email?.trim().toLowerCase();
-
-      if (trimmedEmail) {
-        const { data: profileByEmail } = await supabase
-          .from("profiles")
-          .select("id")
-          .ilike("email", trimmedEmail)
-          .maybeSingle();
-        if (profileByEmail?.id && profileByEmail.id !== user.id) {
-          linkedUserId = profileByEmail.id;
-        }
-      }
-
-      // Se não encontrou por email, tenta por nome
-      if (!linkedUserId) {
-        const trimmedName = name.trim();
-        const { data: profileByName } = await supabase
-          .from("profiles")
-          .select("id")
-          .ilike("full_name", trimmedName)
-          .neq("id", user.id)
-          .maybeSingle();
-        if (profileByName?.id) {
-          linkedUserId = profileByName.id;
-        }
-      }
 
       const { error } = await supabase.from("family_members").insert({
         family_id: familyId,
-        user_id: linkedUserId,
-        linked_user_id: linkedUserId,
+        user_id: null,
+        linked_user_id: null,
         name: name.trim(),
         email: trimmedEmail || null,
         role: "viewer",
@@ -542,15 +480,11 @@ export function useAddSharedContact() {
       });
       if (error) throw error;
 
-      return { linkedUserId };
+      return {};
     },
-    onSuccess: (result) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["shared-contacts"] });
-      if (result?.linkedUserId) {
-        toast.success("Contato vinculado a um usuário registrado — convites habilitados");
-      } else {
-        toast.success("Contato adicionado com sucesso");
-      }
+      toast.success("Contato adicionado com sucesso");
     },
     onError: (e: Error) => toast.error(e.message || "Erro ao adicionar contato"),
   });

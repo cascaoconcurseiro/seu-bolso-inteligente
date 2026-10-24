@@ -37,8 +37,8 @@ export function PendingInvitationsAlert() {
           <AlertTitle>Solicitação de Vínculo Familiar</AlertTitle>
           <AlertDescription className="mt-2 space-y-3">
             <p>
-              <strong>{invitation.from_user?.full_name || invitation.from_user?.email}</strong> quer
-              adicionar você à família como <strong>{invitation.member_name}</strong>.
+              <strong>{invitation.from_user?.full_name || "Alguém"}</strong> quer adicionar você à
+              família como <strong>{invitation.member_name}</strong>.
             </p>
             <div className="flex gap-2">
               <Button

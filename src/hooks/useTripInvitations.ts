@@ -24,7 +24,6 @@ export interface TripInvitation {
   };
   inviter?: {
     full_name: string | null;
-    email: string;
   };
 }
 
@@ -37,7 +36,7 @@ export function usePendingTripInvitations() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("trip_invitations")
-        .select("*, trips(*), inviter:profiles!inviter_id(full_name, email)")
+        .select("*, trips(*), inviter:profiles!inviter_id(full_name)")
         .eq("invitee_id", user!.id)
         .eq("status", "pending");
 
@@ -83,7 +82,7 @@ export function useSentTripInvitations(tripId: string | null) {
         const inviteeIds = [...new Set(data.map((inv) => inv.invitee_id))];
         const { data: profiles } = await supabase
           .from("profiles")
-          .select("id, full_name, email")
+          .select("id, full_name")
           .in("id", inviteeIds);
 
         const profilesMap = new Map(profiles?.map((p) => [p.id, p]) || []);
@@ -145,7 +144,7 @@ export function useCreateTripInvitation() {
       const inviterName = inviterProfile?.full_name || user?.email?.split("@")[0] || "Alguém";
       const tripName = trip?.name || "uma viagem";
       try {
-        await createTripInviteNotification(inviteeId, tripName, tripId, inviterName);
+        await createTripInviteNotification(inviteeId, tripName, tripId, inviterName, data.id);
       } catch (notifErr) {
         logger.error("Erro ao criar notificação para convidado:", notifErr);
       }

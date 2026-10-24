@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
- 
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -66,7 +66,7 @@ export function TransactionFilters({
           Tipo
         </label>
         <Select value={selectedType} onValueChange={setSelectedType}>
-          <SelectTrigger className="w-full h-12 md:h-10">
+          <SelectTrigger aria-label="Tipo" className="w-full h-12 md:h-10">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -82,7 +82,7 @@ export function TransactionFilters({
           Categoria
         </label>
         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-          <SelectTrigger className="w-full h-12 md:h-10">
+          <SelectTrigger aria-label="Categoria" className="w-full h-12 md:h-10">
             <SelectValue placeholder="Todas" />
           </SelectTrigger>
           <SelectContent>
@@ -104,7 +104,7 @@ export function TransactionFilters({
           Conta
         </label>
         <Select value={selectedAccount} onValueChange={setSelectedAccount}>
-          <SelectTrigger className="w-full h-12 md:h-10">
+          <SelectTrigger aria-label="Conta" className="w-full h-12 md:h-10">
             <SelectValue placeholder="Todas" />
           </SelectTrigger>
           <SelectContent>
@@ -123,7 +123,7 @@ export function TransactionFilters({
           Período
         </label>
         <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-          <SelectTrigger className="w-full h-12 md:h-10">
+          <SelectTrigger aria-label="Período" className="w-full h-12 md:h-10">
             <SelectValue placeholder="Todo período" />
           </SelectTrigger>
           <SelectContent>
@@ -155,6 +155,7 @@ export function TransactionFilters({
         <Button
           variant={showFilters ? "default" : "outline"}
           onClick={() => setShowFilters(!showFilters)}
+          aria-label="Filtros"
           className="gap-2 h-12 md:h-10 min-w-[44px]"
         >
           <Filter className="h-4 w-4" />

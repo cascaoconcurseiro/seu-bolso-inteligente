@@ -7,19 +7,8 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { useGlobalRealtime } from "@/hooks/useGlobalRealtime";
 import { useCategories, useCreateDefaultCategories } from "@/hooks/useCategories";
 import { UserAvatar } from "@/components/ui/user-avatar";
-import {
-  Settings,
-  Moon,
-  Sun,
-  LogOut,
-  Plus,
-  Eye,
-  EyeOff,
-  ChevronDown,
-  Search,
-  Grid3X3,
-} from "lucide-react";
-import { navigationItems, secondaryNavItems } from "@/config/navigation";
+import { Settings, Moon, Sun, LogOut, Plus, Eye, EyeOff, Search } from "lucide-react";
+import { navigationItems } from "@/config/navigation";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -38,6 +27,7 @@ import { OnboardingGuard } from "@/components/onboarding/OnboardingGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { lazy, Suspense } from "react";
 import { getRouteResourceId, getRouteTitle } from "@/utils/frontendFlows";
+import { preloadNavigationRoute } from "@/utils/preloadNavigationRoute";
 
 const GlobalSearch = lazy(() =>
   import("@/components/search/GlobalSearch").then((module) => ({ default: module.GlobalSearch }))
@@ -131,6 +121,10 @@ export function AppLayout({ children }: AppLayoutProps) {
     setShowTransactionModal(true, context);
   };
 
+  const handleRouteIntent = (path: string) => {
+    void preloadNavigationRoute(path)?.catch(() => undefined);
+  };
+
   return (
     <div className="min-h-screen flex flex-col w-full bg-background">
       <VersionGuard />
@@ -154,7 +148,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
             {/* Desktop Navigation */}
             <nav
-              className="hidden md:flex items-center gap-0 flex-1 justify-center flex-wrap"
+              className="hidden md:flex min-w-0 items-center gap-1 flex-1 justify-start 2xl:justify-center flex-nowrap overflow-x-auto no-scrollbar px-3"
               aria-label="Navegação principal"
             >
               {navigationItems.map((item) => {
@@ -166,6 +160,8 @@ export function AppLayout({ children }: AppLayoutProps) {
                   <Link
                     key={item.path}
                     to={item.path}
+                    onMouseEnter={() => handleRouteIntent(item.path)}
+                    onFocus={() => handleRouteIntent(item.path)}
                     title={item.label}
                     className={cn(
                       "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors duration-150 whitespace-nowrap",
@@ -179,45 +175,6 @@ export function AppLayout({ children }: AppLayoutProps) {
                   </Link>
                 );
               })}
-              {secondaryNavItems.length > 0 && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      className={cn(
-                        "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors duration-150 whitespace-nowrap",
-                        "text-muted-foreground hover:text-foreground hover:bg-secondary/70"
-                      )}
-                      aria-label="Mais itens de navegação"
-                    >
-                      <Grid3X3 className="h-3.5 w-3.5 flex-shrink-0" />
-                      Mais
-                      <ChevronDown className="h-3 w-3 opacity-50" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48">
-                    {secondaryNavItems.map((item) => {
-                      const Icon = item.icon;
-                      const isActive =
-                        location.pathname === item.path ||
-                        (item.path !== "/" && location.pathname.startsWith(item.path));
-                      return (
-                        <DropdownMenuItem key={item.path} asChild>
-                          <Link
-                            to={item.path}
-                            className={cn(
-                              "flex items-center gap-2 cursor-pointer",
-                              isActive && "text-primary font-medium"
-                            )}
-                          >
-                            <Icon className="h-4 w-4" />
-                            {item.label}
-                          </Link>
-                        </DropdownMenuItem>
-                      );
-                    })}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
             </nav>
 
             {/* Right Section — isolado para não derrubar o header inteiro em caso de erro */}
@@ -258,7 +215,12 @@ export function AppLayout({ children }: AppLayoutProps) {
                   {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                 </Button>
 
-                <Link to="/configuracoes" className="hidden md:block">
+                <Link
+                  to="/configuracoes"
+                  className="hidden md:block"
+                  onMouseEnter={() => handleRouteIntent("/configuracoes")}
+                  onFocus={() => handleRouteIntent("/configuracoes")}
+                >
                   <Button
                     variant="ghost"
                     size="icon"

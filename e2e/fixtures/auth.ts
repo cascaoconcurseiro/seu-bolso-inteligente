@@ -1,6 +1,8 @@
 import { test as base, Page } from "@playwright/test";
 
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL || "https://vrrcagukyfnlhxuvnssp.supabase.co";
+const SUPABASE_URL =
+  process.env.VITE_SUPABASE_URL ||
+  "https://placeholder-please-configure-env-variables-in-vercel.supabase.co";
 const FAKE_USER_ID = "00000000-0000-0000-0000-000000000001";
 const FAKE_EMAIL = "test@example.com";
 
@@ -60,6 +62,14 @@ async function mockAuthSession(page: Page) {
       status: 200,
       contentType: "application/json",
       body: JSON.stringify(fakeSession),
+    });
+  });
+
+  await page.route(`${SUPABASE_URL}/auth/v1/user*`, async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(fakeSession.user),
     });
   });
 

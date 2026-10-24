@@ -19,7 +19,7 @@ export interface NavItem {
   children?: NavItem[];
 }
 
-// Todos os itens visíveis diretamente na navegação principal
+// Todos os destinos ficam disponíveis diretamente na navegação principal.
 export const navigationItems: NavItem[] = [
   { path: "/", label: "Início", icon: LayoutDashboard },
   { path: "/transacoes", label: "Transações", icon: ArrowLeftRight },
@@ -33,6 +33,3 @@ export const navigationItems: NavItem[] = [
   { path: "/familia", label: "Família", icon: UsersRound },
   { path: "/simuladores", label: "Simuladores", icon: Calculator },
 ];
-
-// Itens secundários (menu overflow, ajustes, etc.)
-export const secondaryNavItems: NavItem[] = [];

@@ -1,15 +1,15 @@
 import { test, expect } from "./fixtures/auth";
 
 test.describe("Planejamento: Relatórios Consolidados", () => {
-  test("Deve ocultar Select de Data ao clicar em Cartões (Correção F5 Bug)", async ({
+  test("Deve mostrar o estado sem dados e permitir abrir o período anual", async ({
     authenticatedPage: page,
   }) => {
     await page.goto("/relatorios");
-    await expect(page.locator('h1:has-text("Relatórios")')).toBeVisible({ timeout: 10000 });
-    const btnCartoes = page.locator('button:has-text("Cartões")');
-    if (await btnCartoes.isVisible()) {
-      await btnCartoes.click();
-      await expect(page.locator('text="Ciclo de Fatura"').first()).toBeVisible();
-    }
+    await expect(page.getByRole("heading", { level: 1, name: "Relatórios" })).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(page.getByText("Nenhum dado neste período")).toBeVisible();
+    await page.getByRole("button", { name: "Ver Ano Completo" }).click();
+    await expect(page.getByText("Nenhum dado neste período")).toBeVisible();
   });
 });

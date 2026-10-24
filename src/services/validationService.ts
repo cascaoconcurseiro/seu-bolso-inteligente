@@ -120,7 +120,7 @@ export function validateTransaction(
   // 0. VALIDAÇÃO ZOD (Estrutural)
   const zodResult = transactionSchema.safeParse(transaction);
   if (!zodResult.success) {
-    zodResult.error.errors.forEach((err) => {
+    zodResult.error.issues.forEach((err) => {
       errors.push(`${err.path.join(".")}: ${err.message}`);
     });
     return { isValid: false, errors, warnings };

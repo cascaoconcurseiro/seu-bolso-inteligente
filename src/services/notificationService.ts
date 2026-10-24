@@ -6,6 +6,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { logger } from "@/utils/logger";
 
 export type NotificationType =
@@ -31,6 +32,7 @@ export type NotificationType =
   | "PAYMENT_CONFIRMED"
   | "SETTLEMENT_REJECTED"
   | "SECURITY_ALERT"
+  | "INVITATION"
   | "GENERAL";
 
 export type NotificationPriority = "LOW" | "NORMAL" | "HIGH" | "URGENT";
@@ -96,7 +98,7 @@ export interface CreateNotificationInput {
  */
 export async function createNotification(
   input: CreateNotificationInput
-): Promise<Notification | null> {
+): Promise<"created" | "already_exists" | "failed"> {
   // Verifica se já existe notificação similar NÃO DISPENSADA (evita duplicatas)
   if (input.related_id && input.type) {
     const { data: existing } = await supabase
@@ -109,22 +111,24 @@ export async function createNotification(
       .maybeSingle();
 
     if (existing) {
-      return null; // Já existe ativa, não cria duplicata
+      return "already_exists"; // O destinatário já tem o aviso ativo.
     }
   }
 
-  const { error } = await supabase.from("notifications").insert({
-    ...input,
-    metadata: input.metadata as any,
-    priority: input.priority || "NORMAL",
+  const { data, error } = await supabase.rpc("create_notification_v2", {
+    p_notification: {
+      ...input,
+      metadata: input.metadata as Json | undefined,
+      priority: input.priority || "NORMAL",
+    } as Json,
   });
 
   if (error) {
     logger.error("Erro ao criar notificação", error);
-    return null;
+    return "failed";
   }
 
-  return null;
+  return data ? "created" : "already_exists";
 }
 
 // ===== Preferências =====
@@ -345,7 +349,8 @@ export async function createTripInviteNotification(
   userId: string,
   tripName: string,
   tripId: string,
-  inviterName: string
+  inviterName: string,
+  tripInvitationId: string
 ): Promise<void> {
   await createNotification({
     user_id: userId,
@@ -357,6 +362,7 @@ export async function createTripInviteNotification(
     action_label: "Ver convite",
     related_id: tripId,
     related_type: "trip",
+    metadata: { trip_invitation_id: tripInvitationId },
     priority: "HIGH",
   });
 }
@@ -368,6 +374,7 @@ export async function createSettlementRejectedNotification(
   userId: string,
   userName: string,
   description: string,
+  relatedTransactionId?: string,
   reason?: string
 ): Promise<void> {
   await createNotification({
@@ -379,6 +386,8 @@ export async function createSettlementRejectedNotification(
     action_url: "/compartilhados",
     action_label: "Ver",
     priority: "HIGH",
+    related_id: relatedTransactionId,
+    related_type: relatedTransactionId ? "transaction" : undefined,
   });
 }
 
@@ -482,6 +491,7 @@ export function getNotificationIcon(type: NotificationType): string {
     PAYMENT_CONFIRMED: "✅",
     SETTLEMENT_REJECTED: "❌",
     SECURITY_ALERT: "🛡️",
+    INVITATION: "✉️",
     GENERAL: "📢",
   };
 

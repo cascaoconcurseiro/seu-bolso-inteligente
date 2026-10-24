@@ -853,7 +853,8 @@ export type Database = {
           scope_trip_id: string | null
           sharing_scope: string | null
           status: string
-          to_user_id: string
+          to_email: string | null
+          to_user_id: string | null
           updated_at: string
         }
         Insert: {
@@ -870,7 +871,8 @@ export type Database = {
           scope_trip_id?: string | null
           sharing_scope?: string | null
           status?: string
-          to_user_id: string
+          to_email?: string | null
+          to_user_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -887,7 +889,8 @@ export type Database = {
           scope_trip_id?: string | null
           sharing_scope?: string | null
           status?: string
-          to_user_id?: string
+          to_email?: string | null
+          to_user_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -4337,6 +4340,7 @@ export type Database = {
         Args: { p_transactions: Json }
         Returns: Json
       }
+      create_notification_v2: { Args: { p_notification: Json }; Returns: string }
       create_transaction_with_splits: {
         Args: { p_splits?: Json; p_transaction: Json; p_user_id?: string }
         Returns: Json

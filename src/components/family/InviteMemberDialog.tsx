@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Check, X, Loader2, ChevronDown, Settings, Users, UserCircle2 } from "lucide-react";
+import { Loader2, ChevronDown, Settings, Users, UserCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -63,10 +63,6 @@ export function InviteMemberDialog({
   const [scopeTripId, setScopeTripId] = useState("");
   const [trips, setTrips] = useState<any[]>([]);
 
-  const [isChecking, setIsChecking] = useState(false);
-  const [userExists, setUserExists] = useState<boolean | null>(null);
-  const [foundUser, setFoundUser] = useState<{ id: string; full_name: string | null } | null>(null);
-
   useEffect(() => {
     if (user && sharingScope === "specific_trip") {
       supabase
@@ -105,49 +101,6 @@ export function InviteMemberDialog({
     }
   }, [user, sharingScope]);
 
-  useEffect(() => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!email || !emailRegex.test(email.trim())) {
-      setUserExists(null);
-      setFoundUser(null);
-      return;
-    }
-
-    const timer = setTimeout(async () => {
-      setIsChecking(true);
-
-      try {
-        const { data } = await supabase
-          .from("profiles")
-          .select("id, full_name, email")
-          .ilike("email", email.trim())
-          .maybeSingle();
-
-        if (data) {
-          setUserExists(true);
-          setFoundUser({
-            id: data.id,
-            full_name: data.full_name || data.email.split("@")[0],
-          });
-          if (!name) {
-            setName(data.full_name || data.email.split("@")[0]);
-          }
-        } else {
-          setUserExists(false);
-          setFoundUser(null);
-        }
-      } catch (error) {
-        setUserExists(null);
-        setFoundUser(null);
-      } finally {
-        setIsChecking(false);
-      }
-    }, 1500);
-
-    return () => clearTimeout(timer);
-  }, [email, name]);
-
   const handleSubmit = async () => {
     if (tab === "contact" && onAddContact) {
       await onAddContact({ name, email: email || undefined });
@@ -175,8 +128,6 @@ export function InviteMemberDialog({
       setScopeEndDate("");
       setScopeTripId("");
       setShowAdvanced(false);
-      setUserExists(null);
-      setFoundUser(null);
       setTab("family");
     }
     onOpenChange(isOpen);
@@ -192,9 +143,7 @@ export function InviteMemberDialog({
           <DialogTitle>{tab === "family" ? "Convidar membro" : "Adicionar contato"}</DialogTitle>
           <DialogDescription>
             {tab === "family"
-              ? userExists
-                ? "Usuário encontrado! Será enviada uma solicitação."
-                : "Adicione alguém para compartilhar finanças"
+              ? "Convide por e-mail. A pessoa encontrará o convite ao entrar no app com esse endereço."
               : "Contatos aparecem no formulário de transação mas não têm acesso à família"}
           </DialogDescription>
         </DialogHeader>
@@ -234,42 +183,18 @@ export function InviteMemberDialog({
         <div className="px-6 pb-6 overflow-y-auto hide-scrollbar space-y-4">
           <div className="space-y-4 mt-4">
             <FormField label="Email" htmlFor="invite-email">
-              <div className="relative">
-                <Input
-                  id="invite-email"
-                  name="invite-email"
-                  type="email"
-                  placeholder="email@exemplo.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="email"
-                  autoCapitalize="none"
-                  spellCheck={false}
-                  className={cn(
-                    "pr-10 h-12 rounded-xl",
-                    userExists === true && "border-positive focus-visible:ring-positive",
-                    userExists === false && "border-warning focus-visible:ring-warning"
-                  )}
-                />
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  {isChecking && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
-                  {!isChecking && userExists === true && (
-                    <Check className="h-4 w-4 text-positive" />
-                  )}
-                  {!isChecking && userExists === false && <X className="h-4 w-4 text-warning" />}
-                </div>
-              </div>
-              {userExists === true && foundUser?.full_name && (
-                <p className="text-sm text-positive flex items-center gap-1">
-                  <Check className="h-3 w-3" />
-                  Usuário cadastrado: {foundUser.full_name}
-                </p>
-              )}
-              {userExists === false && (
-                <p className="text-sm text-muted-foreground">
-                  Usuário não cadastrado. Os dados ficarão salvos localmente.
-                </p>
-              )}
+              <Input
+                id="invite-email"
+                name="invite-email"
+                type="email"
+                placeholder="email@exemplo.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                autoCapitalize="none"
+                spellCheck={false}
+                className="h-12 rounded-xl"
+              />
             </FormField>
 
             <FormField label="Nome" htmlFor="invite-name">
@@ -452,10 +377,10 @@ export function InviteMemberDialog({
               </Collapsible>
             )}
 
-            {tab === "family" && userExists === true && (
+            {tab === "family" && (
               <div className="p-3 rounded-xl bg-positive/10 border border-positive/20">
                 <p className="text-sm text-positive">
-                  ✓ Solicitação será enviada. O usuário precisa aceitar para criar o vínculo.
+                  ✓ A pessoa precisa entrar com este e-mail e aceitar para concluir o vínculo.
                 </p>
               </div>
             )}
@@ -480,9 +405,7 @@ export function InviteMemberDialog({
                 // válido se informado). Antes o contato também bloqueava sem e-mail.
                 const emailBlocks = tab === "family" ? !emailOk : trimmed !== "" && !emailOk;
                 return (
-                  !name.trim() ||
-                  emailBlocks ||
-                  (tab === "family" ? isPending : isContactPending)
+                  !name.trim() || emailBlocks || (tab === "family" ? isPending : isContactPending)
                 );
               })()}
             >

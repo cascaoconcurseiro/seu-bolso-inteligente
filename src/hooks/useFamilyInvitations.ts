@@ -8,7 +8,8 @@ import { logger } from "@/utils/logger";
 export interface FamilyInvitation {
   id: string;
   from_user_id: string;
-  to_user_id: string;
+  to_user_id: string | null;
+  to_email: string | null;
   family_id: string;
   member_name: string;
   role: FamilyRole;
@@ -16,8 +17,7 @@ export interface FamilyInvitation {
   created_at: string;
   updated_at: string;
   from_user?: {
-    full_name: string;
-    email: string;
+    full_name: string | null;
   };
 }
 
@@ -32,19 +32,35 @@ export function usePendingInvitations() {
 
       try {
         // Buscar convites
-        const { data: invitations, error } = await supabase
+        const byUserId = supabase
           .from("family_invitations")
           .select("*")
           .eq("to_user_id", user.id)
           .eq("status", "pending")
           .order("created_at", { ascending: false });
+        const byEmail = user.email
+          ? supabase
+              .from("family_invitations")
+              .select("*")
+              .eq("to_email", user.email.trim().toLowerCase())
+              .eq("status", "pending")
+              .order("created_at", { ascending: false })
+          : null;
+        const [userIdResult, emailResult] = await Promise.all([byUserId, byEmail]);
 
-        if (error) {
-          logger.error("Erro ao buscar convites de família:", error);
+        if (userIdResult.error || emailResult?.error) {
+          logger.error(
+            "Erro ao buscar convites de família:",
+            userIdResult.error || emailResult?.error
+          );
           return [];
         }
 
-        if (!invitations || invitations.length === 0) {
+        const invitations = [...(userIdResult.data || []), ...(emailResult?.data || [])].filter(
+          (invitation, index, all) => all.findIndex((item) => item.id === invitation.id) === index
+        );
+
+        if (invitations.length === 0) {
           return [];
         }
 
@@ -52,7 +68,7 @@ export function usePendingInvitations() {
         const fromUserIds = invitations.map((inv) => inv.from_user_id);
         const { data: profiles, error: profilesError } = await supabase
           .from("profiles")
-          .select("id, full_name, email")
+          .select("id, full_name")
           .in("id", fromUserIds);
 
         if (profilesError) {
