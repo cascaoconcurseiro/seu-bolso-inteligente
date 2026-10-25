@@ -4,6 +4,8 @@
 
 ## Estado confirmado
 
+- Commit `55556144` foi enviado a `main` e Vercel publicou `dpl_vi7RC7jzcerLMXKSqkEaA5WaLrkb` em produção como `READY`; o alias `https://meupedemeia.vercel.app` responde HTTP 200 e `version.json` serve `buildTimestamp=1792925382849`.
+- CI #40186351903 terminou: Lint & Type Check, Build Check, E2E Chromium, Vitest e Security Audit passaram; `Database Security Contract` falhou somente no passo obrigatório por ausência de `SUPABASE_DB_URL`.
 - `0e9f8431` está em `main`. Vercel deployment `dpl_3hU5dZ6REkNHrNNEgbhRryBg1eSU` está `Ready`, ligado ao mesmo SHA; o alias `https://meupedemeia.vercel.app/version.json` serve `buildTimestamp=1792881708678`.
 - Revisão semântica de 55 RPCs `SECURITY DEFINER` autenticadas reconciliou corpos e callers por domínio (catálogo: 131 definers, zero grants `anon`, zero sem `search_path`). Quatro achados comprovados foram corrigidos em migrations aplicadas: saldo de viagem/notificações de convite; integridade e remoção lógica de parcelas; membership/admin/resumo compartilhado; projeção mensal e saldo histórico. O ledger remoto contém as quatro e `db push --linked --dry-run` reporta up-to-date. Fixtures sintéticas foram exercitadas em `BEGIN/ROLLBACK`; nenhum fixture permaneceu.
 - Rechecagem em 24/10: consulta direta ao catálogo remoto confirmou as quatro versões no ledger. As 11 RPCs corrigidas amostradas mantêm `SECURITY DEFINER`, `search_path` definido e nenhum grant de execução a `anon`; três funções internas não são executáveis por `authenticated`, como esperado. Em 25/10, `supabase migration list --linked` confirmou 322/322 migrations locais/remotas sem divergência, embora o dry-run ainda não tenha autenticado a role temporária `cli_login_postgres`.
