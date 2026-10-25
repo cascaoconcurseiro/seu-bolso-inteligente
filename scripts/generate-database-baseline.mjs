@@ -1,17 +1,13 @@
 import fs from "node:fs/promises";
 import pg from "pg";
+import { getVerifiedDbConnectionConfig } from "./lib/verified-db-connection.mjs";
 
 const connectionString = process.env.SUPABASE_DB_URL || process.env.DATABASE_URL;
 const outputPath = process.argv[2] || "supabase/baseline/20260713_public_schema.sql";
 
 if (!connectionString) throw new Error("SUPABASE_DB_URL (or DATABASE_URL) is required");
 
-const databaseUrl = new URL(connectionString);
-databaseUrl.searchParams.delete("sslmode");
-const client = new pg.Client({
-  connectionString: databaseUrl.toString(),
-  ssl: { rejectUnauthorized: false },
-});
+const client = new pg.Client(getVerifiedDbConnectionConfig(connectionString));
 
 const quoteIdentifier = (value) => `"${String(value).replaceAll('"', '""')}"`;
 const quoteLiteral = (value) => `'${String(value).replaceAll("'", "''")}'`;

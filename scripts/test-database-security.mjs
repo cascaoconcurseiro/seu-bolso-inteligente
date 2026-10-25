@@ -1,4 +1,5 @@
 import pg from "pg";
+import { getVerifiedDbConnectionConfig } from "./lib/verified-db-connection.mjs";
 
 const connectionString = process.env.SUPABASE_DB_URL || process.env.DATABASE_URL;
 
@@ -7,12 +8,7 @@ if (!connectionString) {
 }
 
 const { Client } = pg;
-const databaseUrl = new URL(connectionString);
-databaseUrl.searchParams.delete("sslmode");
-const client = new Client({
-  connectionString: databaseUrl.toString(),
-  ssl: { rejectUnauthorized: false },
-});
+const client = new Client(getVerifiedDbConnectionConfig(connectionString));
 
 const v2Signatures = [
   "create_installment_series_v2(jsonb)",
@@ -162,46 +158,53 @@ try {
     assert(!(await canExecute("anon", signature)), `${signature} is exposed to anon`);
   }
 
-  const { rows: users } = await client.query(
-    "select id from auth.users order by created_at asc limit 2"
+  const { rows: crossUserFixtures } = await client.query(`
+    select account.id as account_id, attacker.id as attacker_id
+    from public.accounts account
+    join auth.users attacker on attacker.id <> account.user_id
+    where account.deleted_at is null
+      and attacker.id not in (select user_id from public.admin_users)
+    order by account.created_at asc, attacker.created_at asc
+    limit 1
+  `);
+  assert(
+    crossUserFixtures.length > 0,
+    "cross-user isolation requires an active account and a different provisioned non-admin user"
   );
 
-  if (users.length >= 2) {
-    const ownerId = users[0].id;
-    const attackerId = users[1].id;
-    const { rows: accounts } = await client.query(
-      "select id from public.accounts where user_id = $1 and deleted_at is null limit 1",
-      [ownerId]
+  await client.query("begin");
+  try {
+    await client.query("set local role authenticated");
+    await client.query("select set_config('request.jwt.claim.sub', $1, true)", [
+      crossUserFixtures[0].attacker_id,
+    ]);
+    await client.query("select set_config('request.jwt.claim.role', 'authenticated', true)");
+    await expectSqlState(
+      `select public.get_account_balance_at_date_v2('${crossUserFixtures[0].account_id}'::uuid, current_date)`,
+      "42501",
+      "cross-user account isolation"
     );
+  } finally {
+    await client.query("rollback");
+  }
 
-    if (accounts.length > 0) {
-      await client.query("begin");
-      await client.query("set local role authenticated");
-      await client.query("select set_config('request.jwt.claim.sub', $1, true)", [attackerId]);
-      await client.query("select set_config('request.jwt.claim.role', 'authenticated', true)");
-      await expectSqlState(
-        `select public.get_account_balance_at_date_v2('${accounts[0].id}'::uuid, current_date)`,
-        "42501",
-        "cross-user account isolation"
-      );
-      await client.query("rollback");
-    }
+  const { rows: nonAdmins } = await client.query(
+    "select id from auth.users where id <> all(select user_id from public.admin_users) limit 1"
+  );
+  assert(nonAdmins.length > 0, "admin isolation requires at least one provisioned non-admin user");
 
-    const { rows: nonAdmins } = await client.query(
-      "select id from auth.users where id <> all(select user_id from public.admin_users) limit 1"
+  await client.query("begin");
+  try {
+    await client.query("set local role authenticated");
+    await client.query("select set_config('request.jwt.claim.sub', $1, true)", [nonAdmins[0].id]);
+    await client.query("select set_config('request.jwt.claim.role', 'authenticated', true)");
+    await expectSqlState(
+      "select public.get_admin_error_logs()",
+      "42501",
+      "admin error log isolation"
     );
-    if (nonAdmins.length > 0) {
-      await client.query("begin");
-      await client.query("set local role authenticated");
-      await client.query("select set_config('request.jwt.claim.sub', $1, true)", [nonAdmins[0].id]);
-      await client.query("select set_config('request.jwt.claim.role', 'authenticated', true)");
-      await expectSqlState(
-        "select public.get_admin_error_logs()",
-        "42501",
-        "admin error log isolation"
-      );
-      await client.query("rollback");
-    }
+  } finally {
+    await client.query("rollback");
   }
 
   console.log(`Database security checks passed (${v2Signatures.length} v2 RPCs)`);
