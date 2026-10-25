@@ -4204,23 +4204,9 @@ export type Database = {
       }
     }
     Functions: {
-      admin_reset_all_data: { Args: never; Returns: undefined }
-      admin_reset_single_user: {
-        Args: { target_user_id: string }
-        Returns: undefined
-      }
       assign_default_account_to_orphans: {
         Args: { p_default_account_id: string; p_user_id: string }
         Returns: number
-      }
-      calculate_balance_between_users: {
-        Args: { p_currency?: string; p_user1_id: string; p_user2_id: string }
-        Returns: {
-          currency: string
-          net_balance: number
-          user1_owes: number
-          user2_owes: number
-        }[]
       }
       calculate_budget_spent: {
         Args: {
@@ -4275,15 +4261,6 @@ export type Database = {
       cleanup_old_pending_operations: { Args: never; Returns: number }
       clear_error_logs: { Args: never; Returns: undefined }
       clear_pin: { Args: never; Returns: boolean }
-      confirm_settlement: {
-        Args: {
-          p_account_id: string
-          p_is_receiving: boolean
-          p_split_ids: string[]
-          p_user_id: string
-        }
-        Returns: Json
-      }
       confirm_settlement_receipt: {
         Args: {
           p_account_id: string
@@ -4857,10 +4834,6 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
-      reject_settlement_request: {
-        Args: { p_reason?: string; p_split_id: string }
-        Returns: Json
-      }
       remove_family_member: {
         Args: { p_member_id: string; p_reason?: string; p_removed_by?: string }
         Returns: undefined
@@ -4929,14 +4902,6 @@ export type Database = {
       set_pin: {
         Args: { p_pin: string; p_require_on_open?: boolean }
         Returns: boolean
-      }
-      settle_balance_between_users: {
-        Args: {
-          p_settlement_transaction_id?: string
-          p_user1_id: string
-          p_user2_id: string
-        }
-        Returns: number
       }
       settle_compensated_splits: {
         Args: { p_split_ids: string[] }

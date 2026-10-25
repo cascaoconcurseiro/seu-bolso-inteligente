@@ -20,6 +20,7 @@ import {
   Info,
   HelpCircle,
   BarChart2,
+  AlertCircle,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -68,7 +69,12 @@ export function Reports() {
     customEndDate,
   });
 
-  const { data: allTransactions = [], isLoading } = useTransactions({
+  const {
+    data: allTransactions = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useTransactions({
     startDate: reportStartDate,
     endDate: reportEndDate,
   });
@@ -142,6 +148,21 @@ export function Reports() {
           ))}
         </div>
       </div>
+    );
+
+  if (isError)
+    return (
+      <EmptyState
+        icon={AlertCircle}
+        title="Erro ao carregar relatórios"
+        description="Não foi possível buscar suas transações. Verifique sua conexão e tente novamente."
+        variant="danger"
+        action={
+          <Button onClick={() => refetch()} variant="outline" className="h-12 px-8 rounded-full">
+            Tentar novamente
+          </Button>
+        }
+      />
     );
 
   return (

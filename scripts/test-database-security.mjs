@@ -52,6 +52,13 @@ const legacySignatures = [
 ];
 
 const disabledAdminSignatures = ["admin_reset_all_data()", "admin_reset_single_user(uuid)"];
+const removedLegacySignatures = [
+  "confirm_settlement(uuid[],uuid,uuid,boolean)",
+  "reject_settlement_request(uuid,text)",
+  "calculate_balance_between_users(uuid,uuid,text)",
+  "settle_balance_between_users(uuid,uuid,uuid)",
+  ...disabledAdminSignatures,
+];
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -63,6 +70,13 @@ async function canExecute(role, signature) {
     [role, signature]
   );
   return rows[0].allowed;
+}
+
+async function functionExists(signature) {
+  const { rows } = await client.query("select to_regprocedure($1) is not null as present", [
+    `public.${signature}`,
+  ]);
+  return rows[0].present;
 }
 
 async function expectSqlState(sql, expectedState, label) {
@@ -166,13 +180,8 @@ try {
     "undo_shared_settlements(uuid[]) must remain available to service_role"
   );
 
-  for (const signature of disabledAdminSignatures) {
-    for (const role of ["anon", "authenticated", "service_role"]) {
-      assert(
-        !(await canExecute(role, signature)),
-        `${signature} must remain disabled for ${role}`
-      );
-    }
+  for (const signature of removedLegacySignatures) {
+    assert(!(await functionExists(signature)), `${signature} must remain removed from public API`);
   }
 
   const { rows: crossUserFixtures } = await client.query(`
