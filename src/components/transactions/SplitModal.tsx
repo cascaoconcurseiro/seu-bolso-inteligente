@@ -98,24 +98,33 @@ export function SplitModal({
     if (!isOpen || payerId === "me") return;
 
     const partnerPercentage = 100 - mySplitPercentage;
+    // Se o usuário assume 100% da despesa, o pagador não deve virar um split
+    // de valor zero. Registra a fatia do usuário explicitamente nesse caso.
+    const splitMemberId = partnerPercentage === 0 ? currentUserMemberId : payerId;
+    const splitPercentage = partnerPercentage === 0 ? mySplitPercentage : partnerPercentage;
+    if (!splitMemberId) return;
     // Usa centavos inteiros para comparação e evita imprecisão de float
-    const partnerAmountCents = Math.round(((activeAmount * partnerPercentage) / 100) * 100);
-    const partnerAmount = partnerAmountCents / 100;
+    const splitAmountCents = Math.round(((activeAmount * splitPercentage) / 100) * 100);
+    const splitAmount = splitAmountCents / 100;
 
     const last = lastSetSplitRef.current;
     const lastCents = last ? Math.round(last.amount * 100) : -1;
     const isSame =
       last !== null &&
-      last.memberId === payerId &&
-      last.percentage === partnerPercentage &&
-      lastCents === partnerAmountCents;
+      last.memberId === splitMemberId &&
+      last.percentage === splitPercentage &&
+      lastCents === splitAmountCents;
 
     if (!isSame) {
-      const newSplit = { memberId: payerId, percentage: partnerPercentage, amount: partnerAmount };
+      const newSplit = {
+        memberId: splitMemberId,
+        percentage: splitPercentage,
+        amount: splitAmount,
+      };
       lastSetSplitRef.current = newSplit;
       setSplitsRef.current([newSplit]);
     }
-  }, [mySplitPercentage, payerId, activeAmount, isOpen]);
+  }, [mySplitPercentage, payerId, activeAmount, isOpen, currentUserMemberId]);
 
   // Filtro de outros membros da família (exclui o usuário atual) para o seletor de quem pagou
   const otherMembers = useMemo(() => {
@@ -162,6 +171,36 @@ export function SplitModal({
   };
 
   const totalOtherPct = splits.reduce((sum, s) => sum + s.percentage, 0);
+  const splitValidationMessage = (() => {
+    if (payerId !== "me" && mySplitPercentage === 100 && !currentUserMemberId) {
+      return "Não foi possível identificar seu vínculo familiar para registrar essa divisão.";
+    }
+    if (splits.length === 0) return null;
+    if (!Number.isFinite(activeAmount) || activeAmount <= 0) {
+      return "Informe um valor total maior que R$ 0,00 para confirmar a divisão.";
+    }
+
+    const invalidShare = splits.some(
+      (split) =>
+        !Number.isFinite(split.percentage) ||
+        split.percentage <= 0 ||
+        split.percentage > 100 ||
+        !Number.isFinite(split.amount) ||
+        split.amount <= 0 ||
+        moneyUtils.round(split.amount) !== split.amount
+    );
+    const totalSplitAmount = moneyUtils.add(...splits.map((split) => split.amount));
+    const exceedsAmount = totalSplitAmount > moneyUtils.round(activeAmount);
+    const exceedsPercentage = totalOtherPct > 100.000001;
+
+    if (invalidShare) {
+      return "Cada participante precisa ter uma fatia maior que R$ 0,00. Aumente o valor ou reduza os participantes.";
+    }
+    if (exceedsAmount || exceedsPercentage) {
+      return "A soma das fatias excede o valor disponível. Ajuste a divisão antes de confirmar.";
+    }
+    return null;
+  })();
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -571,6 +610,11 @@ export function SplitModal({
         </div>
 
         <DialogFooter>
+          {splitValidationMessage && (
+            <p role="alert" className="text-sm text-destructive sm:mr-auto">
+              {splitValidationMessage}
+            </p>
+          )}
           <Button variant="outline" onClick={onClose}>
             Cancelar
           </Button>
@@ -578,7 +622,8 @@ export function SplitModal({
             disabled={
               isLoadingMembers ||
               !isResolvedPayer ||
-              (hasMembersLoadError && familyMembers.length === 0)
+              (hasMembersLoadError && familyMembers.length === 0) ||
+              splitValidationMessage !== null
             }
             onClick={() => {
               onConfirm(splits);

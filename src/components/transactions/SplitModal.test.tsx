@@ -1,6 +1,9 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 
+import type { TransactionSplitData } from "@/types/transactions";
 import { SplitModal } from "./SplitModal";
 
 describe("SplitModal", () => {
@@ -174,5 +177,177 @@ describe("SplitModal", () => {
       "Não foi possível carregar os participantes"
     );
     expect(screen.getByRole("button", { name: "Confirmar" })).toBeDisabled();
+  });
+
+  it.each([0.01, 0.02])(
+    "blocks a 50/50 split of R$ %s across two members when it creates a zero-value share",
+    async (amount) => {
+      const user = userEvent.setup();
+      const members = [
+        { id: "member-1", name: "Fran", member_type: "family" },
+        { id: "member-2", name: "Jhonatan", member_type: "contact", active_in_form: true },
+      ] as never;
+
+      function SplitModalHarness() {
+        const [splits, setSplits] = useState<TransactionSplitData[]>([]);
+        return (
+          <SplitModal
+            isOpen
+            onClose={vi.fn()}
+            onConfirm={vi.fn()}
+            payerId="me"
+            setPayerId={vi.fn()}
+            splits={splits}
+            setSplits={setSplits}
+            familyMembers={members}
+            activeAmount={amount}
+            currentUserMemberId="me"
+          />
+        );
+      }
+
+      render(<SplitModalHarness />);
+
+      await user.click(screen.getByRole("button", { name: "Selecionar Fran" }));
+      await user.click(screen.getByRole("button", { name: "Selecionar Jhonatan" }));
+      await user.click(screen.getByRole("button", { name: "50/50" }));
+
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "Cada participante precisa ter uma fatia maior que R$ 0,00"
+      );
+      expect(screen.getByRole("button", { name: "Confirmar" })).toBeDisabled();
+    }
+  );
+
+  it("clears zero-value member rows when the creator selects a 100% share", async () => {
+    const user = userEvent.setup();
+    const onConfirm = vi.fn();
+    const members = [
+      { id: "member-1", name: "Fran", member_type: "family" },
+      { id: "member-2", name: "Jhonatan", member_type: "contact", active_in_form: true },
+    ] as never;
+
+    function SplitModalHarness() {
+      const [splits, setSplits] = useState<TransactionSplitData[]>([]);
+      return (
+        <SplitModal
+          isOpen
+          onClose={vi.fn()}
+          onConfirm={onConfirm}
+          payerId="me"
+          setPayerId={vi.fn()}
+          splits={splits}
+          setSplits={setSplits}
+          familyMembers={members}
+          activeAmount={0.01}
+          currentUserMemberId="me"
+        />
+      );
+    }
+
+    render(<SplitModalHarness />);
+
+    await user.click(screen.getByRole("button", { name: "Selecionar Fran" }));
+    await user.click(screen.getByRole("button", { name: "Selecionar Jhonatan" }));
+    fireEvent.change(screen.getByRole("slider"), { target: { value: "0" } });
+
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Confirmar" })).toBeEnabled();
+    await user.click(screen.getByRole("button", { name: "Confirmar" }));
+    expect(onConfirm).toHaveBeenCalledWith([]);
+  });
+
+  it("assigns the full share to the current user when another member paid", async () => {
+    const user = userEvent.setup();
+    const onConfirm = vi.fn();
+    const setSplits = vi.fn();
+    const members = [{ id: "member-1", name: "Fran", member_type: "family" }] as never;
+
+    function SplitModalHarness() {
+      const [splits, updateSplits] = useState<TransactionSplitData[]>([]);
+      return (
+        <SplitModal
+          isOpen
+          onClose={vi.fn()}
+          onConfirm={onConfirm}
+          payerId="member-1"
+          setPayerId={vi.fn()}
+          splits={splits}
+          setSplits={(nextSplits) => {
+            setSplits(nextSplits);
+            updateSplits(nextSplits);
+          }}
+          familyMembers={members}
+          activeAmount={0.01}
+          currentUserMemberId="me"
+        />
+      );
+    }
+
+    render(<SplitModalHarness />);
+    await user.click(screen.getByRole("button", { name: /100%.*Tudo/ }));
+
+    expect(await screen.findByRole("button", { name: "Confirmar" })).toBeEnabled();
+    await user.click(screen.getByRole("button", { name: "Confirmar" }));
+    expect(onConfirm).toHaveBeenCalledWith([{ memberId: "me", percentage: 100, amount: 0.01 }]);
+    expect(setSplits).toHaveBeenLastCalledWith([{ memberId: "me", percentage: 100, amount: 0.01 }]);
+  });
+
+  it("blocks a 100% current-user split when the current family member id is missing", async () => {
+    const user = userEvent.setup();
+    const onConfirm = vi.fn();
+
+    render(
+      <SplitModal
+        isOpen
+        onClose={vi.fn()}
+        onConfirm={onConfirm}
+        payerId="member-1"
+        setPayerId={vi.fn()}
+        splits={[]}
+        setSplits={vi.fn()}
+        familyMembers={[{ id: "member-1", name: "Fran" } as never]}
+        activeAmount={100}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: /100%.*Tudo/ }));
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Não foi possível identificar seu vínculo familiar"
+    );
+    expect(screen.getByRole("button", { name: "Confirmar" })).toBeDisabled();
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  it("blocks confirmation when participants are selected and total amount is zero", async () => {
+    const user = userEvent.setup();
+    const onConfirm = vi.fn();
+    const members = [{ id: "member-1", name: "Fran", member_type: "family" }] as never;
+
+    function SplitModalHarness() {
+      const [splits, setSplits] = useState<TransactionSplitData[]>([]);
+      return (
+        <SplitModal
+          isOpen
+          onClose={vi.fn()}
+          onConfirm={onConfirm}
+          payerId="me"
+          setPayerId={vi.fn()}
+          splits={splits}
+          setSplits={setSplits}
+          familyMembers={members}
+          activeAmount={0}
+          currentUserMemberId="me"
+        />
+      );
+    }
+
+    render(<SplitModalHarness />);
+    await user.click(screen.getByRole("button", { name: "Selecionar Fran" }));
+
+    expect(screen.getByRole("alert")).toHaveTextContent("Informe um valor total maior que R$ 0,00");
+    expect(screen.getByRole("button", { name: "Confirmar" })).toBeDisabled();
+    expect(onConfirm).not.toHaveBeenCalled();
   });
 });

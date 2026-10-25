@@ -48,7 +48,10 @@ const legacySignatures = [
   "undo_settlement(uuid,uuid)",
   "get_account_balance_at_date(uuid,date)",
   "get_trip_participant_balances(uuid)",
+  "undo_shared_settlements(uuid[])",
 ];
+
+const disabledAdminSignatures = ["admin_reset_all_data()", "admin_reset_single_user(uuid)"];
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -156,6 +159,20 @@ try {
       `${signature} is still exposed to authenticated`
     );
     assert(!(await canExecute("anon", signature)), `${signature} is exposed to anon`);
+  }
+
+  assert(
+    await canExecute("service_role", "undo_shared_settlements(uuid[])"),
+    "undo_shared_settlements(uuid[]) must remain available to service_role"
+  );
+
+  for (const signature of disabledAdminSignatures) {
+    for (const role of ["anon", "authenticated", "service_role"]) {
+      assert(
+        !(await canExecute(role, signature)),
+        `${signature} must remain disabled for ${role}`
+      );
+    }
   }
 
   const { rows: crossUserFixtures } = await client.query(`

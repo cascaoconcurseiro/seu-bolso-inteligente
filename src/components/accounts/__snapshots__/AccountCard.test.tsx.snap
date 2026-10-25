@@ -7,6 +7,7 @@ exports[`AccountCard > renders correctly (snapshot) 1`] = `
   <a
     aria-label="Conta: Conta Principal, saldo R$ 2500.50"
     class="flex flex-col flex-1"
+    data-discover="true"
     href="/contas/acc-1"
   >
     <div
@@ -157,6 +158,7 @@ exports[`AccountCard > renders international account (snapshot) 1`] = `
   <a
     aria-label="Conta: Conta Principal, saldo R$ 2500.50"
     class="flex flex-col flex-1"
+    data-discover="true"
     href="/contas/acc-1"
   >
     <div
@@ -317,6 +319,7 @@ exports[`AccountCard > renders with hidden balance (snapshot) 1`] = `
   <a
     aria-label="Conta: Conta Principal, saldo R$ 2500.50"
     class="flex flex-col flex-1"
+    data-discover="true"
     href="/contas/acc-1"
   >
     <div

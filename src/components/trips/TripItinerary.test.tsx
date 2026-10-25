@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
@@ -116,10 +116,11 @@ describe("TripItinerary", () => {
     if (!screen.queryByLabelText("Link do Google Maps")) {
       await user.click(screen.getByText(/Mais opções/i));
     }
-    await user.type(
-      screen.getByLabelText("Link do Google Maps"),
-      "https://www.google.com/maps/place/Museu+do+Louvre/data=!3d48.8606111!4d2.337644"
-    );
+    fireEvent.change(screen.getByLabelText("Link do Google Maps"), {
+      target: {
+        value: "https://www.google.com/maps/place/Museu+do+Louvre/data=!3d48.8606111!4d2.337644",
+      },
+    });
 
     expect(screen.getByLabelText(/Título/)).toHaveValue("Meu passeio no Louvre");
     expect(screen.getByText("Local selecionado: Museu do Louvre")).toBeInTheDocument();

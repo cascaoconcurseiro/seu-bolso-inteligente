@@ -51,20 +51,16 @@ DROP INDEX IF EXISTS public.idx_goal_milestones_user_id;
 
 ## Verificar pg_cron (Tarefas Agendadas)
 
-O pg_cron executa:
-- `process_credit_card_invoices()` — fecha faturas do cartão automaticamente
-- Alertas de metas (7 dias antes do vencimento)
+Confirme os jobs existentes no banco antes de assumir que um processamento está agendado.
+`process_credit_card_invoices()` é uma RPC legada sem implementação: ela percorre cartões e não
+fecha nem cria faturas. Não a execute esperando alterar faturas. O app calcula as faturas a partir
+das transações; qualquer novo processamento exige uma regra de negócio e fluxo próprios.
 
 **Verificar jobs ativos:**
 ```sql
 SELECT jobname, schedule, command, active
 FROM cron.job
 ORDER BY jobname;
-```
-
-**Executar manualmente (se necessário):**
-```sql
-SELECT process_credit_card_invoices();
 ```
 
 ---
