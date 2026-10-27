@@ -26,7 +26,11 @@ describe("BackupManager", () => {
     vi.mocked(supabase.from).mockImplementation(
       () =>
         ({
-          select: vi.fn().mockResolvedValue({ data: [], error: null }),
+          select: vi.fn(() => ({
+            order: vi.fn(() => ({
+              range: vi.fn().mockResolvedValue({ data: [], error: null }),
+            })),
+          })),
         }) as never
     );
   });
@@ -62,6 +66,39 @@ describe("BackupManager", () => {
 
   it("downloads the JSON from all listed tables and releases its temporary URL", async () => {
     let exportedBlob: Blob | undefined;
+    const transactionRanges: number[][] = [];
+    vi.mocked(supabase.from).mockImplementation(
+      (tableName) =>
+        ({
+          select: vi.fn(() => ({
+            order: vi.fn(() => ({
+              range: vi.fn(async (from: number, to: number) => {
+                if (tableName === "transactions") {
+                  transactionRanges.push([from, to]);
+                  if (from === 0) {
+                    return {
+                      data: Array.from({ length: 500 }, (_, index) => ({ id: `tx-${index}` })),
+                      error: null,
+                      count: 1001,
+                    };
+                  }
+                  if (from === 500) {
+                    return {
+                      data: Array.from({ length: 500 }, (_, index) => ({
+                        id: `tx-${index + 500}`,
+                      })),
+                      error: null,
+                      count: 1001,
+                    };
+                  }
+                  if (from === 1000) return { data: [{ id: "tx-1000" }], error: null, count: 1001 };
+                }
+                return { data: [], error: null, count: 0 };
+              }),
+            })),
+          })),
+        }) as never
+    );
     const createObjectURL = vi.fn((blob: Blob) => {
       exportedBlob = blob;
       return "blob:backup-test";
@@ -78,7 +115,12 @@ describe("BackupManager", () => {
     await waitFor(() =>
       expect(toast.success).toHaveBeenCalledWith("A cópia parcial dos dados foi baixada.")
     );
-    expect(supabase.from).toHaveBeenCalledTimes(14);
+    expect(supabase.from).toHaveBeenCalledTimes(16);
+    expect(transactionRanges).toEqual([
+      [0, 999],
+      [500, 1499],
+      [1000, 1999],
+    ]);
     expect(createObjectURL).toHaveBeenCalledTimes(1);
     expect(exportedBlob?.type).toBe("application/json");
 
@@ -87,15 +129,51 @@ describe("BackupManager", () => {
       reader.onload = () => resolve(String(reader.result));
       reader.readAsText(exportedBlob as Blob);
     });
-    expect(JSON.parse(json)).toMatchObject({
+    const parsedBackup = JSON.parse(json);
+    expect(parsedBackup).toMatchObject({
       version: "1.0",
       userId: "user-1",
-      data: { accounts: [], transactions: [], trips: [] },
+      data: { accounts: [], transactions: expect.any(Array), trips: [] },
     });
+    expect(parsedBackup.data.transactions).toHaveLength(1001);
+    expect(parsedBackup.data.transactions.at(-1)).toEqual({ id: "tx-1000" });
 
     await waitFor(() => expect(revokeObjectURL).toHaveBeenCalledWith("blob:backup-test"), {
       timeout: 2500,
     });
     expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function), 1000);
+  });
+
+  it("does not download a partial backup when any page query fails", async () => {
+    vi.mocked(supabase.from).mockImplementation(
+      (tableName) =>
+        ({
+          select: vi.fn(() => ({
+            order: vi.fn(() => ({
+              range: vi.fn(async (from: number) => {
+                if (tableName === "transactions" && from === 0) {
+                  return {
+                    data: Array.from({ length: 1000 }, (_, index) => ({ id: `tx-${index}` })),
+                    error: null,
+                    count: 1001,
+                  };
+                }
+                if (tableName === "transactions" && from === 1000) {
+                  return { data: null, error: new Error("network failure"), count: 1001 };
+                }
+                return { data: [], error: null, count: 0 };
+              }),
+            })),
+          })),
+        }) as never
+    );
+    const createObjectURL = vi.fn(() => "blob:backup-test");
+    Object.defineProperty(URL, "createObjectURL", { configurable: true, value: createObjectURL });
+
+    render(<BackupManager />);
+    fireEvent.click(screen.getByRole("button", { name: /Baixar arquivo de Backup/i }));
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Falha ao exportar backup."));
+    expect(createObjectURL).not.toHaveBeenCalled();
   });
 });

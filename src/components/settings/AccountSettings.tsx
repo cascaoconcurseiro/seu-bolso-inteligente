@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable unused-imports/no-unused-vars */
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -58,15 +57,7 @@ export function AccountSettings({
       .slice(0, 2);
   };
 
-  if (profileLoading) {
-    return (
-      <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-20 bg-muted rounded-xl animate-pulse" />
-        ))}
-      </div>
-    );
-  }
+  const fallbackName = profile?.name || user?.user_metadata?.full_name || "Sem nome";
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -82,7 +73,7 @@ export function AccountSettings({
               className="w-16 h-16 rounded-full bg-gradient-to-br from-foreground/80 to-foreground 
                             text-background flex items-center justify-center text-xl font-bold"
             >
-              {getInitials(profile?.name || user?.email || "U")}
+              {getInitials(profile?.name || user?.user_metadata?.full_name || user?.email || "U")}
             </div>
             <div className="flex-1">
               {editingName ? (
@@ -114,8 +105,16 @@ export function AccountSettings({
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <p className="font-semibold text-base">{profile?.name || "Sem nome"}</p>
-                  <Button size="sm" variant="ghost" onClick={() => setEditingName(true)}>
+                  <p className="font-semibold text-base">{fallbackName}</p>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={profileLoading}
+                    onClick={() => {
+                      setNewName(profile?.name || user?.user_metadata?.full_name || "");
+                      setEditingName(true);
+                    }}
+                  >
                     Editar
                   </Button>
                 </div>
@@ -133,20 +132,28 @@ export function AccountSettings({
             <p className="font-medium mb-1">Personalizar Avatar</p>
             <p className="text-sm text-muted-foreground">Escolha uma cor e ícone para seu perfil</p>
           </div>
-          <AvatarCustomizer
-            currentColor={profile?.avatar_color || "green"}
-            currentIcon={profile?.avatar_icon || "avatar_1"}
-            onSave={async (color, icon) => {
-              const selectedAvatar = avatarIcons.find((a) => a.id === icon);
-              const avatarPath = selectedAvatar?.path || null;
-              await updateProfile.mutateAsync({
-                avatar_url: avatarPath,
-                avatar_color: color,
-                avatar_icon: icon,
-              });
-            }}
-            isSaving={updateProfile.isPending}
-          />
+          {profileLoading ? (
+            <div
+              className="h-36 rounded-xl bg-muted animate-pulse"
+              role="status"
+              aria-label="Carregando personalização do avatar"
+            />
+          ) : (
+            <AvatarCustomizer
+              currentColor={profile?.avatar_color || "green"}
+              currentIcon={profile?.avatar_icon || "avatar_1"}
+              onSave={async (color, icon) => {
+                const selectedAvatar = avatarIcons.find((a) => a.id === icon);
+                const avatarPath = selectedAvatar?.path || null;
+                await updateProfile.mutateAsync({
+                  avatar_url: avatarPath,
+                  avatar_color: color,
+                  avatar_icon: icon,
+                });
+              }}
+              isSaving={updateProfile.isPending}
+            />
+          )}
         </div>
 
         <div className="p-4 rounded-xl border border-border hover:border-foreground/20 transition-all">

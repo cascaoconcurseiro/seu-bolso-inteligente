@@ -18,12 +18,10 @@ import {
 import { useDependentTransactions } from "@/hooks/transactions/useDependentTransactions";
 import {
   useTransactions,
-  useCreateTransaction,
   useDeleteTransaction,
   useBulkCreateTransactions,
 } from "@/hooks/useTransactions";
 import * as dateFns from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { getInvoiceData, getTargetDate } from "@/lib/invoiceUtils";
 import { formatDateISO, getMonthDateRange } from "@/utils/dateUtils";
 import { showActionFeedback } from "@/components/ui/ActionFeedback";
@@ -31,6 +29,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { moneyUtils } from "@/utils/money";
 import { CascadeDeleteType } from "@/components/modals/DeleteTransactionModal";
 import { toast } from "sonner";
+import { payCreditCardInvoiceAtomic } from "@/utils/creditCardInvoicePayment";
 
 export type CardView = "list" | "detail";
 
@@ -145,7 +144,6 @@ export function useCreditCardsDashboard() {
   const archiveAccountMutation = useArchiveAccount();
   const { data: archivedCards = [] } = useArchivedAccounts();
   const unarchiveAccountMutation = useUnarchiveAccount();
-  const createTransaction = useCreateTransaction();
   const bulkCreateTransactions = useBulkCreateTransactions();
   const deleteTransaction = useDeleteTransaction();
 
@@ -160,12 +158,22 @@ export function useCreditCardsDashboard() {
   const { data: selectedCardDeps } = useAccountDependencies(selectedCard?.id);
   const selectedCardCanDelete = selectedCardDeps?.can_delete === true;
 
-  const [editingTransaction, setEditingTransaction] = useState<Database["public"]["Tables"]["transactions"]["Row"] | null>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; transaction: Database["public"]["Tables"]["transactions"]["Row"] | null }>({
+  const [editingTransaction, setEditingTransaction] = useState<
+    Database["public"]["Tables"]["transactions"]["Row"] | null
+  >(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    isOpen: boolean;
+    transaction: Database["public"]["Tables"]["transactions"]["Row"] | null;
+  }>({
     isOpen: false,
     transaction: null,
   });
   const [showEditCardDialog, setShowEditCardDialog] = useState(false);
+  const invoicePaymentAttemptRef = useRef<{
+    fingerprint: string;
+    idempotencyKey: string;
+    paymentDate: string;
+  } | null>(null);
 
   const [editCardName, setEditCardName] = useState("");
   const [editCardColor, setEditCardColor] = useState("");
@@ -422,58 +430,43 @@ export function useCreditCardsDashboard() {
 
   const handlePayInvoice = async (fromId: string, amt: number, rate?: number): Promise<boolean> => {
     if (!selectedCard || !invoiceData) return false;
-    const debit = rate ? amt * rate : amt;
-    const competenceFormatted = dateFns.format(selectedDate, "MMMM/yyyy", { locale: ptBR });
-    const capitalizedCompetence =
-      competenceFormatted.charAt(0).toUpperCase() + competenceFormatted.slice(1);
+    const invoiceMonth = dateFns.format(selectedDate, "yyyy-MM-01");
+    const fingerprint = JSON.stringify([
+      selectedCard.id,
+      fromId,
+      invoiceMonth,
+      invoiceData.invoiceTotal,
+      amt,
+      rate ?? null,
+    ]);
+
+    if (invoicePaymentAttemptRef.current?.fingerprint !== fingerprint) {
+      invoicePaymentAttemptRef.current = {
+        fingerprint,
+        idempotencyKey: crypto.randomUUID(),
+        paymentDate: formatDateISO(new Date()),
+      };
+    }
+    const attempt = invoicePaymentAttemptRef.current;
 
     try {
-      await createTransaction.mutateAsync({
-        amount: debit,
-        description: `Pagamento Fatura ${selectedCard.name} - ${capitalizedCompetence}`,
-        date: formatDateISO(new Date()),
-        competence_date: dateFns.format(selectedDate, "yyyy-MM-01"),
-        type: "TRANSFER",
-        account_id: fromId,
-        destination_account_id: selectedCard.id,
-        domain: "PERSONAL",
-        currency: rate ? "BRL" : selectedCard.currency || "BRL",
+      await payCreditCardInvoiceAtomic({
+        cardAccountId: selectedCard.id,
+        sourceAccountId: fromId,
+        invoiceMonth,
+        invoiceTotal: invoiceData.invoiceTotal,
+        amount: amt,
+        paymentDate: attempt.paymentDate,
+        idempotencyKey: attempt.idempotencyKey,
+        exchangeRate: rate,
       });
 
-      // Rotative Logic (Partial Payment)
-      const remaining = invoiceData.invoiceTotal - amt;
-      if (remaining > 0.01) {
-        const nextMonth = dateFns.addMonths(selectedDate, 1);
-
-        await createTransaction.mutateAsync({
-          amount: remaining,
-          description: `Estorno Saldo Rotativo Fatura ${capitalizedCompetence}`,
-          date: formatDateISO(new Date()),
-          competence_date: dateFns.format(selectedDate, "yyyy-MM-01"),
-          type: "TRANSFER",
-          account_id: selectedCard.id,
-          destination_account_id: selectedCard.id,
-          domain: "PERSONAL",
-          currency: selectedCard.currency || "BRL",
-        });
-
-        await createTransaction.mutateAsync({
-          amount: remaining,
-          description: `Saldo Rotativo Fatura Anterior (${capitalizedCompetence})`,
-          date: formatDateISO(new Date()),
-          competence_date: dateFns.format(nextMonth, "yyyy-MM-01"),
-          type: "TRANSFER",
-          account_id: selectedCard.id,
-          destination_account_id: selectedCard.id,
-          domain: "PERSONAL",
-          currency: selectedCard.currency || "BRL",
-        });
-      }
-
+      invoicePaymentAttemptRef.current = null;
       showActionFeedback("success");
       setShowPayDialog(false);
       refetchAccounts();
       refetchTransactions();
+      queryClient.invalidateQueries({ queryKey: ["credit-card-invoice", selectedCard.id] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-data"] });
       return true;
     } catch (err: unknown) {

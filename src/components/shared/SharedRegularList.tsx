@@ -12,7 +12,13 @@ interface SharedRegularListProps {
   getFilteredInvoice: (memberId: string) => InvoiceItem[];
   getTotals: (items: InvoiceItem[]) => Record<string, CurrencyTotals>;
   formatCurrency: (val: number, cur?: string) => string;
-  onSettle: (id: string, type: "PAY" | "RECEIVE", amt: number, specificItem?: InvoiceItem) => void;
+  onSettle: (
+    id: string,
+    type: "PAY" | "RECEIVE",
+    amt: number,
+    specificItem?: InvoiceItem,
+    currency?: string
+  ) => void;
   onUndo: (item: InvoiceItem) => void;
   onDelete: (item: InvoiceItem) => void;
   onAnticipate: (item: InvoiceItem) => void;
@@ -38,13 +44,19 @@ export function SharedRegularList({
         const items = getFilteredInvoice(m.id);
         if (items.length === 0) return null;
 
-        return (
+        const itemsByCurrency = new Map<string, InvoiceItem[]>();
+        items.forEach((item) => {
+          const currency = item.currency || "BRL";
+          itemsByCurrency.set(currency, [...(itemsByCurrency.get(currency) || []), item]);
+        });
+
+        return [...itemsByCurrency.entries()].map(([currency, currencyItems]) => (
           <SharedExpenseCard
-            key={m.id}
+            key={`${m.id}-${currency}`}
             member={m}
-            items={items}
-            netAmount={getTotals(items)["BRL"]?.net || 0}
-            currency="BRL"
+            items={currencyItems}
+            netAmount={getTotals(currencyItems)[currency]?.net || 0}
+            currency={currency}
             isHistory={activeTab === "HISTORY"}
             currentUserId={user?.id}
             formatCurrency={formatCurrency}
@@ -53,7 +65,7 @@ export function SharedRegularList({
             onDelete={onDelete}
             onAnticipate={onAnticipate}
           />
-        );
+        ));
       })}
     </>
   );

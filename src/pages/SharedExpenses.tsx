@@ -116,6 +116,9 @@ export function SharedExpenses() {
   const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
   const queryClient = useQueryClient();
 
+  const getSettlementCurrency = (item: InvoiceItem) =>
+    item.currency || trips.find((trip) => trip.id === item.tripId)?.currency || "BRL";
+
   const { totalsByCurrency, travelTotalsByCurrency } = useSharedExpensesTotals({
     members,
     invoices,
@@ -212,7 +215,8 @@ export function SharedExpenses() {
     id: string,
     type: "PAY" | "RECEIVE",
     amt: number,
-    specificItem?: InvoiceItem
+    specificItem?: InvoiceItem,
+    currency?: string
   ) => {
     setSelectedMember(id);
     setSettleType(type);
@@ -221,7 +225,9 @@ export function SharedExpenses() {
       setSettleAmount(Math.abs(amt).toFixed(2).replace(".", ","));
       setSettlingMode("SINGLE");
     } else {
-      const pending = getFilteredInvoice(id).filter((i) => !i.isPaid);
+      const pending = getFilteredInvoice(id).filter(
+        (i) => !i.isPaid && (!currency || (i.currency || "BRL") === currency)
+      );
       setSelectedItems(pending.map((i) => i.id));
       setSettleAmount(Math.abs(amt).toFixed(2).replace(".", ","));
       setSettlingMode("ALL");
@@ -445,19 +451,19 @@ export function SharedExpenses() {
               {!sharedLoading &&
                 !membersLoading &&
                 (activeTab === "TRAVEL"
-                ? trips.filter((t) =>
-                    members.some((m) => getFilteredInvoice(m.id).some((i) => i.tripId === t.id))
-                  ).length === 0
-                : members
-                    .filter((m) => m.linked_user_id !== user?.id)
-                    .every((m) => getFilteredInvoice(m.id).length === 0)) && (
-                <EmptyState
-                  icon={CheckCircle2}
-                  title="Tudo em dia!"
-                  description="Nenhuma despesa compartilhada pendente neste período."
-                  variant="success"
-                />
-              )}
+                  ? trips.filter((t) =>
+                      members.some((m) => getFilteredInvoice(m.id).some((i) => i.tripId === t.id))
+                    ).length === 0
+                  : members
+                      .filter((m) => m.linked_user_id !== user?.id)
+                      .every((m) => getFilteredInvoice(m.id).length === 0)) && (
+                  <EmptyState
+                    icon={CheckCircle2}
+                    title="Tudo em dia!"
+                    description="Nenhuma despesa compartilhada pendente neste período."
+                    variant="success"
+                  />
+                )}
             </div>
           )}
         </TabsContent>
@@ -476,27 +482,36 @@ export function SharedExpenses() {
           setSelectedItems((prev) => {
             const ni = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
             if (selectedMember) {
-              const items = getFilteredInvoice(selectedMember);
-              const tot = items
-                .filter((i) => ni.includes(i.id))
-                .reduce(
-                  (s, x) =>
-                    x.type === "CREDIT"
-                      ? SafeFinancialCalculator.add(s, x.amount)
-                      : SafeFinancialCalculator.subtract(s, x.amount),
-                  SafeFinancialCalculator.ZERO
-                )
-                .toNumber();
+              const items = getFilteredInvoice(selectedMember).filter((i) => ni.includes(i.id));
+              const currencies = new Set(items.map(getSettlementCurrency));
+              const tot =
+                currencies.size === 1
+                  ? items
+                      .reduce(
+                        (s, x) =>
+                          x.type === "CREDIT"
+                            ? SafeFinancialCalculator.add(s, x.amount)
+                            : SafeFinancialCalculator.subtract(s, x.amount),
+                        SafeFinancialCalculator.ZERO
+                      )
+                      .toNumber()
+                  : 0;
               setSettleAmount(Math.abs(tot).toFixed(2).replace(".", ","));
-              setSettleType(tot >= 0 ? "RECEIVE" : "PAY");
+              if (currencies.size <= 1) setSettleType(tot >= 0 ? "RECEIVE" : "PAY");
             }
             return ni;
           })
         }
-        onSelectAll={() => {
+        onSelectAll={(currency) => {
           if (!selectedMember) return;
-          const items = getFilteredInvoice(selectedMember).filter((i) => !i.isPaid);
-          if (selectedItems.length === items.length) {
+          const items = getFilteredInvoice(selectedMember).filter(
+            (i) => !i.isPaid && getSettlementCurrency(i) === currency
+          );
+          const allSelected =
+            items.length > 0 &&
+            items.every((item) => selectedItems.includes(item.id)) &&
+            selectedItems.length === items.length;
+          if (allSelected) {
             setSelectedItems([]);
             setSettleAmount("0,00");
             setSettleType("PAY");

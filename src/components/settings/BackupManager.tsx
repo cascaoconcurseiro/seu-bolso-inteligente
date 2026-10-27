@@ -25,6 +25,7 @@ const BACKUP_TABLES = [
 ] as const;
 
 type BackupTableName = (typeof BACKUP_TABLES)[number];
+const BACKUP_PAGE_SIZE = 1000;
 
 export function BackupManager() {
   const { user } = useAuth();
@@ -38,12 +39,35 @@ export function BackupManager() {
 
     try {
       const getTableData = async <Table extends BackupTableName>(tableName: Table) => {
-        const { data, error } = await supabase.from(tableName).select("*");
-        if (error) {
-          logger.error(`Erro ao exportar tabela ${tableName}:`, error);
-          throw error;
+        const rows: unknown[] = [];
+        let expectedCount: number | null = null;
+
+        for (let offset = 0; ; ) {
+          const { data, error, count } = await supabase
+            .from(tableName)
+            .select("*", offset === 0 ? { count: "exact" } : undefined)
+            .order("id", { ascending: true })
+            .range(offset, offset + BACKUP_PAGE_SIZE - 1);
+
+          if (error) {
+            logger.error(`Erro ao exportar tabela ${tableName}:`, error);
+            throw error;
+          }
+
+          if (expectedCount === null && typeof count === "number") expectedCount = count;
+          const page = data || [];
+          rows.push(...page);
+
+          if (expectedCount !== null && rows.length >= expectedCount) return rows;
+          if (page.length === 0) {
+            if (expectedCount !== null) {
+              throw new Error(`A tabela ${tableName} mudou durante a exportação.`);
+            }
+            return rows;
+          }
+
+          offset += page.length;
         }
-        return data || [];
       };
 
       const [

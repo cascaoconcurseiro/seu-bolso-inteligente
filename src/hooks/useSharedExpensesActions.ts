@@ -93,13 +93,17 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
     try {
       const items = getFilteredInvoice(selectedMember);
 
-      const itemsToSettle =
-        selectedItems.length > 0
-          ? items.filter((i) => selectedItems.includes(i.id))
-          : items.filter((i) => !i.isPaid);
+      const itemsToSettle = items.filter((i) => !i.isPaid && selectedItems.includes(i.id));
 
       if (itemsToSettle.length === 0) {
-        toast.error("Nenhum item para acertar");
+        toast.error("Selecione pelo menos um item para acertar");
+        setIsSettling(false);
+        return;
+      }
+
+      const currencies = new Set(itemsToSettle.map((item) => item.currency || "BRL"));
+      if (currencies.size > 1) {
+        toast.error("Selecione itens de uma única moeda por acerto.");
         setIsSettling(false);
         return;
       }
@@ -139,7 +143,9 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
         return;
       }
 
-      const splitIds = itemsToSettle.map((i) => i.splitId).filter((id): id is string => !!id);
+      const splitIds = [
+        ...new Set(itemsToSettle.map((i) => i.splitId).filter((id): id is string => !!id)),
+      ];
 
       // SEC-004: bloquear liquidação de itens de domínios distintos na mesma operação
       const uniqueTripIdsCheck = [...new Set(itemsToSettle.map((i) => i.tripId ?? null))];
@@ -193,10 +199,10 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
         });
 
         if (error) throw error;
-        const result = data as { success?: boolean; error?: string };
-        if (result?.success === false) {
+        const result = data as { success?: boolean; error?: string } | null;
+        if (result?.success !== true) {
           validationErrorMessage =
-            result.error || "Não foi possível compensar as despesas selecionadas.";
+            result?.error || "O servidor não confirmou a compensação das despesas selecionadas.";
           throw new Error(validationErrorMessage);
         }
 
@@ -204,7 +210,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       }
       // 2. O usuário é o credor líquido (recebendo o valor compensado)
       else if (itemsTotal > 0) {
-        const { error } = await supabase.rpc("request_settlement_v2", {
+        const { data, error } = await supabase.rpc("request_settlement_v2", {
           p_split_ids: splitIds,
           p_account_id: settleAccountId,
           p_is_payment: false,
@@ -212,12 +218,17 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
         });
 
         if (error) throw error;
+        const result = data as { success?: boolean; error?: string } | null;
+        if (result?.success !== true) {
+          validationErrorMessage = result?.error || "O servidor não confirmou o acerto.";
+          throw new Error(validationErrorMessage);
+        }
 
         toast.success("Acerto registrado com sucesso!");
       }
       // 3. O usuário é o devedor líquido (pagando o saldo compensado)
       else {
-        const { error } = await supabase.rpc("request_settlement_v2", {
+        const { data, error } = await supabase.rpc("request_settlement_v2", {
           p_split_ids: splitIds,
           p_account_id: settleAccountId,
           p_is_payment: true,
@@ -225,6 +236,11 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
         });
 
         if (error) throw error;
+        const result = data as { success?: boolean; error?: string } | null;
+        if (result?.success !== true) {
+          validationErrorMessage = result?.error || "O servidor não confirmou o acerto.";
+          throw new Error(validationErrorMessage);
+        }
 
         toast.success("Acerto registrado com sucesso!");
       }
@@ -248,6 +264,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       }
       queryClient?.invalidateQueries({ queryKey: ["shared-transactions-consolidated"] });
       queryClient?.invalidateQueries({ queryKey: ["shared-balances"] });
+      setShowSettleDialog(true);
       toast.error(validationErrorMessage || "Erro ao realizar acerto");
     } finally {
       setIsSettling(false);

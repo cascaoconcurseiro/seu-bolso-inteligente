@@ -4815,6 +4815,19 @@ export type Database = {
         }
         Returns: number
       }
+      pay_credit_card_invoice_atomic: {
+        Args: {
+          p_amount: number
+          p_card_account_id: string
+          p_exchange_rate?: number
+          p_idempotency_key: string
+          p_invoice_month: string
+          p_invoice_total: number
+          p_payment_date: string
+          p_source_account_id: string
+        }
+        Returns: Json
+      }
       permanent_delete_old_records: { Args: never; Returns: number }
       process_credit_card_invoices: { Args: never; Returns: undefined }
       process_daily_yields: { Args: never; Returns: undefined }

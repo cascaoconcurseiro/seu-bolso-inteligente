@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
- 
+
 import { useState } from "react";
 import { formatDateISO } from "@/utils/dateUtils";
 import {
@@ -35,7 +35,7 @@ interface SharedSettleDialogProps {
   pendingMemberItems: any[];
   selectedItems: string[];
   onToggleItem: (id: string) => void;
-  onSelectAll: () => void;
+  onSelectAll: (currency: string) => void;
   settleType: "PAY" | "RECEIVE";
   settleAmount: string;
   settleDate: string;
@@ -79,16 +79,27 @@ export function SharedSettleDialog({
   if (!selectedMember) return null;
 
   const member = members.find((m) => m.id === selectedMember);
-  const itemsToConsider =
-    selectedItems.length > 0
-      ? pendingMemberItems.filter((i) => selectedItems.includes(i.id))
-      : pendingMemberItems;
+  const getItemCurrency = (item: any) => {
+    const itemTrip = item.tripId ? trips.find((t) => t.id === item.tripId) : null;
+    return item.currency || itemTrip?.currency || "BRL";
+  };
+  const itemsToConsider = pendingMemberItems.filter((i) => selectedItems.includes(i.id));
+  const selectedCurrencies = new Set(itemsToConsider.map(getItemCurrency));
+  const firstSelectedItem = itemsToConsider[0] || pendingMemberItems[0];
+  const settlementCurrency = firstSelectedItem ? getItemCurrency(firstSelectedItem) : "BRL";
+  const hasMixedCurrencies = selectedCurrencies.size > 1;
+  const hasOtherCurrencies = pendingMemberItems.some(
+    (item) => getItemCurrency(item) !== settlementCurrency
+  );
+  const currencyScopedItems = pendingMemberItems.filter(
+    (item) => getItemCurrency(item) === settlementCurrency
+  );
+  const visibleItems = hasMixedCurrencies ? pendingMemberItems : currencyScopedItems;
+  const allVisibleItemsSelected =
+    visibleItems.length > 0 &&
+    visibleItems.every((item) => selectedItems.includes(item.id)) &&
+    selectedItems.length === visibleItems.length;
 
-  const tripIds = [...new Set(itemsToConsider.filter((i) => i.tripId).map((i) => i.tripId))];
-  const internationalTrip =
-    tripIds.length > 0 ? trips.find((t) => tripIds.includes(t.id) && t.currency !== "BRL") : null;
-
-  const settlementCurrency = internationalTrip?.currency || "BRL";
   const isInternationalSettlement = settlementCurrency !== "BRL";
 
   const filteredSettleAccounts = (accounts || []).filter((a) => {
@@ -98,6 +109,9 @@ export function SharedSettleDialog({
     }
     return !a.is_international;
   });
+  const selectedAccountMatchesCurrency = filteredSettleAccounts.some(
+    (account) => account.id === settleAccountId
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -125,6 +139,24 @@ export function SharedSettleDialog({
 
         {/* Corpo rolável */}
         <div className="flex-1 overflow-y-auto px-6 space-y-4 pb-2">
+          {hasMixedCurrencies ? (
+            <Alert variant="destructive">
+              <Info className="h-4 w-4" />
+              <AlertDescription>
+                Selecione itens de uma única moeda por vez. Os valores em moedas diferentes não
+                podem ser somados.
+              </AlertDescription>
+            </Alert>
+          ) : hasOtherCurrencies ? (
+            <Alert className="border-primary/20 bg-primary/5">
+              <Info className="h-4 w-4 text-primary" />
+              <AlertDescription>
+                O acerto está separado por moeda. As outras moedas podem ser acertadas em operações
+                próprias.
+              </AlertDescription>
+            </Alert>
+          ) : null}
+
           {isInternationalSettlement && (
             <Alert className="border-accent/20 bg-accent/5 dark:bg-accent/10">
               <Globe className="h-4 w-4 text-accent" />
@@ -236,7 +268,7 @@ export function SharedSettleDialog({
                     className="text-sm font-semibold cursor-pointer select-none"
                     onClick={() => setIsItemsExpanded(!isItemsExpanded)}
                   >
-                    Itens para acertar ({pendingMemberItems.length})
+                    Itens para acertar ({visibleItems.length}) · {settlementCurrency}
                   </Label>
                   <Button
                     variant="ghost"
@@ -255,25 +287,26 @@ export function SharedSettleDialog({
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={onSelectAll}
+                    onClick={() => onSelectAll(settlementCurrency)}
                     className="text-xs h-7 px-2 text-primary shrink-0"
                   >
-                    {selectedItems.length === pendingMemberItems.length
-                      ? "Desmarcar todos"
-                      : "Selecionar todos"}
+                    {hasMixedCurrencies
+                      ? `Selecionar somente ${settlementCurrency}`
+                      : allVisibleItemsSelected
+                        ? `Desmarcar ${settlementCurrency}`
+                        : `Selecionar ${settlementCurrency}`}
                   </Button>
                 )}
               </div>
 
               {isItemsExpanded && (
                 <div className="border border-border/60 rounded-2xl divide-y divide-border/40 overflow-hidden">
-                  {pendingMemberItems
+                  {visibleItems
                     .filter((i) =>
                       settlingMode === "SINGLE" ? selectedItems.includes(i.id) : true
                     )
                     .map((item) => {
-                      const itemTrip = item.tripId ? trips.find((t) => t.id === item.tripId) : null;
-                      const itemCurrency = itemTrip?.currency || "BRL";
+                      const itemCurrency = getItemCurrency(item);
                       const isCredit = item.type === "CREDIT";
                       return (
                         <label
@@ -365,7 +398,13 @@ export function SharedSettleDialog({
           </Button>
           <Button
             onClick={onSettle}
-            disabled={isSettling || !settleAccountId}
+            disabled={
+              isSettling ||
+              !settleAccountId ||
+              !selectedAccountMatchesCurrency ||
+              selectedItems.length === 0 ||
+              hasMixedCurrencies
+            }
             className="flex-1 rounded-xl h-11"
           >
             {isSettling ? (

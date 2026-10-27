@@ -1,12 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
-import { Plus } from "lucide-react";
+import { Plus, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
 import { navigationItems } from "@/config/navigation";
 import { getRouteResourceId, isNavigationPathActive } from "@/utils/frontendFlows";
 import { preloadNavigationRoute } from "@/utils/preloadNavigationRoute";
+
+const mobileNavigationItems = [
+  ...navigationItems,
+  { path: "/configuracoes", label: "Configurações", icon: Settings },
+];
 
 // Navegação móvel com todos os destinos em uma faixa horizontal rolável.
 
@@ -66,7 +71,7 @@ export function MobileNav() {
             className="flex h-16 items-center gap-1 overflow-x-auto overscroll-x-contain px-2 no-scrollbar"
             aria-describedby="mobile-navigation-scroll-hint"
           >
-            {navigationItems.map((item) => {
+            {mobileNavigationItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.path);
 
@@ -74,6 +79,7 @@ export function MobileNav() {
                 <div key={item.path} className="flex shrink-0 items-center gap-1">
                   <motion.button
                     whileTap={tapAnimation}
+                    title={item.label}
                     aria-current={active ? "page" : undefined}
                     onPointerDown={() => handleRouteIntent(item.path)}
                     onFocus={() => handleRouteIntent(item.path)}

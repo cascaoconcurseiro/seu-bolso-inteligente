@@ -19,7 +19,27 @@ export const GreetingCard = memo(function GreetingCard({ className }: GreetingCa
   const { data: profile } = useUserProfile();
   const [isVisible, setIsVisible] = useState(false);
 
-  const firstName = profile?.full_name?.split(" ")[0] || user?.email?.split("@")[0] || "usuário";
+  const email = user?.email?.trim();
+  const emailPrefix = email?.split("@")[0]?.trim();
+  const isEmailIdentifier = (candidate?: string | null) => {
+    const normalizedCandidate = candidate?.trim().toLocaleLowerCase();
+    return (
+      !!normalizedCandidate &&
+      [email, emailPrefix].some((value) => value?.toLocaleLowerCase() === normalizedCandidate)
+    );
+  };
+  const metadata = user?.user_metadata;
+  const displayName = [
+    profile?.full_name,
+    metadata?.full_name,
+    metadata?.name,
+    metadata?.preferred_username,
+    metadata?.user_name,
+  ].find(
+    (candidate): candidate is string =>
+      typeof candidate === "string" && !!candidate.trim() && !isEmailIdentifier(candidate)
+  );
+  const firstName = displayName?.trim().split(/\s+/)[0] || "usuário";
 
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 80);

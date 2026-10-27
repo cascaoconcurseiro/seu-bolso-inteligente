@@ -35,7 +35,8 @@ interface SharedExpenseCardProps {
     memberId: string,
     type: "PAY" | "RECEIVE",
     amount: number,
-    specificItem?: InvoiceItem
+    specificItem?: InvoiceItem,
+    currency?: string
   ) => void;
   onUndo: (item: InvoiceItem) => void;
   onDelete: (item: InvoiceItem) => void;
@@ -179,7 +180,15 @@ export function SharedExpenseCard({
                 className={cn(
                   "flex-1 sm:flex-none h-12 px-5 sm:px-6 text-sm sm:text-base shadow-lg transition-all shrink-0 font-bold rounded-xl active:scale-95"
                 )}
-                onClick={() => onSettle(member.id, iOwe ? "PAY" : "RECEIVE", Math.abs(netAmount))}
+                onClick={() =>
+                  onSettle(
+                    member.id,
+                    iOwe ? "PAY" : "RECEIVE",
+                    Math.abs(netAmount),
+                    undefined,
+                    currency
+                  )
+                }
               >
                 <Wallet className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
                 <span className="sm:hidden">{iOwe ? "Pagar" : "Receber"}</span>
