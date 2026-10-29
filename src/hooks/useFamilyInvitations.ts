@@ -31,54 +31,65 @@ export function usePendingInvitations() {
       if (!user) return [];
 
       try {
-        // Buscar convites
-        const byUserId = supabase
-          .from("family_invitations")
-          .select("*")
-          .eq("to_user_id", user.id)
-          .eq("status", "pending")
-          .order("created_at", { ascending: false });
-        const byEmail = user.email
-          ? supabase
-              .from("family_invitations")
-              .select("*")
-              .eq("to_email", user.email.trim().toLowerCase())
-              .eq("status", "pending")
-              .order("created_at", { ascending: false })
-          : null;
-        const [userIdResult, emailResult] = await Promise.all([byUserId, byEmail]);
+        // Buscar convites por to_user_id e por email
+        const userEmail = user.email?.trim().toLowerCase();
+        const [byUser, byEmail] = await Promise.all([
+          supabase
+            .from("family_invitations")
+            .select("*")
+            .eq("to_user_id", user.id)
+            .eq("status", "pending")
+            .eq("deleted", false)
+            .order("created_at", { ascending: false }),
+          userEmail
+            ? supabase
+                .from("family_invitations")
+                .select("*")
+                .eq("to_email", userEmail)
+                .eq("status", "pending")
+                .eq("deleted", false)
+                .order("created_at", { ascending: false })
+            : Promise.resolve({ data: [], error: null }),
+        ]);
 
-        if (userIdResult.error || emailResult?.error) {
-          logger.error(
-            "Erro ao buscar convites de família:",
-            userIdResult.error || emailResult?.error
-          );
-          return [];
+        if (byUser.error) {
+          logger.error("Erro ao buscar convites por usuário:", byUser.error);
+        }
+        if (byEmail.error) {
+          logger.error("Erro ao buscar convites por email:", byEmail.error);
         }
 
-        const invitations = [...(userIdResult.data || []), ...(emailResult?.data || [])].filter(
+        const rawList = [...(byUser.data || []), ...(byEmail.data || [])];
+        const invitations = rawList.filter(
           (invitation, index, all) => all.findIndex((item) => item.id === invitation.id) === index
         );
 
-        if (invitations.length === 0) {
+        if (!invitations || invitations.length === 0) {
           return [];
         }
 
-        // Buscar dados dos usuários que enviaram os convites
-        const fromUserIds = invitations.map((inv) => inv.from_user_id);
-        const { data: profiles, error: profilesError } = await supabase
-          .from("profiles")
-          .select("id, full_name")
-          .in("id", fromUserIds);
+        // Buscar dados dos usuários que enviaram os convites de forma resiliente
+        const fromUserIds = Array.from(
+          new Set(invitations.map((inv) => inv.from_user_id).filter(Boolean))
+        );
+        let profiles: { id: string; full_name: string | null }[] = [];
+        if (fromUserIds.length > 0) {
+          const { data: profilesData, error: profilesError } = await supabase
+            .from("profiles")
+            .select("id, full_name")
+            .in("id", fromUserIds);
 
-        if (profilesError) {
-          logger.error("Erro ao buscar perfis para convites de família:", profilesError);
+          if (profilesError) {
+            logger.warn("Aviso ao buscar nomes dos autores de convite:", profilesError);
+          } else if (profilesData) {
+            profiles = profilesData;
+          }
         }
 
-        // Combinar dados
+        // Combinar dados garantindo que convites nunca sejam omitidos por falha secundária
         const invitationsWithUsers = invitations.map((inv) => ({
           ...inv,
-          from_user: profiles?.find((p) => p.id === inv.from_user_id) || null,
+          from_user: profiles.find((p) => p.id === inv.from_user_id) || null,
         }));
 
         return invitationsWithUsers as FamilyInvitation[];
@@ -89,7 +100,7 @@ export function usePendingInvitations() {
     },
     enabled: !!user,
     retry: 1,
-    staleTime: 2 * 60 * 1000, // 2 minutos de cache
+    staleTime: 30 * 1000,
   });
 }
 
@@ -136,7 +147,9 @@ export function useAcceptInvitation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pending-family-invitations"] });
+      queryClient.invalidateQueries({ queryKey: ["family"] });
       queryClient.invalidateQueries({ queryKey: ["family-members"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-data"] });
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
       toast.success("Solicitação aceita! Vínculo criado.");
     },

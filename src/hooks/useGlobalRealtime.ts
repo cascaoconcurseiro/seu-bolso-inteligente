@@ -37,10 +37,16 @@ const TABLE_TO_QUERY_KEYS: Record<string, string[]> = {
   trip_members: ["trips", "trip-members", "trip-participants", "trip-participant-balances"],
   trip_invitations: ["pending-trip-invitations", "sent-trip-invitations"],
   family_members: ["family", "family-members"],
-  family_invitations: ["family-invitations", "pending-family-invitations"],
+  family_invitations: [
+    "family-invitations",
+    "family-invitations-sent",
+    "pending-family-invitations",
+  ],
   notifications: ["notifications"],
   auto_share_rules: ["auto-share-rules"],
 };
+
+let realtimeEffectInstance = 0;
 
 /**
  * Escuta eventos de tempo real (Realtime) do Supabase com canais narrow.
@@ -60,6 +66,9 @@ export function useGlobalRealtime() {
     let cancelled = false;
     const channels: ReturnType<typeof supabase.channel>[] = [];
     const debounceTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
+    // Effects can briefly overlap while React cleans up an old route or StrictMode remount.
+    // Unique topics prevent `.channel()` from returning a still-subscribed channel.
+    const channelScope = ++realtimeEffectInstance;
 
     const shouldStopRetrying = (): boolean => {
       const now = Date.now();
@@ -72,7 +81,8 @@ export function useGlobalRealtime() {
     const connectTable = (table: string, filter: string) => {
       if (cancelled) return;
 
-      const channelName = `db-changes-${table}-${user.id}`;
+      const safeFilter = filter.replace(/[^a-zA-Z0-9_-]/g, "_");
+      const channelName = `db-changes-${table}-${safeFilter}-${channelScope}`;
       const channel = supabase
         .channel(channelName)
         .on("postgres_changes", { event: "*", schema: "public", table, filter }, () => {
@@ -122,6 +132,17 @@ export function useGlobalRealtime() {
     connectTable("assets", `user_id=eq.${user.id}`);
     connectTable("asset_transactions", `user_id=eq.${user.id}`);
     connectTable("categories", `user_id=eq.${user.id}`);
+
+    // Convites de família (enviados e recebidos) e membros
+    connectTable("family_invitations", `to_user_id=eq.${user.id}`);
+    connectTable("family_invitations", `from_user_id=eq.${user.id}`);
+    connectTable("family_members", `user_id=eq.${user.id}`);
+    connectTable("family_members", `linked_user_id=eq.${user.id}`);
+
+    // Convites de viagem e notificações em tempo real
+    connectTable("trip_invitations", `invitee_id=eq.${user.id}`);
+    connectTable("trip_invitations", `inviter_id=eq.${user.id}`);
+    connectTable("notifications", `user_id=eq.${user.id}`);
 
     return () => {
       cancelled = true;

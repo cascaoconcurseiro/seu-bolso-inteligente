@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Bell, CheckCheck, X, Trash2, ExternalLink, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -239,6 +239,7 @@ interface NotificationItemProps {
 }
 
 function NotificationItem({ notification, onClick, onDismiss }: NotificationItemProps) {
+  const navigate = useNavigate();
   const icon = notification.icon || getNotificationIcon(notification.type);
   const timeAgo = dateFns.formatDistanceToNow(new Date(notification.created_at), {
     addSuffix: true,
@@ -247,9 +248,13 @@ function NotificationItem({ notification, onClick, onDismiss }: NotificationItem
 
   const handleClick = () => {
     onClick();
-    // Se tem action_url, navegar
+    // Se tem action_url, navegar de forma limpa via React Router quando relativo
     if (notification.action_url && !notification.action_label) {
-      window.location.href = notification.action_url;
+      if (notification.action_url.startsWith("/")) {
+        navigate(notification.action_url);
+      } else {
+        window.location.href = notification.action_url;
+      }
     }
   };
 

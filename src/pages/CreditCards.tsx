@@ -54,6 +54,7 @@ import { NewCardDialog } from "@/components/credit-cards/NewCardDialog";
 import { ImportBillsDialog } from "@/components/credit-cards/ImportBillsDialog";
 
 import { PayInvoiceDialog } from "@/components/credit-cards/PayInvoiceDialog";
+import { PendingSharedCardInvitationsAlert } from "@/components/credit-cards/PendingSharedCardInvitationsAlert";
 import { ArchivedCardsSection } from "@/components/credit-cards/ArchivedCardsSection";
 import { ArchiveConfirmModal } from "@/components/modals/ArchiveConfirmModal";
 import { ShareCardDialog } from "@/components/credit-cards/ShareCardDialog";
@@ -731,6 +732,8 @@ export function CreditCards() {
           </div>
         </div>
       </div>
+
+      <PendingSharedCardInvitationsAlert />
 
       {creditCards.length > 0 ? (
         <CreditCardsList

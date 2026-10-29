@@ -9,6 +9,9 @@ const mocks = vi.hoisted(() => ({
   useSharedContacts: vi.fn(),
   useFamilyInvitations: vi.fn(),
   useCancelInvitation: vi.fn(),
+  usePendingInvitations: vi.fn(),
+  useAcceptInvitation: vi.fn(),
+  useRejectInvitation: vi.fn(),
   useAddSharedContact: vi.fn(),
   useConvertContactToMember: vi.fn(),
   useConvertMemberToContact: vi.fn(),
@@ -38,10 +41,16 @@ vi.mock("@/hooks/useFamily", () => ({
 vi.mock("@/hooks/useFamilyInvitations", () => ({
   useCancelInvitation: mocks.useCancelInvitation,
   useFamilyInvitations: mocks.useFamilyInvitations,
+  usePendingInvitations: mocks.usePendingInvitations,
+  useAcceptInvitation: mocks.useAcceptInvitation,
+  useRejectInvitation: mocks.useRejectInvitation,
 }));
 
 describe("Family contact loading state", () => {
   beforeEach(() => {
+    mocks.usePendingInvitations.mockReturnValue({ data: [], isLoading: false, isError: false });
+    mocks.useAcceptInvitation.mockReturnValue({ mutate: vi.fn(), isPending: false });
+    mocks.useRejectInvitation.mockReturnValue({ mutate: vi.fn(), isPending: false });
     mocks.useFamily.mockReturnValue({
       data: { id: "family-1", owner_id: "user-1", name: "Família de Wesley" },
       isLoading: false,
