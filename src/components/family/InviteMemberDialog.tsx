@@ -103,7 +103,9 @@ export function InviteMemberDialog({
           const profile = data[0];
           setUserExists(true);
           setFoundUser({ id: profile.id, full_name: profile.full_name });
-          setName((prev) => (prev.trim() === "" ? profile.full_name || trimmed.split("@")[0] : prev));
+          setName((prev) =>
+            prev.trim() === "" ? profile.full_name || trimmed.split("@")[0] : prev
+          );
         } else {
           setUserExists(false);
           setFoundUser(null);
@@ -273,7 +275,8 @@ export function InviteMemberDialog({
               <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm flex items-center gap-2">
                 <UserCircle2 className="h-4 w-4 shrink-0" />
                 <span>
-                  <strong>Usuário encontrado:</strong> {foundUser.full_name || "Perfil cadastrado"}. Esta pessoa receberá uma notificação no app.
+                  <strong>Usuário encontrado:</strong> {foundUser.full_name || "Perfil cadastrado"}.
+                  Esta pessoa receberá uma notificação no app.
                 </span>
               </div>
             )}
@@ -282,7 +285,8 @@ export function InviteMemberDialog({
               <div className="p-3 rounded-xl bg-muted/40 border border-border/50 text-muted-foreground text-xs flex items-center gap-2">
                 <Users className="h-4 w-4 shrink-0" />
                 <span>
-                  Este e-mail ainda não possui conta no aplicativo. O convite ficará pendente até o cadastro.
+                  Este e-mail ainda não possui conta no aplicativo. O convite ficará pendente até o
+                  cadastro.
                 </span>
               </div>
             )}
