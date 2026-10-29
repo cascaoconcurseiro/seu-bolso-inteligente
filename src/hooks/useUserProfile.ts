@@ -18,6 +18,7 @@ export interface UserProfile {
   month_start_day?: number;
   base_currency?: string;
   require_pin_on_open?: boolean;
+  has_pin?: boolean;
   monthly_budget?: number;
   shared_expenses_behavior?: string;
   shared_sync_credit_card_id?: string | null;
@@ -38,29 +39,26 @@ export function useUserProfile() {
     queryFn: async () => {
       if (!user) return null;
 
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
+      const fetchOwnProfile = async () => {
+        const { data, error } = await supabase.rpc("get_my_profile_v2");
+        if (error) throw error;
+        return data as unknown as UserProfile | null;
+      };
 
-      if (error && error.code === "PGRST116") {
+      let data = await fetchOwnProfile();
+      if (!data) {
         // Profile doesn't exist, create one
-        const { data: newProfile, error: createError } = await supabase
-          .from("profiles")
-          .insert({
-            id: user.id,
-            email: user.email ?? "",
-            full_name: user.user_metadata?.full_name || user.email?.split("@")[0],
-          })
-          .select()
-          .single();
+        const { error: createError } = await supabase.from("profiles").insert({
+          id: user.id,
+          email: user.email ?? "",
+          full_name: user.user_metadata?.full_name || user.email?.split("@")[0],
+        });
 
         if (createError) throw createError;
-        return { ...newProfile, name: newProfile.full_name } as UserProfile;
+        data = await fetchOwnProfile();
       }
 
-      if (error) throw error;
+      if (!data) throw new Error("Não foi possível carregar o perfil do usuário");
 
       // Sincroniza configurações críticas no localStorage para acesso síncrono no startup
       if (data) {
@@ -159,14 +157,14 @@ export function useUpdateUserProfile() {
         updateData.monthly_report_enabled = input.monthly_report_enabled;
       }
 
-      const { data, error } = await supabase
-        .from("profiles")
-        .update(updateData)
-        .eq("id", user.id)
-        .select()
-        .single();
+      const { error } = await supabase.from("profiles").update(updateData).eq("id", user.id);
 
       if (error) throw error;
+
+      const { data: profile, error: profileError } = await supabase.rpc("get_my_profile_v2");
+      if (profileError) throw profileError;
+      if (!profile) throw new Error("Não foi possível carregar o perfil atualizado");
+      const updatedProfile = profile as unknown as UserProfile;
 
       // Mantém o LocalStorage sincronizado com a fonte da verdade
       try {
@@ -184,7 +182,7 @@ export function useUpdateUserProfile() {
         });
       }
 
-      return { ...data, name: data.full_name } as UserProfile;
+      return { ...updatedProfile, name: updatedProfile.full_name };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-profile"] });

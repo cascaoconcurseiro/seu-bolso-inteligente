@@ -4467,6 +4467,10 @@ export type Database = {
           target_amount: number
         }[]
       }
+      get_my_profile_v2: {
+        Args: never
+        Returns: Json
+      }
       get_monthly_evolution: {
         Args: { p_months?: number; p_user_id: string }
         Returns: {

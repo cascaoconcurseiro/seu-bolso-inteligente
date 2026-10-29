@@ -15,7 +15,6 @@ export interface SharedCreditCard {
   account?: { name: string } | null;
   user?: {
     full_name: string | null;
-    email: string;
     avatar_url: string | null;
     avatar_icon: string | null;
     avatar_color: string | null;
@@ -37,7 +36,7 @@ export function useSharedCreditCards(accountId?: string) {
       let query = supabase
         .from("shared_credit_cards")
         .select(
-          "*, user:profiles!shared_credit_cards_user_id_fkey(full_name, email, avatar_url, avatar_icon, avatar_color), accounts(name)"
+          "*, user:profiles!shared_credit_cards_user_id_fkey(full_name, avatar_url, avatar_icon, avatar_color), accounts(name)"
         );
 
       if (accountId) {
