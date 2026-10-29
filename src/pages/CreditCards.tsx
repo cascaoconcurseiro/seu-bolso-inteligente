@@ -733,6 +733,8 @@ export function CreditCards() {
         </div>
       </div>
 
+      <PendingSharedCardInvitationsAlert />
+
       {creditCards.length > 0 ? (
         <CreditCardsList
           creditCards={creditCards}
