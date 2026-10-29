@@ -282,6 +282,7 @@ export function useInviteFamilyMember() {
       name,
       email,
       role,
+      targetUserId,
       sharingScope,
       scopeStartDate,
       scopeEndDate,
@@ -290,6 +291,7 @@ export function useInviteFamilyMember() {
       name: string;
       email: string;
       role: FamilyRole;
+      targetUserId?: string;
       sharingScope?: SharingScope;
       scopeStartDate?: string;
       scopeEndDate?: string;
@@ -317,49 +319,43 @@ export function useInviteFamilyMember() {
       }
 
       // Impedir que o usuário se adicione a si mesmo
-      if (email.toLowerCase() === user.email?.toLowerCase()) {
+      if (email.trim().toLowerCase() === user.email?.trim().toLowerCase()) {
         throw new Error("Você não pode se adicionar como membro da família");
       }
 
       const normalizedEmail = email.trim().toLowerCase();
-      if (normalizedEmail === user.email?.trim().toLowerCase()) {
-        throw new Error("Você não pode se adicionar como membro da família");
-      }
 
       const { data, error } = await supabase
         .from("family_invitations")
         .insert({
           from_user_id: user.id,
-          to_user_id: null,
+          to_user_id: targetUserId || null,
           to_email: normalizedEmail,
           family_id: familyId,
           member_name: name,
           role,
-          status: "pending",
           sharing_scope: sharingScope || "all",
           scope_start_date: scopeStartDate || null,
           scope_end_date: scopeEndDate || null,
           scope_trip_id: scopeTripId || null,
+          status: "pending",
         })
         .select()
         .single();
 
-      if (error) {
-        if (error.code === "23505") {
-          throw new Error("Solicitação já enviada para este usuário");
-        }
-        throw error;
-      }
-      return { type: "invitation", data };
+      if (error) throw error;
+      return { type: "invitation", data, hasUser: !!targetUserId };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["family-members"] });
       queryClient.invalidateQueries({ queryKey: ["family-invitations"] });
       queryClient.invalidateQueries({ queryKey: ["family"] });
 
-      toast.success(
-        "Convite enviado. Ele ficará disponível quando a pessoa entrar com este e-mail."
-      );
+      if (result.hasUser) {
+        toast.success("Convite enviado! O familiar foi notificado no app.");
+      } else {
+        toast.success("Convite registrado. A pessoa poderá aceitá-lo ao entrar com este e-mail.");
+      }
     },
     onError: (error) => {
       if (error.message.includes("duplicate") || error.message.includes("já enviada")) {
@@ -480,7 +476,7 @@ export function useAddSharedContact() {
       });
       if (error) throw error;
 
-      return {};
+      return undefined;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["shared-contacts"] });

@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable unused-imports/no-unused-vars */
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Loader2, ChevronDown, Settings, Users, UserCircle2 } from "lucide-react";
+import { Loader2, ChevronDown, Settings, Users, UserCircle2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -32,6 +31,7 @@ interface InviteMemberDialogProps {
     name: string;
     email: string;
     role: FamilyRole;
+    targetUserId?: string;
     sharingScope?: SharingScope;
     scopeStartDate?: string;
     scopeEndDate?: string;
@@ -56,12 +56,68 @@ export function InviteMemberDialog({
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<FamilyRole>("editor");
 
+  const [isChecking, setIsChecking] = useState(false);
+  const [userExists, setUserExists] = useState<boolean | null>(null);
+  const [foundUser, setFoundUser] = useState<{ id: string; full_name: string | null } | null>(null);
+
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [sharingScope, setSharingScope] = useState<SharingScope>("all");
   const [scopeStartDate, setScopeStartDate] = useState("");
   const [scopeEndDate, setScopeEndDate] = useState("");
   const [scopeTripId, setScopeTripId] = useState("");
   const [trips, setTrips] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (tab !== "family") {
+      setUserExists(null);
+      setFoundUser(null);
+      setIsChecking(false);
+      return;
+    }
+
+    const trimmed = email.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!trimmed || !emailRegex.test(trimmed)) {
+      setUserExists(null);
+      setFoundUser(null);
+      setIsChecking(false);
+      return;
+    }
+
+    if (user && trimmed === user.email?.trim().toLowerCase()) {
+      setUserExists(null);
+      setFoundUser(null);
+      setIsChecking(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsChecking(true);
+      try {
+        const { data, error } = await supabase.rpc("find_profile_for_family_link_v2", {
+          p_email: trimmed,
+        });
+
+        if (!error && Array.isArray(data) && data.length > 0) {
+          const profile = data[0];
+          setUserExists(true);
+          setFoundUser({ id: profile.id, full_name: profile.full_name });
+          setName((prev) => (prev.trim() === "" ? profile.full_name || trimmed.split("@")[0] : prev));
+        } else {
+          setUserExists(false);
+          setFoundUser(null);
+        }
+      } catch {
+        setUserExists(null);
+        setFoundUser(null);
+      } finally {
+        setIsChecking(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [email, tab, user]);
 
   useEffect(() => {
     if (user && sharingScope === "specific_trip") {
@@ -109,6 +165,7 @@ export function InviteMemberDialog({
         name,
         email,
         role,
+        targetUserId: foundUser?.id,
         sharingScope: showAdvanced ? sharingScope : "all",
         scopeStartDate: sharingScope === "date_range" ? scopeStartDate : undefined,
         scopeEndDate: sharingScope === "date_range" ? scopeEndDate : undefined,
@@ -129,6 +186,9 @@ export function InviteMemberDialog({
       setScopeTripId("");
       setShowAdvanced(false);
       setTab("family");
+      setUserExists(null);
+      setFoundUser(null);
+      setIsChecking(false);
     }
     onOpenChange(isOpen);
   };
@@ -143,7 +203,7 @@ export function InviteMemberDialog({
           <DialogTitle>{tab === "family" ? "Convidar membro" : "Adicionar contato"}</DialogTitle>
           <DialogDescription>
             {tab === "family"
-              ? "Convide por e-mail. A pessoa encontrará o convite ao entrar no app com esse endereço."
+              ? "A pessoa poderá aceitar ao entrar no app com este e-mail."
               : "Contatos aparecem no formulário de transação mas não têm acesso à família"}
           </DialogDescription>
         </DialogHeader>
@@ -183,19 +243,49 @@ export function InviteMemberDialog({
         <div className="px-6 pb-6 overflow-y-auto hide-scrollbar space-y-4">
           <div className="space-y-4 mt-4">
             <FormField label="Email" htmlFor="invite-email">
-              <Input
-                id="invite-email"
-                name="invite-email"
-                type="email"
-                placeholder="email@exemplo.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-                autoCapitalize="none"
-                spellCheck={false}
-                className="h-12 rounded-xl"
-              />
+              <div className="relative">
+                <Input
+                  id="invite-email"
+                  name="invite-email"
+                  type="email"
+                  placeholder="email@exemplo.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  className="h-12 rounded-xl pr-10"
+                />
+                {isChecking && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  </div>
+                )}
+                {!isChecking && userExists === true && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <Check className="h-4 w-4 text-emerald-600" />
+                  </div>
+                )}
+              </div>
             </FormField>
+
+            {tab === "family" && userExists === true && foundUser && (
+              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm flex items-center gap-2">
+                <UserCircle2 className="h-4 w-4 shrink-0" />
+                <span>
+                  <strong>Usuário encontrado:</strong> {foundUser.full_name || "Perfil cadastrado"}. Esta pessoa receberá uma notificação no app.
+                </span>
+              </div>
+            )}
+
+            {tab === "family" && userExists === false && email.trim().includes("@") && (
+              <div className="p-3 rounded-xl bg-muted/40 border border-border/50 text-muted-foreground text-xs flex items-center gap-2">
+                <Users className="h-4 w-4 shrink-0" />
+                <span>
+                  Este e-mail ainda não possui conta no aplicativo. O convite ficará pendente até o cadastro.
+                </span>
+              </div>
+            )}
 
             <FormField label="Nome" htmlFor="invite-name">
               <Input
@@ -375,14 +465,6 @@ export function InviteMemberDialog({
                   )}
                 </CollapsibleContent>
               </Collapsible>
-            )}
-
-            {tab === "family" && (
-              <div className="p-3 rounded-xl bg-positive/10 border border-positive/20">
-                <p className="text-sm text-positive">
-                  ✓ A pessoa precisa entrar com este e-mail e aceitar para concluir o vínculo.
-                </p>
-              </div>
             )}
           </div>
 

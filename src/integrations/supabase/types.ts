@@ -4471,6 +4471,10 @@ export type Database = {
         Args: never
         Returns: Json
       }
+      find_profile_for_family_link_v2: {
+        Args: { p_email?: string; p_full_name?: string }
+        Returns: { full_name: string | null; id: string }[]
+      }
       get_monthly_evolution: {
         Args: { p_months?: number; p_user_id: string }
         Returns: {
