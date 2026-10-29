@@ -1,5 +1,6 @@
 import { FamilyMemberCard } from "@/components/family/FamilyMemberCard";
 import { InviteMemberDialog } from "@/components/family/InviteMemberDialog";
+import { PendingInvitationsAlert } from "@/components/family/PendingInvitationsAlert";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Switch } from "@/components/ui/switch";
@@ -134,6 +135,9 @@ export function Family() {
           atualize a página para tentar novamente.
         </div>
       )}
+
+      <PendingInvitationsAlert />
+
       <div className="relative overflow-hidden rounded-2xl p-4 md:p-6 transition-all duration-700 ease-out bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
