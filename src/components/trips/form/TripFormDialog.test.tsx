@@ -68,7 +68,8 @@ describe("TripFormDialog", () => {
     await user.click(screen.getByRole("button", { name: "Criar viagem" }));
 
     expect(await screen.findByText("Dê um nome para a viagem")).toBeVisible();
-    expect(screen.getByLabelText(/^Nome da viagem/)).toHaveFocus();
+    // O foco é movido em requestAnimationFrame; esperar evita flakiness sob carga da suíte.
+    await waitFor(() => expect(screen.getByLabelText(/^Nome da viagem/)).toHaveFocus());
     expect(screen.getByLabelText(/^Nome da viagem/)).toHaveAttribute("aria-invalid", "true");
   });
 

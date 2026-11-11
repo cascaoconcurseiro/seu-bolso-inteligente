@@ -29,6 +29,7 @@ import { haptics } from "@/utils/haptics";
 import { logger } from "@/utils/logger";
 import { format } from "date-fns";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useAutoCategoryFromPrediction } from "./useAutoCategoryFromPrediction";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -194,17 +195,7 @@ export function useTransactionForm({
   }, [description]);
 
   // AI Auto-categoria inteligente e blindada contra race conditions
-  useEffect(() => {
-    if (predictedCategoryId) {
-      const isCurrentCategoryFromAI = categoryId === lastAppliedCategoryIdRef.current;
-
-      if (!store.hasUserSelectedCategoryManually || isCurrentCategoryFromAI) {
-        store.setCategoryId(predictedCategoryId);
-        lastAppliedCategoryIdRef.current = predictedCategoryId;
-        store.setHasUserSelectedCategoryManually(false);
-      }
-    }
-  }, [predictedCategoryId, store.hasUserSelectedCategoryManually, categoryId, store]);
+  useAutoCategoryFromPrediction(predictedCategoryId, lastAppliedCategoryIdRef);
 
   const handleCategoryChange = (val: string) => {
     store.setCategoryId(val);
@@ -212,7 +203,7 @@ export function useTransactionForm({
   };
 
   const tripMembersQuery = useTripMembers(tripId || null);
-  const tripMembers = tripMembersQuery.data ?? [];
+  const tripMembers = useMemo(() => tripMembersQuery.data ?? [], [tripMembersQuery.data]);
   const splitMembersLoading =
     familyQuery.isLoading ||
     membersLoading ||
