@@ -31,6 +31,31 @@ function _toJson(value: unknown): Json {
   return String(value);
 }
 
+/**
+ * Converte o motivo de uma promise rejeitada em texto legível.
+ * `String({})` produz "[object Object]"; erros do Supabase/PostgREST são objetos simples
+ * (message, code, details, hint) e não instâncias de Error.
+ */
+export function describeRejectionReason(reason: unknown): string {
+  if (reason instanceof Error) return reason.message;
+  if (typeof reason === "string") return reason;
+  if (reason && typeof reason === "object") {
+    const r = reason as Record<string, unknown>;
+    const parts = ["message", "code", "details", "hint"]
+      .map((k) => (typeof r[k] === "string" && r[k] ? `${k}: ${r[k]}` : null))
+      .filter((v): v is string => v !== null);
+    if (parts.length > 0) return parts.join(" | ");
+    try {
+      const json = JSON.stringify(reason);
+      if (json && json !== "{}") return json.slice(0, 500);
+    } catch {
+      // referência circular
+    }
+    return `Rejeição sem mensagem (${Object.prototype.toString.call(reason)})`;
+  }
+  return String(reason);
+}
+
 function isErrorPayload(value: unknown): value is ErrorPayload {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   const candidate = value as Record<string, unknown>;
@@ -101,7 +126,7 @@ export function initGlobalErrorLogger() {
     const isError = reason instanceof Error;
     send({
       error_type: isError ? reason.name : "UnhandledRejection",
-      message: isError ? reason.message : String(reason),
+      message: describeRejectionReason(reason),
       stack: isError ? reason.stack?.slice(0, 2000) : undefined,
       extra: { type: "unhandled_rejection" },
     });
