@@ -8,7 +8,13 @@ import { VitePWA } from "vite-plugin-pwa";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
+  // Versão gravada em error_logs.app_version: commit do deploy na Vercel (ou valor manual).
+  const appVersion =
+    env.VITE_APP_VERSION || process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || "dev";
   return {
+    define: {
+      "import.meta.env.VITE_APP_VERSION": JSON.stringify(appVersion),
+    },
     server: {
       host: "::",
       port: 8080,

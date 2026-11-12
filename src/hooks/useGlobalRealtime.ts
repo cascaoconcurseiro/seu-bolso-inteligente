@@ -78,12 +78,23 @@ export function useGlobalRealtime() {
       return errorTimestampsRef.current.length >= MAX_ERRORS_PER_WINDOW;
     };
 
-    const connectTable = (table: string, filter: string) => {
+    const connectTable = (table: string, filter: string, attempt = 0) => {
       if (cancelled) return;
 
       const safeFilter = filter.replace(/[^a-zA-Z0-9_-]/g, "_");
-      const channelName = `db-changes-${table}-${safeFilter}-${channelScope}`;
-      const channel = supabase
+      // `attempt` torna o tópico único a cada reconexão: um canal que caiu continua
+      // registrado no cliente até ser removido, e `.channel()` devolveria esse mesmo
+      // canal já inscrito, causando "cannot add `postgres_changes` callbacks ... after
+      // `subscribe()`".
+      const channelName = `db-changes-${table}-${safeFilter}-${channelScope}-${attempt}`;
+      const retry = (delay: number) => {
+        // Remove o canal antigo antes de recriar, para não vazar canais nem reaproveitá-lo.
+        const index = channels.indexOf(channel);
+        if (index >= 0) channels.splice(index, 1);
+        supabase.removeChannel(channel).catch(() => {});
+        setTimeout(() => connectTable(table, filter, attempt + 1), delay);
+      };
+      const channel: ReturnType<typeof supabase.channel> = supabase
         .channel(channelName)
         .on("postgres_changes", { event: "*", schema: "public", table, filter }, () => {
           // Debounce: agrupa eventos da mesma tabela em 800ms
@@ -110,11 +121,11 @@ export function useGlobalRealtime() {
             logger.error(`Erro no canal ${channelName}`);
             if (!cancelled && !shouldStopRetrying()) {
               const delay = Math.min(2000 * (errorTimestampsRef.current.length + 1), 30000);
-              setTimeout(() => connectTable(table, filter), delay);
+              retry(delay);
             }
           } else if (status === "CLOSED" || status === "TIMED_OUT") {
             if (!cancelled && !shouldStopRetrying()) {
-              setTimeout(() => connectTable(table, filter), 5000);
+              retry(5000);
             }
           }
         });

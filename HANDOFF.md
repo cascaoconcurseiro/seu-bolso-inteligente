@@ -2,6 +2,15 @@
 
 > Última atualização: 2026-10-28
 
+> **Aviso (2026-11-12):** este documento está desatualizado em relação ao código; confirmar no código antes de confiar nos números abaixo.
+
+## Atualização 2026-11-12 — erros de produção (`error_logs`)
+
+- Tempo real: a reconexão de canais (`CLOSED`/`CHANNEL_ERROR`/`TIMED_OUT`) reaproveitava o canal antigo e lançava `cannot add postgres_changes callbacks ... after subscribe()` (125 dos 129 erros registrados). Agora remove o canal antigo e usa nome único por tentativa (`useGlobalRealtime.ts`), com teste de regressão.
+- `error_logs.message` não grava mais `[object Object]` para rejeições com objeto simples (erros do Supabase): ver `describeRejectionReason` em `errorLogger.ts`.
+- `app_version` passa a receber o SHA curto do commit da Vercel (`VERCEL_GIT_COMMIT_SHA`) via `define` no `vite.config.ts`; antes ficava sempre `unknown`.
+- Pendente: confirmar em produção, após o deploy, que novos erros de tempo real deixam de aparecer e que `app_version` vem preenchida. Os 129 erros antigos seguem `PENDING` (não foram tratados em massa).
+
 ## Estado confirmado
 
 - Repositório em `C:\Users\Wesley\.codex\worktrees\rpc-audit-release\seu-bolso-inteligente`, branch `codex/audit-release-20261024`; commit `9ed0fc73` foi enviado em fast-forward para `main`. A correção adiciona Configurações como destino direto da navegação móvel e usa nomes de perfil/provedor na saudação sem exibir e-mail; cinco testes focados passaram, além de typecheck, ESLint focal, Prettier e build. Revisão independente aprovou. O deployment Vercel `dpl_J6j6jKC3zEXRY4hqRx5w8gAsmXvx` está `READY` e a versão live foi confirmada por `version.json=1793115952360`. A captura visual específica em viewport móvel ainda não foi feita.
