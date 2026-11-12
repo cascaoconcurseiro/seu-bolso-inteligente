@@ -25,7 +25,9 @@ function _toJson(value: unknown): Json {
   if (Array.isArray(value)) return value.map(_toJson);
 
   if (typeof value === "object") {
-    return Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([key, item]) => [key, _toJson(item)]));
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, item]) => [key, _toJson(item)])
+    );
   }
 
   return String(value);

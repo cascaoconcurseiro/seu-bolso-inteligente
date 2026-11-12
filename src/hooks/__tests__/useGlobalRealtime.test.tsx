@@ -16,7 +16,9 @@ class FakeChannel {
   constructor(public name: string) {}
   on() {
     if (this.subscribed) {
-      throw new Error(`cannot add \`postgres_changes\` callbacks for realtime:${this.name} after \`subscribe()\`.`);
+      throw new Error(
+        `cannot add \`postgres_changes\` callbacks for realtime:${this.name} after \`subscribe()\`.`
+      );
     }
     return this;
   }
